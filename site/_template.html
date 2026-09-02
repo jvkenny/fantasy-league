@@ -1,0 +1,638 @@
+<title>Double-Doink Record Book</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  --ground:#F2F4F8;--surface:#FFFFFF;--raised:#E9EDF4;--line:#D5DCE7;
+  --text:#101620;--muted:#5A6577;--accent:#A85F16;--accentbg:#F6E7D2;
+  --win:#1F7A47;--loss:#A83E30;--grid:#E2E7EF;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --ground:#0B0F16;--surface:#121824;--raised:#1A2231;--line:#232D3E;
+  --text:#DCE3ED;--muted:#7C89A0;--accent:#F2A03D;--accentbg:#2E2416;
+  --win:#45A06A;--loss:#C2564A;--grid:#1B2432;
+}}
+:root[data-theme="dark"]{
+  --ground:#0B0F16;--surface:#121824;--raised:#1A2231;--line:#232D3E;
+  --text:#DCE3ED;--muted:#7C89A0;--accent:#F2A03D;--accentbg:#2E2416;
+  --win:#45A06A;--loss:#C2564A;--grid:#1B2432;
+}
+*{box-sizing:border-box}
+html,body{max-width:100%;overflow-x:hidden}
+.card,.cols,.panel{min-width:0}
+body{margin:0;background:var(--ground);color:var(--text);
+  font-family:Barlow,system-ui,sans-serif;font-size:14px;line-height:1.45;
+  -webkit-font-smoothing:antialiased}
+.wrap{max-width:1280px;margin:0 auto;padding:0 18px}
+.mono{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums}
+h2{font-family:"Barlow Condensed",sans-serif;font-weight:700;text-transform:uppercase;
+  letter-spacing:.04em;font-size:19px;margin:0}
+.sub{color:var(--muted);font-size:12px;margin:2px 0 12px}
+
+/* header */
+header{position:sticky;top:0;z-index:20;background:var(--surface);
+  border-bottom:1px solid var(--line)}
+.hbar{display:flex;align-items:center;gap:16px;padding:10px 0;flex-wrap:wrap}
+.brand{font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:20px;
+  text-transform:uppercase;letter-spacing:.05em;white-space:nowrap}
+.brand span{color:var(--accent)}
+.ctl{display:flex;align-items:center;gap:6px;margin-left:auto;flex-wrap:wrap}
+select,input[type=search]{font-family:inherit;font-size:13px;color:var(--text);
+  background:var(--raised);border:1px solid var(--line);border-radius:2px;padding:5px 8px}
+input[type=search]{width:190px}
+nav{display:flex;gap:2px;overflow-x:auto;border-top:1px solid var(--line)}
+nav button{font-family:"Barlow Condensed",sans-serif;font-weight:600;font-size:14px;
+  text-transform:uppercase;letter-spacing:.05em;background:none;border:none;color:var(--muted);
+  padding:9px 14px;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap}
+nav button:hover{color:var(--text)}
+nav button[aria-current]{color:var(--accent);border-bottom-color:var(--accent)}
+
+main{padding:18px 0 60px}
+.panel{display:none}.panel.on{display:block}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:3px;margin-bottom:14px}
+.card>.hd{padding:10px 14px;border-bottom:1px solid var(--line);
+  display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.card>.bd{padding:12px 14px}
+.card>.bd.flush{padding:0}
+.cols{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(360px,1fr))}
+
+/* tables */
+.tw{overflow-x:auto;max-height:620px}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{padding:5px 10px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--line)}
+th:first-child,td:first-child{text-align:left;position:sticky;left:0;background:var(--surface)}
+thead th{position:sticky;top:0;z-index:2;background:var(--raised);
+  font-family:"Barlow Condensed",sans-serif;font-weight:600;font-size:11px;
+  text-transform:uppercase;letter-spacing:.07em;color:var(--muted);cursor:pointer}
+thead th:first-child{z-index:3;background:var(--raised)}
+thead th:hover{color:var(--accent)}
+thead th[data-on]{color:var(--accent)}
+tbody tr:hover td{background:var(--raised)}
+tbody tr:hover td:first-child{background:var(--raised)}
+td.n{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums}
+.pos{color:var(--win)}.neg{color:var(--loss)}
+.me td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
+.tag{font-family:"IBM Plex Mono",monospace;font-size:10px;padding:1px 4px;border-radius:2px;
+  background:var(--raised);color:var(--muted);border:1px solid var(--line)}
+.tag.gold{background:var(--accentbg);color:var(--accent);border-color:var(--accent)}
+.bar-c{position:relative}
+.bar-c i{position:absolute;left:0;top:2px;bottom:2px;background:var(--accent);opacity:.16;border-radius:1px}
+.bar-c span{position:relative}
+
+/* charts */
+svg{display:block;width:100%;height:auto;overflow:visible}
+.ax{stroke:var(--grid);stroke-width:1}
+.axl{fill:var(--muted);font-family:"IBM Plex Mono",monospace;font-size:9px}
+.dot{cursor:pointer}
+.dot:hover circle{stroke:var(--text);stroke-width:2}
+.dlbl{fill:var(--text);font-family:"Barlow Condensed",sans-serif;font-size:10px;font-weight:600}
+.ref{stroke:var(--muted);stroke-dasharray:3 3;stroke-width:1;opacity:.5}
+.note{font-size:11px;color:var(--muted);margin-top:6px}
+.plate{font-family:"IBM Plex Mono",monospace;font-size:11px;font-weight:600;
+  color:var(--accent);margin-right:8px;letter-spacing:.05em}
+.chip{font-family:"IBM Plex Mono",monospace;font-size:10px;color:var(--muted);
+  border:1px solid var(--line);border-radius:2px;padding:1px 6px;white-space:nowrap}
+.card>.ft{padding:8px 14px 10px;border-top:1px solid var(--line);font-size:11.5px;
+  line-height:1.5;color:var(--muted);max-width:104ch}
+.card>.ft b{font-family:"Barlow Condensed",sans-serif;font-weight:700;
+  text-transform:uppercase;letter-spacing:.08em;font-size:10px;color:var(--text);
+  margin-right:6px}
+.empty{color:var(--muted);font-size:12px;padding:16px 0;text-align:center}
+.catline{display:flex;align-items:baseline;gap:10px;margin:20px 0 9px}
+.catline h3{font-family:"Barlow Condensed",sans-serif;font-weight:700;text-transform:uppercase;
+  letter-spacing:.06em;font-size:16px;margin:0}
+.catline .rule{flex:1;height:1px;background:var(--line)}
+.catline .ct{font-family:"IBM Plex Mono",monospace;font-size:10px;color:var(--muted)}
+.find{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(310px,1fr))}
+.fi{background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--muted);
+  border-radius:3px;padding:12px 14px;display:flex;flex-direction:column;gap:5px}
+.fi[data-c="Bragging rights"]{border-left-color:var(--win)}
+.fi[data-c="Facepalm"]{border-left-color:var(--loss)}
+.fi[data-c="Robbed"]{border-left-color:var(--accent)}
+.fi .v{font-family:"IBM Plex Mono",monospace;font-size:19px;font-weight:600;
+  color:var(--accent);line-height:1.05;font-variant-numeric:tabular-nums}
+.fi .t{font-family:"Barlow Condensed",sans-serif;font-weight:700;text-transform:uppercase;
+  letter-spacing:.05em;font-size:13px}
+.fi .d{font-size:12.5px;color:var(--muted);line-height:1.5}
+:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+</style>
+
+<header><div class="wrap">
+  <div class="hbar">
+    <div class="brand">Double-Doink <span>Record Book</span></div>
+    <div class="ctl">
+      <select id="fSeason"></select>
+      <select id="fPerson"></select>
+      <input type="search" id="fSearch" placeholder="Search player, manager, team">
+    </div>
+  </div>
+  <nav id="nav"></nav>
+</div></header>
+
+<main class="wrap">
+  <div class="panel on" id="p-managers"></div>
+  <div class="panel" id="p-seasons"></div>
+  <div class="panel" id="p-h2h"></div>
+  <div class="panel" id="p-players"></div>
+  <div class="panel" id="p-draft"></div>
+  <div class="panel" id="p-records"></div>
+  <div class="panel" id="p-findings"></div>
+</main>
+
+<script id="payload" type="application/json">__DATA__</script>
+<script>
+const D = JSON.parse(document.getElementById('payload').textContent);
+const ME = D.meta.me;
+const $ = s => document.querySelector(s);
+const el = (t,c,x)=>{const n=document.createElement(t);if(c)n.className=c;
+  if(x!==undefined&&x!==null)n.textContent=x;return n};
+const num = (v,d=1)=> v===null||v===undefined||Number.isNaN(v) ? '–' : (+v).toFixed(d);
+const sgn = v => v===null||v===undefined ? '–' : (v>0?'+':'')+(+v).toFixed(1);
+
+/* ---------- filter state ---------- */
+const F = {season:'all', person:'all', q:''};
+const fs = $('#fSeason'), fp = $('#fPerson'), fq = $('#fSearch');
+fs.append(new Option('All seasons','all'));
+D.meta.seasons.slice().reverse().forEach(s=>fs.append(new Option(s,s)));
+fp.append(new Option('All managers','all'));
+D.people.forEach(p=>fp.append(new Option(p,p)));
+[fs,fp].forEach(s=>s.addEventListener('change',()=>{F.season=fs.value;F.person=fp.value;render()}));
+fq.addEventListener('input',()=>{F.q=fq.value.trim().toLowerCase();render()});
+
+const seasonOK = s => F.season==='all' || +s===+F.season;
+const personOK = p => F.person==='all' || p===F.person;
+const qOK = (...vals) => !F.q || vals.some(v=>String(v??'').toLowerCase().includes(F.q));
+
+/* ---------- tabs ---------- */
+const TABS = [['managers','Managers'],['seasons','Seasons'],['h2h','Head to Head'],
+              ['players','Players'],['draft','Draft'],['records','Records'],['findings','Findings']];
+let tab = 'managers';
+TABS.forEach(([k,label])=>{
+  const b = el('button',null,label);
+  b.addEventListener('click',()=>{tab=k;syncTabs();render()});
+  b.dataset.k=k; $('#nav').append(b);
+});
+function syncTabs(){
+  document.querySelectorAll('#nav button').forEach(b=>
+    b.toggleAttribute('aria-current', b.dataset.k===tab));
+  TABS.forEach(([k])=>$('#p-'+k).classList.toggle('on',k===tab));
+}
+
+/* ---------- table helper ---------- */
+function table(host, cols, rows, opts={}){
+  const wrapEl = el('div','tw'), t = el('table');
+  const thead = el('thead'), hr = el('tr');
+  cols.forEach((c,i)=>{ const th=el('th',null,c.h); th.dataset.i=i;
+    if(c.t) th.title=c.t; hr.append(th); });
+  thead.append(hr); t.append(thead);
+  const tb = el('tbody'); t.append(tb);
+  let sk = opts.sort ?? 1, asc = opts.asc ?? false;
+  function draw(){
+    tb.textContent='';
+    const sorted = [...rows].sort((a,b)=>{
+      const x=cols[sk].v(a), y=cols[sk].v(b);
+      if(x===null||x===undefined) return 1; if(y===null||y===undefined) return -1;
+      const r = typeof x==='string' ? x.localeCompare(y) : x-y;
+      return asc? r : -r;
+    });
+    if(!sorted.length){ const tr=el('tr'),td=el('td');td.colSpan=cols.length;
+      td.className='empty';td.textContent='No rows match the current filters.';
+      tr.append(td);tb.append(tr);return; }
+    sorted.forEach(r=>{
+      const tr = el('tr', opts.me && opts.me(r) ? 'me':'');
+      cols.forEach(c=>{
+        const td = el('td', c.n===false?'':'n');
+        const out = c.f ? c.f(r) : c.v(r);
+        if(out instanceof Node) td.append(out); else td.textContent = out;
+        if(c.cls) td.classList.add(...[].concat(c.cls(r)||[]));
+        tr.append(td);
+      });
+      tb.append(tr);
+    });
+    thead.querySelectorAll('th').forEach((th,i)=>th.toggleAttribute('data-on', i===sk));
+  }
+  thead.querySelectorAll('th').forEach(th=>th.addEventListener('click',()=>{
+    const i=+th.dataset.i; if(i===sk) asc=!asc; else {sk=i; asc = cols[i].n===false;}
+    draw();
+  }));
+  draw(); wrapEl.append(t); host.append(wrapEl);
+}
+let PLATE = 0;
+function card(host, o){
+  const c=el('div','card'), hd=el('div','hd');
+  const h=el('h2');
+  h.append(el('span','plate', String(++PLATE).padStart(2,'0')));
+  h.append(document.createTextNode(o.title));
+  hd.append(h);
+  if(o.scope) hd.append(el('span','chip',o.scope));
+  if(o.sub) hd.append(el('div','sub',o.sub));
+  const bd=el('div','bd flush'); c.append(hd,bd);
+  if(o.methods){ const f=el('div','ft');
+    f.append(el('b',null,'Method')); f.append(document.createTextNode(o.methods));
+    c.append(f); }
+  host.append(c); return bd;
+}
+function cardPad(host,o){ const b=card(host,o); b.classList.remove('flush'); return b; }
+
+/* ---------- charts ---------- */
+function scatter(host, pts, {xl,yl,note}={}){
+  const W=560,H=380,M={t:14,r:16,b:38,l:44};
+  const xs=pts.map(p=>p.x), ys=pts.map(p=>p.y);
+  const lo=Math.min(...xs,...ys)-.03, hi=Math.max(...xs,...ys)+.03;
+  const sx=v=>M.l+(v-lo)/(hi-lo)*(W-M.l-M.r), sy=v=>H-M.b-(v-lo)/(hi-lo)*(H-M.t-M.b);
+  const NS='http://www.w3.org/2000/svg';
+  const svg=document.createElementNS(NS,'svg'); svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  const mk=(n,a)=>{const e=document.createElementNS(NS,n);
+    for(const k in a)e.setAttribute(k,a[k]);return e};
+  for(let i=0;i<=4;i++){ const v=lo+(hi-lo)*i/4;
+    svg.append(mk('line',{x1:M.l,x2:W-M.r,y1:sy(v),y2:sy(v),class:'ax'}));
+    const tl=mk('text',{x:M.l-6,y:sy(v)+3,class:'axl','text-anchor':'end'});
+    tl.textContent=v.toFixed(2); svg.append(tl);
+    const bl=mk('text',{x:sx(v),y:H-M.b+14,class:'axl','text-anchor':'middle'});
+    bl.textContent=v.toFixed(2); svg.append(bl);
+  }
+  svg.append(mk('line',{x1:sx(lo),y1:sy(lo),x2:sx(hi),y2:sy(hi),class:'ref'}));
+  pts.forEach(p=>{
+    const g=mk('g',{class:'dot'});
+    const c=mk('circle',{cx:sx(p.x),cy:sy(p.y),r:p.r??5,
+      fill:p.y>=p.x?'var(--win)':'var(--loss)','fill-opacity':p.hot?1:.8});
+    if(p.hot){ c.setAttribute('stroke','var(--accent)'); c.setAttribute('stroke-width','3'); }
+    const t=mk('text',{x:sx(p.x)+8,y:sy(p.y)+3,class:'dlbl'}); t.textContent=p.l;
+    const ttl=document.createElementNS(NS,'title'); ttl.textContent=p.tip;
+    g.append(c,t,ttl); svg.append(g);
+  });
+  const xt=mk('text',{x:(W)/2,y:H-4,class:'axl','text-anchor':'middle'}); xt.textContent=xl;
+  const yt=mk('text',{x:12,y:H/2,class:'axl','text-anchor':'middle',
+    transform:`rotate(-90 12 ${H/2})`}); yt.textContent=yl;
+  svg.append(xt,yt); host.append(svg);
+  if(note) host.append(el('div','note',note));
+}
+function sparkCols(host, rows, {key, label, fmt=(v)=>num(v,1)}){
+  const max=Math.max(...rows.map(r=>Math.abs(r[key])||0))||1;
+  const t=el('table'); const tb=el('tbody'); t.append(tb);
+  rows.forEach(r=>{
+    const tr=el('tr');
+    tr.append(el('td',null,label(r)));
+    const td=el('td','n bar-c'); const i=el('i');
+    i.style.width=(Math.abs(r[key])/max*100).toFixed(1)+'%';
+    if(r[key]<0) i.style.background='var(--loss)';
+    if(F.person!=='all' && r.p===F.person){ i.style.opacity='.95';
+      tr.style.boxShadow='inset 3px 0 0 var(--accent)'; }
+    td.append(i, el('span',null,fmt(r[key])));
+    tr.append(td); tb.append(tr);
+  });
+  const w=el('div','tw'); w.append(t); host.append(w);
+}
+
+/* ---------- panels ---------- */
+const N = D.n;
+const GAP = N.gapSeasons.join(' and ');
+const SLOTS_TXT = Object.entries(N.slots).map(([k,v])=>v>1?`${k}×${v}`:k).join(', ');
+const DETAIL_NOTE = `Roster-level metrics cover ${N.detailSeasons} of ${N.allSeasons} seasons; `
+  + `${GAP} hold league-level results only, so their roster-derived cells are blank.`;
+
+function renderManagers(){
+  const host=$('#p-managers'); host.textContent='';
+  const bySeason = F.season!=='all';
+
+  // With a season chosen the career rollup is the wrong object entirely, so
+  // rebuild the same row shape from that season's data. Every column keeps its
+  // definition; only the scope changes.
+  const rows = (bySeason
+    ? D.teamSeasons.filter(r=>+r.s===+F.season).map(r=>({
+        p:r.p, seasons:1, w:r.w, l:r.l, tm:r.tm,
+        pct:(r.w+r.l)?+(r.w/(r.w+r.l)).toFixed(3):0,
+        apPct:(r.apw+r.apl)?+(r.apw/(r.apw+r.apl)).toFixed(3):null,
+        luck:r.luck, ppg:(r.w+r.l)?+(r.pf/(r.w+r.l)).toFixed(1):0,
+        papg:(r.w+r.l)?+(r.pa/(r.w+r.l)).toFixed(1):0,
+        eff:r.eff, beatProj:null, po:r.seed?1:0,
+        titles:r.rk===1?1:0, best:r.rk}))
+    : D.careers.map(r=>({...r})))
+    .filter(r=>qOK(r.p,r.tm));
+
+  const shown = rows.filter(r=>personOK(r.p));
+  const b = card(host,{
+    title: bySeason ? `${F.season} ledger` : 'Career ledger',
+    scope: bySeason
+      ? `${F.season} · ${rows.length} managers`
+      : `${N.managers} managers · ${N.teamWeeks.toLocaleString()} team-weeks · ${D.meta.seasons[0]}–${D.meta.seasons.at(-1)}`,
+    methods:(bySeason
+      ? `Scoped to ${F.season}; W–L is that season's regular season only. `
+      : `All seasons combined. W–L counts regular-season games only. `)
+      +`All-play% is the share of wins a manager would hold if they had faced every opponent's `
+      +`score in the same week, so it removes the schedule entirely. Luck = actual wins − `
+      +`(all-play% × games played), expressed in wins. `
+      +(bySeason?`Beat proj is a career-only figure and is blank here. `:``)
+      +DETAIL_NOTE});
+  table(b,[
+    {h:'Manager',n:false,v:r=>r.p},
+    bySeason?{h:'Team',n:false,v:r=>r.tm||''}:{h:'S',v:r=>r.seasons,t:'Seasons played'},
+    {h:'W',v:r=>r.w},{h:'L',v:r=>r.l},
+    {h:'Win%',v:r=>r.pct,f:r=>r.pct.toFixed(3)},
+    {h:'All-play%',v:r=>r.apPct,f:r=>r.apPct===null?'–':r.apPct.toFixed(3),
+     t:'Win rate against every team, every week — schedule-independent'},
+    {h:'Luck',v:r=>r.luck,f:r=>sgn(r.luck),cls:r=>r.luck>0?'pos':r.luck<0?'neg':'',
+     t:'Actual wins minus all-play expected wins'},
+    {h:'PF/g',v:r=>r.ppg,t:'Points scored per game'},
+    {h:'PA/g',v:r=>r.papg,t:'Points allowed per game'},
+    {h:'Lineup%',v:r=>r.eff,f:r=>r.eff===null?'–':r.eff.toFixed(1),
+     t:'Points started ÷ best possible from that roster'},
+    {h:'Beat proj',v:r=>r.beatProj,f:r=>r.beatProj===null?'–':(r.beatProj*100).toFixed(1)+'%',
+     t:'Share of started players who outscored their ESPN projection'},
+    {h:'Playoffs',v:r=>r.po,t:bySeason?'Made the playoff field':'Seasons reaching the playoff field'},
+    {h:'Titles',v:r=>r.titles,f:r=>r.titles?el('span','tag gold','★'.repeat(r.titles)):'–'},
+    {h:bySeason?'Finish':'Best',v:r=>r.best===null?99:r.best,f:r=>r.best??'–'},
+  ],shown,{sort:4,me:r=>r.p===ME});
+
+  const cols=el('div','cols'); host.append(cols);
+  const c1=el('div'); cols.append(c1);
+  const pts = rows.filter(r=>r.apPct!==null && (bySeason || r.seasons>=2));
+  const b1=cardPad(c1,{
+    title:'Record earned vs record received',
+    scope: bySeason ? `${F.season} · n = ${pts.length} managers`
+                    : `n = ${pts.length} managers with ≥ 2 seasons`,
+    methods:`Horizontal axis is the all-play win rate — what each manager's weekly scores `
+      +`deserved against the whole league. Vertical axis is the record they actually got from the `
+      +`schedule ESPN dealt. The dashed diagonal is parity; distance from it is schedule luck, `
+      +`not skill. `
+      +(bySeason?`Scoped to ${F.season}, one dot per manager. `
+               :`Dot radius scales with seasons played. `)
+      +`Choosing a manager rings their dot rather than removing the others, because the `
+      +`comparison is the measurement.`});
+  if(pts.length) scatter(b1, pts.map(r=>({
+    x:r.apPct, y:r.pct, l:r.p.split(' ')[0],
+    r:bySeason?6:4+Math.min(6,r.seasons),
+    hot: F.person!=='all' && r.p===F.person,
+    tip:`${r.p}: actual ${r.pct.toFixed(3)}, all-play ${r.apPct.toFixed(3)}, luck ${sgn(r.luck)} W`
+  })),{xl:'All-play win rate (deserved)',yl:'Actual win rate (received)'});
+  else b1.append(el('div','empty','No completed games for this scope.'));
+
+  const c2=el('div'); cols.append(c2);
+  const effRows = rows.filter(r=>r.eff!==null).sort((a,b)=>b.eff-a.eff);
+  const b2=cardPad(c2,{
+    title:'Lineup efficiency',
+    scope: bySeason?`${F.season} · n = ${effRows.length} managers`
+                   :`n = ${effRows.length} managers · ${N.detailSeasons} seasons`,
+    methods:`Points actually started ÷ the most that roster could legally have scored the `
+      +`same week. The optimum fills each starting slot (${SLOTS_TXT}) from the players on the `
+      +`roster, honouring every player's eligible positions; bench and IR are excluded. 100% `
+      +`would require perfect hindsight every week. ${DETAIL_NOTE}`});
+  if(effRows.length) sparkCols(b2, effRows, {key:'eff',label:r=>r.p,fmt:v=>v.toFixed(1)+'%'});
+  else b2.append(el('div','empty',`No roster-level data for ${F.season}.`));
+
+  const luckRows=[...rows].filter(r=>r.luck!==null&&r.luck!==undefined)
+    .sort((a,b)=>b.luck-a.luck);
+  const b3=cardPad(c2,{
+    title: bySeason?'Luck, in wins':'Career luck, in wins',
+    scope: bySeason?`${F.season}`:`${N.managers} managers`,
+    methods:`Actual wins minus expected wins`
+      +(bySeason?` in ${F.season}. `:`, summed across every season played. `)
+      +`Expected wins = all-play win rate × games. A positive bar means the schedule handed a `
+      +`manager victories their scoring did not earn; a negative bar means the reverse. Values `
+      +`are wins, not games.`});
+  if(luckRows.length) sparkCols(b3, luckRows, {key:'luck',label:r=>r.p,fmt:v=>sgn(v)});
+  else b3.append(el('div','empty','No completed games for this scope.'));
+}
+
+function renderSeasons(){
+  const host=$('#p-seasons'); host.textContent='';
+  const rows = D.teamSeasons.filter(r=>seasonOK(r.s)&&personOK(r.p)&&qOK(r.p,r.tm,r.s));
+  const b=card(host,{
+    title:'Team seasons',
+    scope:`${rows.length} of ${N.teamSeasons} manager-seasons shown`,
+    methods:`One row per manager per season. Exp W = all-play win rate × games played. `
+      +`σ is the population standard deviation of weekly scores — a consistency measure, `
+      +`where a low σ alongside a high PF is the strongest profile and a high σ means `
+      +`boom-or-bust. Benched counts points scored by players held in bench slots only; injured `
+      +`reserve is excluded. ${DETAIL_NOTE}`});
+  table(b,[
+    {h:'Manager',n:false,v:r=>r.p},
+    {h:'Season',v:r=>r.s},
+    {h:'Team',n:false,v:r=>r.tm||''},
+    {h:'W',v:r=>r.w},{h:'L',v:r=>r.l},
+    {h:'PF',v:r=>r.pf},{h:'PA',v:r=>r.pa},
+    {h:'All-play',n:false,v:r=>r.apw,f:r=>`${r.apw}-${r.apl}`,
+     t:'Record against every opponent, every week'},
+    {h:'Exp W',v:r=>r.expW,f:r=>num(r.expW)},
+    {h:'Luck',v:r=>r.luck,f:r=>sgn(r.luck),cls:r=>r.luck>0?'pos':r.luck<0?'neg':''},
+    {h:'Lineup%',v:r=>r.eff,f:r=>r.eff===null?'–':r.eff.toFixed(1)},
+    {h:'Benched',v:r=>r.bn,f:r=>num(r.bn,0)},
+    {h:'High',v:r=>r.hi,f:r=>num(r.hi,1)},{h:'Low',v:r=>r.lo,f:r=>num(r.lo,1)},
+    {h:'σ',v:r=>r.sd,f:r=>num(r.sd,1),t:'Standard deviation of weekly scores'},
+    {h:'Finish',v:r=>r.rk===null?99:r.rk,
+     f:r=>r.rk===1?el('span','tag gold','CHAMP'):(r.rk??'–')},
+  ],rows,{sort:1,me:r=>r.p===ME});
+
+  const sel = F.season!=='all';
+  const b2=cardPad(host,{
+    title:'Weekly scoring',
+    scope: sel?`${F.season} · all managers`:'select a season',
+    methods:`Each line is one manager's point total for that week, regular season and playoffs `
+      +`together. Choosing a manager in the header highlights their line in amber and dims the `
+      +`rest rather than removing them — the league context is what makes a good or bad week `
+      +`legible. The vertical axis starts at zero so line heights are directly comparable.`});
+  if(sel) weeklyChart(b2, +F.season);
+  else b2.append(el('div','empty','Select a season in the header to plot its week-by-week scoring.'));
+}
+
+function renderH2H(){
+  const host=$('#p-h2h'); host.textContent='';
+  // Derived from the filtered team-weeks rather than the precomputed career
+  // matrix, so the season picker actually changes what is on screen.
+  const src = D.teamWeeks.filter(g=>seasonOK(g.s) && g.o);
+  const rec={}, pts={};
+  src.forEach(g=>{
+    const k=`${g.p}|${g.o}`;
+    (rec[k] ??= [0,0]); (pts[k] ??= [0,0]);
+    rec[k][g.win?0:1]++; pts[k][0]+=g.pts; pts[k][1]+=g.opp;
+  });
+  let people=[...new Set(src.map(g=>g.p))];
+  if(F.season==='all')
+    people=people.filter(p=>((D.careers.find(c=>c.p===p)||{}).seasons||0)>=3);
+  people=people.filter(p=>qOK(p)).sort();
+
+  const b=cardPad(host,{
+    title:'Head to head',
+    scope: F.season==='all'
+      ? `all-time · ${people.length} managers with ≥ 3 seasons`
+      : `${F.season} · ${people.length} managers`,
+    methods:`Record of the row manager against the column manager`
+      +(F.season==='all'?`, career, counting every meeting including playoffs. `
+                        :` during ${F.season} only, which is why most cells hold a single game. `)
+      +`Cell shading scales with how far the series sits from even `
+      +`(|win rate − .500|), so a deep cell is lopsided and a pale one is close; shading does `
+      +`not encode how many games were played, and a 2–0 looks as strong as an 8–2. `
+      +`Hover any cell for points per game in both directions.`});
+  if(!people.length){ b.append(el('div','empty','No meetings match these filters.')); return; }
+  const t=el('table'); const thead=el('thead'),hr=el('tr'); hr.append(el('th'));
+  people.forEach(p=>hr.append(el('th',null,p.split(' ')[0])));
+  thead.append(hr); t.append(thead);
+  const tb=el('tbody');
+  people.forEach(a=>{
+    const tr=el('tr');
+    const th=el('th',null,a); th.style.textAlign='left';
+    if(F.person!=='all' && a===F.person) th.style.boxShadow='inset 3px 0 0 var(--accent)';
+    tr.append(th);
+    people.forEach(bb=>{
+      const td=el('td','n');
+      if(a===bb){td.textContent='–';td.style.color='var(--muted)';tr.append(td);return}
+      const v=rec[`${a}|${bb}`];
+      if(!v){td.textContent='·';td.style.color='var(--line)';tr.append(td);return}
+      const w=v[0], l=v[1], n=w+l, rate=w/n, sp=pts[`${a}|${bb}`];
+      td.textContent=`${w}-${l}`;
+      const k=Math.min(1,Math.abs(rate-.5)*2.4);
+      td.style.background=`color-mix(in oklab, ${rate>=.5?'var(--win)':'var(--loss)'} ${10+k*45}%, var(--surface))`;
+      if(F.person!=='all' && (a===F.person||bb===F.person)) td.style.fontWeight='700';
+      td.title=`${a} is ${w}-${l} vs ${bb} over ${n} meeting${n===1?'':'s'} — `
+        +`${(sp[0]/n).toFixed(1)} to ${(sp[1]/n).toFixed(1)} points per game`;
+      tr.append(td);
+    });
+    tb.append(tr);
+  });
+  t.append(tb); const w=el('div','tw'); w.append(t); b.append(w);
+}
+
+function renderPlayers(){
+  const host=$('#p-players'); host.textContent='';
+  const rows=D.playerSeasons.filter(r=>seasonOK(r.s)&&personOK(r.p)&&qOK(r.pl,r.p,r.pos));
+  const b=card(host,{
+    title:'Player seasons',
+    scope:`${rows.length.toLocaleString()} of ${N.playerSeasons.toLocaleString()} rows`,
+    methods:`Started is the points a player scored while in that manager's active lineup; Benched `
+      +`is what they scored sitting in a bench slot for them. A player rostered by two managers in `
+      +`one season appears once per manager, so a league-wide total is the sum of their rows rather `
+      +`than any single one. GS counts weeks started, so points ÷ GS gives a per-start average. `
+      +DETAIL_NOTE});
+  table(b,[
+    {h:'Player',n:false,v:r=>r.pl||''},
+    {h:'Pos',n:false,v:r=>r.pos||''},
+    {h:'Season',v:r=>r.s},
+    {h:'Manager',n:false,v:r=>r.p},
+    {h:'Started',v:r=>r.st,t:'Points scored in this manager’s active lineup'},
+    {h:'GS',v:r=>r.gs,t:'Weeks started'},
+    {h:'Best wk',v:r=>r.best},
+    {h:'Benched',v:r=>r.bn,cls:r=>r.bn>50?'neg':'',
+     t:'Points scored while on this manager’s bench'},
+  ],rows.slice(0,4000),{sort:4,me:r=>r.p===ME});
+}
+
+function renderDraft(){
+  const host=$('#p-draft'); host.textContent='';
+  const rows=D.draft.filter(r=>seasonOK(r.s)&&personOK(r.p)&&qOK(r.pl,r.p,r.pos));
+  const b=card(host,{
+    title:'Draft board',
+    scope:`${rows.length.toLocaleString()} of ${N.picks.toLocaleString()} picks · ${D.meta.seasons[0]}–${D.meta.seasons.at(-1)}`,
+    methods:`Return is what the pick gave the manager who spent it — points scored in that `
+      +`manager's starting lineup that season. League is the same player's starting-lineup points `
+      +`across every roster that year. A large gap between the two is a player who was cut or `
+      +`traded and then produced for somebody else, which is the only way to see a draft pick that `
+      +`was right about the player and wrong about keeping him. ${DETAIL_NOTE}`});
+  table(b,[
+    {h:'Player',n:false,v:r=>r.pl||''},
+    {h:'Pos',n:false,v:r=>r.pos||''},
+    {h:'Season',v:r=>r.s},
+    {h:'Rd',v:r=>r.rd},{h:'Pick',v:r=>r.ov,t:'Overall pick number'},
+    {h:'Manager',n:false,v:r=>r.p||''},
+    {h:'Return',v:r=>r.pts,t:'Points started for the drafting manager'},
+    {h:'League',v:r=>r.lg,t:'Points started for anyone that season'},
+    {h:'Lost',v:r=>r.lg-r.pts,f:r=>r.lg-r.pts>0.05?num(r.lg-r.pts,1):'–',
+     cls:r=>(r.lg-r.pts)>100?'neg':'', t:'Production that went to another roster'},
+    {h:'Keeper',n:false,v:r=>r.k,f:r=>r.k?el('span','tag','K'):''},
+  ],rows,{sort:6,me:r=>r.p===ME});
+
+  const byRound={};
+  D.draft.filter(r=>seasonOK(r.s)&&r.lg>0).forEach(r=>{(byRound[r.rd] ??= []).push(r.lg)});
+  const rr=Object.entries(byRound).map(([rd,v])=>({rd:+rd,
+    avg:v.reduce((a,b)=>a+b,0)/v.length,n:v.length})).sort((a,b)=>a.rd-b.rd);
+  const b2=cardPad(host,{
+    title:'Production by round',
+    scope:`${rr.reduce((a,b)=>a+b.n,0).toLocaleString()} picks that produced starts`,
+    methods:`Mean starting-lineup points per pick, by draft round, counting production on any `
+      +`roster so that a cut player still credits the round. Picks that never started anywhere are `
+      +`excluded, which lifts the late rounds — read the shape as the value of a round that `
+      +`hits, not the odds of hitting.`});
+  sparkCols(b2, rr, {key:'avg',label:r=>`Round ${r.rd}  (${r.n} picks)`,fmt:v=>v.toFixed(1)});
+}
+
+function renderRecords(){
+  const host=$('#p-records'); host.textContent='';
+  const g=D.teamWeeks.filter(r=>seasonOK(r.s)&&personOK(r.p)&&qOK(r.p,r.o));
+  const cols=el('div','cols'); host.append(cols);
+  const mk=(title,methods,rows,extra)=>{
+    const c=el('div'); cols.append(c);
+    const b=card(c,{title,scope:`top ${Math.min(25,rows.length)}`,methods});
+    table(b,[
+      {h:'Manager',n:false,v:r=>r.p},
+      {h:'Opponent',n:false,v:r=>r.o||''},
+      {h:'When',n:false,v:r=>r.s*100+r.wk,f:r=>`${r.s} wk${r.wk}`},
+      ...extra
+    ],rows,{sort:3,me:r=>r.p===ME});
+  };
+  mk('Highest weeks',
+     `Single-week point totals, regular season and playoffs together. Scoring settings have not `
+     +`changed across the league's history, so weeks are directly comparable across seasons.`,
+     [...g].sort((a,b)=>b.pts-a.pts).slice(0,25), [{h:'Points',v:r=>r.pts}]);
+  mk('Lowest weeks',
+     `Weeks under 10 points are excluded — those are abandoned or bye-wrecked rosters rather `
+     +`than bad performances, and they would otherwise fill the whole table.`,
+     [...g].filter(r=>r.pts>10).sort((a,b)=>a.pts-b.pts).slice(0,25), [{h:'Points',v:r=>r.pts}]);
+  mk('Biggest wins',
+     `Margin of victory in a single matchup. Ranked by margin, not by winning score, so a modest `
+     +`total against a collapsed opponent can outrank a big one.`,
+     [...g].filter(r=>r.win).sort((a,b)=>(b.pts-b.opp)-(a.pts-a.opp)).slice(0,25),
+     [{h:'Margin',v:r=>r.pts-r.opp,f:r=>'+'+num(r.pts-r.opp)},
+      {h:'Score',n:false,v:r=>r.pts,f:r=>`${num(r.pts)}–${num(r.opp)}`}]);
+  mk('Worst beats',
+     `The highest scores that still lost. This is the sharpest single view of schedule luck: `
+     +`every one of these weeks would have been a win against most of the league.`,
+     [...g].filter(r=>!r.win).sort((a,b)=>b.pts-a.pts).slice(0,25),
+     [{h:'Points',v:r=>r.pts},{h:'Lost by',v:r=>r.opp-r.pts,f:r=>num(r.opp-r.pts)}]);
+  mk('Closest games',
+     `Smallest winning margin. Ties are excluded; margins are shown to two decimals because this `
+     +`league has been decided by hundredths of a point.`,
+     [...g].filter(r=>r.win&&(r.pts-r.opp)>0).sort((a,b)=>(a.pts-a.opp)-(b.pts-b.opp)).slice(0,25),
+     [{h:'Margin',v:r=>r.pts-r.opp,f:r=>num(r.pts-r.opp,2)}]);
+  mk('Most left on the bench',
+     `Points scored by benched players in a single week. The Result column is what makes these `
+     +`hurt — a loss here is a week the manager already had the winning points on the roster. `
+     +DETAIL_NOTE,
+     [...g].filter(r=>r.bn).sort((a,b)=>b.bn-a.bn).slice(0,25),
+     [{h:'Benched',v:r=>r.bn},{h:'Scored',v:r=>r.pts},
+      {h:'Result',n:false,v:r=>r.win,f:r=>r.win?'W':'L',cls:r=>r.win?'pos':'neg'}]);
+}
+
+function renderFindings(){
+  const host=$('#p-findings'); host.textContent='';
+  const all=(D.findings||[]).filter(f=>qOK(f.t,f.d,f.v,f.cat));
+  const b=card(host,{
+    title:'What the numbers turned up',
+    scope:`all-time \u00b7 ${all.length} of ${(D.findings||[]).length} findings`,
+    methods:`These are league-wide records, so the season and manager pickers do not scope them \u2014 only the search box filters this list. Every figure is computed from the same tables the charts use, not `
+      +`written in by hand \u2014 a refreshed export rewrites these automatically. Claims that `
+      +`depend on rosters are restricted to the ${N.detailSeasons} seasons that have them, so `
+      +`${GAP} never contribute a zero that would read as a historic collapse. Ties are excluded `
+      +`from margin records, and the in-progress season is excluded from anything retrospective.`});
+  b.classList.remove('flush');
+  if(!all.length){ b.append(el('div','empty','Nothing matches that search.')); return; }
+  const order=['Bragging rights','Facepalm','Robbed','Oddity'];
+  const groups={}; all.forEach(f=>(groups[f.cat] ??= []).push(f));
+  order.filter(k=>groups[k]).forEach(k=>{
+    const line=el('div','catline');
+    line.append(el('h3',null,k), el('div','rule'), el('span','ct',`${groups[k].length}`));
+    b.append(line);
+    const g=el('div','find');
+    groups[k].forEach(f=>{
+      const c=el('div','fi'); c.dataset.c=f.cat;
+      c.append(el('div','v',f.v), el('div','t',f.t), el('div','d',f.d));
+      g.append(c);
+    });
+    b.append(g);
+  });
+}
+const R={managers:renderManagers,seasons:renderSeasons,h2h:renderH2H,
+         players:renderPlayers,draft:renderDraft,records:renderRecords,
+         findings:renderFindings};
+function render(){ PLATE=0; R[tab](); }
+syncTabs(); render();
+</script>

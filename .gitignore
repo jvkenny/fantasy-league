@@ -1,0 +1,10 @@
+# The raw haul: 251 MB of ESPN responses, re-fetchable with `ffl.export`
+data/raw/
+# Intermediate tables — carry FULL legal names, never publish
+data/derived/
+# Maps ESPN member GUIDs to full legal names. Must not be public.
+data/identities.json
+# Never commit resolved secrets (.env holds op:// references only, and is safe)
+.env.local
+*.tmp
+__pycache__/
