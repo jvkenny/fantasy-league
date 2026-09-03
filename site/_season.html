@@ -111,6 +111,11 @@ td.n{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums}
 .sub-msg{padding:2px 14px 12px;font-size:12.5px;color:var(--muted);line-height:1.5}
 .sub-msg.ok{color:var(--win)}
 .sub-msg.bad{color:var(--loss)}
+svg{display:block;width:100%;height:auto;overflow:visible}
+.ax{stroke:var(--grid);stroke-width:1}
+.axl{fill:var(--muted);font-family:"IBM Plex Mono",monospace;font-size:9px}
+.ref{stroke:var(--muted);stroke-dasharray:3 3;stroke-width:1;opacity:.55}
+.cols{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(330px,1fr))}
 .empty{color:var(--muted);font-size:12.5px;padding:22px 14px;text-align:center;line-height:1.6}
 .empty b{color:var(--text);font-weight:600}
 :focus-visible{outline:2px solid var(--accent);outline-offset:1px}
@@ -131,6 +136,7 @@ td.n{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums}
 
 <main class="wrap">
   <div id="awards"></div>
+  <div id="charts"></div>
   <div id="standings"></div>
   <div id="schedule"></div>
   <div id="rosters"></div>
@@ -159,6 +165,7 @@ function card(host,o){
     f.append(document.createTextNode(o.methods));c.append(f);}
   host.append(c); return bd;
 }
+function cardPad(host,o){const b=card(host,o);b.classList.remove('flush');return b}
 function table(host,cols,rows,opts={}){
   const w=el('div','tw'),t=el('table'),thead=el('thead'),hr=el('tr');
   cols.forEach((c,i)=>{const th=el('th',null,c.h);th.dataset.i=i;if(c.t)th.title=c.t;hr.append(th)});
@@ -185,6 +192,8 @@ function table(host,cols,rows,opts={}){
     const i=+th.dataset.i; if(i===sk)asc=!asc; else {sk=i;asc=cols[i].n===false;} draw();}));
   draw(); w.append(t); host.append(w);
 }
+
+__CHARTS__
 
 /* ---- header ---- */
 $('#brand').innerHTML='';
@@ -406,9 +415,88 @@ function renderSubscribe(){
   });
 }
 
+
+/* ---- charts ---- */
+function renderCharts(){
+  const host=$('#charts'); host.textContent='';
+  const C=D.calib;
+  const cols=el('div','cols'); host.append(cols);
+
+  // 1. score distribution, with this week's scores marked once they exist
+  const c1=el('div'); cols.append(c1);
+  const sorted=[...C.scores].sort((a,b)=>a-b);
+  const q=f=>sorted[Math.round((sorted.length-1)*f)];
+  const wkScores=[];
+  const key=Object.keys(D.awards||{}).slice(-1)[0];
+  D.schedule.filter(g=>g.hs!=null).forEach(g=>{wkScores.push(g.hs,g.as)});
+  const b1=cardPad(c1,{
+    title:'What a good week looks like',
+    scope:`n = ${C.scores.length} team-weeks, all seasons`,
+    methods:`Every team-week this league has ever played, bucketed by points scored. The `
+      +`dashed lines are the 5th, 50th and 95th percentiles: half of all weeks land between `
+      +`${q(.25).toFixed(0)} and ${q(.75).toFixed(0)}, and anything past ${q(.95).toFixed(0)} `
+      +`is a top-5% week. Use it to judge whether a score was actually good or merely `
+      +`survived the schedule.`});
+  histogram(b1,C.scores,{bins:26,xl:'Points scored in a week',yl:'Team-weeks',
+    marks:[{v:q(.05),label:'5th',color:'var(--loss)'},
+           {v:q(.50),label:'median '+q(.50).toFixed(0),color:'var(--text)'},
+           {v:q(.95),label:'95th',color:'var(--win)'}]});
+
+  // 2. how close games actually are
+  const c2=el('div'); cols.append(c2);
+  const m=C.margins, close=t=>m.filter(x=>x<=t).length/m.length;
+  const b2=cardPad(c2,{
+    title:'Margins are wider than they feel',
+    scope:`n = ${m.length} completed matchups`,
+    methods:`Margin of victory across every matchup on record. The median is `
+      +`${m[Math.floor(m.length/2)].toFixed(1)} points and only `
+      +`${(close(10)*100).toFixed(1)}% of games finish within ten - fantasy weeks are decided `
+      +`by more than they seem to be in the moment. This is also why a single lineup call `
+      +`rarely swings a result, and why the ones that do are worth an award.`});
+  histogram(b2,m,{bins:24,min:0,xl:'Margin of victory',yl:'Matchups',
+    marks:[{v:10,label:(close(10)*100).toFixed(0)+'% within 10',color:'var(--accent)'}]});
+
+  // 3. the probability curve
+  const c3=el('div'); cols.append(c3);
+  const spread=C.sd*Math.SQRT2;
+  const erf=x=>{const t=1/(1+.3275911*Math.abs(x));
+    const y=1-((((1.061405429*t-1.453152027)*t+1.421413741)*t-.284496736)*t+.254829592)*t*Math.exp(-x*x);
+    return x>=0?y:-y};
+  const P=d=>0.5*(1+erf(d/spread/Math.SQRT2));
+  const b3=cardPad(c3,{
+    title:'What a projected lead is worth',
+    scope:`spread = ${spread.toFixed(1)} pts`,
+    methods:`Probability of winning as a function of how many points you are projected to win `
+      +`by. Derived, not assumed: actual minus projected has a standard deviation of ${C.sd} `
+      +`over ${C.residN} team-weeks, and two independent teams combine to `
+      +`${spread.toFixed(1)}. The shaded band is a projected margin inside ten points, where `
+      +`the curve barely leaves a coin flip - which is most matchups.`});
+  curve(b3,P,{domain:[-50,50],range:[0,1],hline:.5,vline:0,
+    bands:[{from:-10,to:10}],
+    yfmt:v=>(v*100).toFixed(0)+'%',
+    xl:'Projected margin (points)',yl:'Win probability',
+    marks:[{x:10,y:P(10),label:(P(10)*100).toFixed(0)+'% at +10'},
+           {x:25,y:P(25),label:(P(25)*100).toFixed(0)+'% at +25'}]});
+
+  // 4. does the model actually hold up
+  const c4=el('div'); cols.append(c4);
+  const big=C.bins.filter(b=>b.n>=40);
+  const b4=cardPad(c4,{
+    title:'Does that curve hold up?',
+    scope:`n = ${C.n} matchups`,
+    methods:`Every past matchup scored by the curve above, then grouped by predicted `
+      +`probability and checked against what happened. Dots on the dashed line mean the model `
+      +`is honest; dot size is how many matchups fell in that bucket. It tracks reasonably `
+      +`where the data is thick, and the outliers sit in the sparse tails. The real lesson is `
+      +`the clustering: ${(big.reduce((a,b)=>a+b.n,0)/C.n*100).toFixed(0)}% of all matchups `
+      +`fall in the middle buckets, so projections seldom say anything strong. Overall the `
+      +`higher projection has won ${(C.hit*100).toFixed(1)}% of the time.`});
+  reliability(b4,C.bins,{xl:'Predicted win probability',yl:'Actual win rate'});
+}
+
 function render(){
   PLATE=0;
-  renderAwards(); renderStandings(); renderSchedule();
+  renderAwards(); renderCharts(); renderStandings(); renderSchedule();
   renderRosters(); renderDraft(); renderForm(); renderSubscribe();
 }
 render();

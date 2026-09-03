@@ -155,6 +155,8 @@ const el = (t,c,x)=>{const n=document.createElement(t);if(c)n.className=c;
 const num = (v,d=1)=> v===null||v===undefined||Number.isNaN(v) ? '–' : (+v).toFixed(d);
 const sgn = v => v===null||v===undefined ? '–' : (v>0?'+':'')+(+v).toFixed(1);
 
+__CHARTS__
+
 /* ---------- filter state ---------- */
 const F = {season:'all', person:'all', q:''};
 const fs = $('#fSeason'), fp = $('#fPerson'), fq = $('#fSearch');
@@ -386,6 +388,22 @@ function renderManagers(){
   if(effRows.length) sparkCols(b2, effRows, {key:'eff',label:r=>r.p,fmt:v=>v.toFixed(1)+'%'});
   else b2.append(el('div','empty',`No roster-level data for ${F.season}.`));
 
+  const c3b=el('div'); cols.append(c3b);
+  const cons=D.teamSeasons.filter(r=>r.sd!==null&&(r.w+r.l)>0&&(bySeason?+r.s===+F.season:true))
+    .map(r=>({x:r.pf/(r.w+r.l), y:r.sd, r:4,
+      hot:F.person!=='all'&&r.p===F.person,
+      tip:`${r.p} ${r.s}: ${(r.pf/(r.w+r.l)).toFixed(1)} per game, sd ${r.sd}`}));
+  const bC=cardPad(c3b,{
+    title:'Steady or streaky',
+    scope:`n = ${cons.length} manager-seasons`,
+    methods:`Each dot is one manager-season: average points per game across, week-to-week `
+      +`standard deviation up. Low and right is the best place to be - scores a lot and does `
+      +`it every week. High and left is the worst: not much, and unpredictably. Height alone `
+      +`is not a fault, since a volatile high scorer still banks wins; it just means their `
+      +`record swings more on the schedule than a steady team's does.`});
+  scatterTrend(bC,cons,{xl:'Points per game',yl:'Weekly standard deviation',
+    y0:0,y1:Math.max(...cons.map(c=>c.y))*1.1});
+
   const luckRows=[...rows].filter(r=>r.luck!==null&&r.luck!==undefined)
     .sort((a,b)=>b.luck-a.luck);
   const b3=cardPad(c2,{
@@ -439,6 +457,27 @@ function renderSeasons(){
       +`legible. The vertical axis starts at zero so line heights are directly comparable.`});
   if(sel) weeklyChart(b2, +F.season);
   else b2.append(el('div','empty','Select a season in the header to plot its week-by-week scoring.'));
+
+  const sc=D.teamWeeks.filter(g=>seasonOK(g.s)).map(g=>g.pts).filter(v=>v>20);
+  const mine=D.teamWeeks.filter(g=>seasonOK(g.s)&&F.person!=='all'&&g.p===F.person)
+    .map(g=>g.pts).filter(v=>v>20);
+  const srt=[...sc].sort((a,b)=>a-b), qq=f=>srt[Math.round((srt.length-1)*f)];
+  const b3=cardPad(host,{
+    title:'Scoring distribution',
+    scope:(F.season==='all'?'all seasons':F.season)+` \u00b7 n = ${sc.length} team-weeks`,
+    methods:`Every team-week in scope, bucketed by points. Dashed lines mark the 5th, 50th `
+      +`and 95th percentiles.`
+      +(mine.length?` The solid line is ${F.person}'s own median of `
+        +`${[...mine].sort((a,b)=>a-b)[Math.floor(mine.length/2)].toFixed(1)} across `
+        +`${mine.length} weeks - where they sit against the league tells you more than a `
+        +`win-loss record does.`:` Pick a manager to overlay their median.`)});
+  if(sc.length) histogram(b3,sc,{bins:26,xl:'Points scored in a week',yl:'Team-weeks',
+    marks:[{v:qq(.05),label:'5th',color:'var(--loss)'},
+           {v:qq(.50),label:'median',color:'var(--text)'},
+           {v:qq(.95),label:'95th',color:'var(--win)'}].concat(
+      mine.length?[{v:[...mine].sort((a,b)=>a-b)[Math.floor(mine.length/2)],
+        label:F.person,color:'var(--accent)',dash:'0',w:2.5}]:[])});
+  else b3.append(el('div','empty','No scores in scope.'));
 }
 
 function renderH2H(){
@@ -558,6 +597,21 @@ function renderDraft(){
       +`excluded, which lifts the late rounds — read the shape as the value of a round that `
       +`hits, not the odds of hitting.`});
   sparkCols(b2, rr, {key:'avg',label:r=>`Round ${r.rd}  (${r.n} picks)`,fmt:v=>v.toFixed(1)});
+
+  const dp=D.draft.filter(r=>seasonOK(r.s)&&r.lg>0).map(r=>({
+    x:r.ov, y:r.lg, r:2.6, hot:F.person!=='all'&&r.p===F.person,
+    tip:`#${r.ov} ${r.pl} (${r.s}) - ${r.lg} pts, drafted by ${r.p}`}));
+  const b3=cardPad(host,{
+    title:'Where draft value dies',
+    scope:`n = ${dp.length} picks that produced starts`,
+    methods:`Every pick plotted against the starting-lineup points that player went on to `
+      +`score for anyone that season, with the line showing the average by pick range. The `
+      +`drop is steep through the first two rounds and then flattens into a long tail of `
+      +`noise - past roughly pick 60 the expected return barely changes, but the spread stays `
+      +`enormous, which is where every late-round steal in the record book comes from. Picks `
+      +`that never started anywhere are excluded, so this shows the value of a hit rather than `
+      +`the odds of one.`});
+  scatterTrend(b3,dp,{xl:'Overall pick number',yl:'Points started that season',trendBins:16});
 }
 
 function renderRecords(){

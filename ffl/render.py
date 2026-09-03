@@ -40,7 +40,10 @@ def build(tpl_path: Path, data_path: Path, frag_out: Path, pages_out: Path) -> i
         print(f"!! non-ASCII outside the app script in {tpl_path.name}")
         return 1
 
-    out = (head + escape_non_ascii(script)).replace("__DATA__", data)
+    charts = (REPO / "site" / "_charts.js").read_text(encoding="utf-8")
+    out = (head + escape_non_ascii(script)) \
+        .replace("__CHARTS__", escape_non_ascii(charts)) \
+        .replace("__DATA__", data)
     if not out.isascii():
         print("!! output still contains non-ASCII")
         return 1

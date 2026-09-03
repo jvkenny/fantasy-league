@@ -187,6 +187,10 @@ def main(season: int | None = None):
              if k in actual and proj_tot[k] > 20]
     sd = statistics.pstdev(resid) if len(resid) > 2 else 24.0
     hit = tot = 0
+    # (predicted probability, did it happen) for every side of every matchup,
+    # so the reliability diagram is built from outcomes rather than from the
+    # model's own confidence
+    pairs = []
     for m in matchups:
         if not m["winner"] or m["winner"] in ("UNDECIDED", "TIE"):
             continue
@@ -195,6 +199,18 @@ def main(season: int | None = None):
         if a > 20 and b > 20:
             tot += 1
             hit += (("HOME" if a > b else "AWAY") == m["winner"])
+            pr = norm_cdf((a - b) / (sd * math.sqrt(2)))
+            pairs.append((pr, m["winner"] == "HOME"))
+            pairs.append((1 - pr, m["winner"] == "AWAY"))
+    buckets = defaultdict(list)
+    for pr, wonit in pairs:
+        buckets[min(9, int(pr * 10))].append((pr, wonit))
+    calib_bins = [{
+        "bin": b / 10,
+        "pred": round(sum(x for x, _ in v) / len(v), 4),
+        "act": round(sum(1 for _, y in v if y) / len(v), 4),
+        "n": len(v),
+    } for b, v in sorted(buckets.items())]
 
     # ---- this season -----------------------------------------------------
     rows = [t for t in teams if t["season"] == SEASON]
@@ -360,7 +376,11 @@ def main(season: int | None = None):
             "recordBook": "https://jvkenny.github.io/fantasy-league/",
         },
         "calib": {"sd": round(sd, 2), "hit": round(hit / tot, 3) if tot else None,
-                  "n": tot, "residN": len(resid)},
+                  "n": tot, "residN": len(resid), "bins": calib_bins,
+                  "scores": [round(v, 1) for v in sorted(actual.values()) if v > 20],
+                  "margins": sorted(round(abs(m["homeScore"] - m["awayScore"]), 1)
+                                    for m in matchups
+                                    if m["winner"] and m["winner"] != "UNDECIDED")},
         "awards": awards, "sample": sample,
         "standings": standings, "schedule": sched, "rosters": rosters,
         "draft": draft, "form": form,
