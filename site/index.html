@@ -41,6 +41,10 @@ header{position:sticky;top:0;z-index:20;background:var(--surface);
 select,input[type=search]{font-family:inherit;font-size:13px;color:var(--text);
   background:var(--raised);border:1px solid var(--line);border-radius:2px;padding:5px 8px}
 input[type=search]{width:190px}
+a.back{font-family:"Barlow Condensed",sans-serif;font-weight:600;font-size:13px;
+  text-transform:uppercase;letter-spacing:.05em;color:var(--muted);text-decoration:none;
+  border:1px solid var(--line);border-radius:2px;padding:5px 10px;white-space:nowrap}
+a.back:hover{color:var(--accent);border-color:var(--accent)}
 nav{display:flex;gap:2px;overflow-x:auto;border-top:1px solid var(--line)}
 nav button{font-family:"Barlow Condensed",sans-serif;font-weight:600;font-size:14px;
   text-transform:uppercase;letter-spacing:.05em;background:none;border:none;color:var(--muted);
@@ -125,6 +129,7 @@ svg{display:block;width:100%;height:auto;overflow:visible}
       <select id="fSeason"></select>
       <select id="fPerson"></select>
       <input type="search" id="fSearch" placeholder="Search player, manager, team">
+      <a class="back" href="https://jvkenny.github.io/fantasy-league/season.html">2026 season</a>
     </div>
   </div>
   <nav id="nav"></nav>

@@ -1,0 +1,357 @@
+<title>2026 Season Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  --ground:#F2F4F8;--surface:#FFFFFF;--raised:#E9EDF4;--line:#D5DCE7;
+  --text:#101620;--muted:#5A6577;--accent:#A85F16;--accentbg:#F6E7D2;
+  --win:#1F7A47;--loss:#A83E30;--grid:#E2E7EF;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --ground:#0B0F16;--surface:#121824;--raised:#1A2231;--line:#232D3E;
+  --text:#DCE3ED;--muted:#7C89A0;--accent:#F2A03D;--accentbg:#2E2416;
+  --win:#45A06A;--loss:#C2564A;--grid:#1B2432;
+}}
+:root[data-theme="dark"]{
+  --ground:#0B0F16;--surface:#121824;--raised:#1A2231;--line:#232D3E;
+  --text:#DCE3ED;--muted:#7C89A0;--accent:#F2A03D;--accentbg:#2E2416;
+  --win:#45A06A;--loss:#C2564A;--grid:#1B2432;
+}
+*{box-sizing:border-box}
+html,body{max-width:100%;overflow-x:hidden}
+body{margin:0;background:var(--ground);color:var(--text);
+  font-family:Barlow,system-ui,sans-serif;font-size:14px;line-height:1.45;
+  -webkit-font-smoothing:antialiased}
+.wrap{max-width:1280px;margin:0 auto;padding:0 18px}
+h2{font-family:"Barlow Condensed",sans-serif;font-weight:700;text-transform:uppercase;
+  letter-spacing:.04em;font-size:19px;margin:0}
+.sub{color:var(--muted);font-size:12px;margin:2px 0 0}
+header{position:sticky;top:0;z-index:20;background:var(--surface);border-bottom:1px solid var(--line)}
+.hbar{display:flex;align-items:center;gap:14px;padding:10px 0;flex-wrap:wrap}
+.brand{font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:20px;
+  text-transform:uppercase;letter-spacing:.05em;white-space:nowrap}
+.brand span{color:var(--accent)}
+.ctl{display:flex;align-items:center;gap:8px;margin-left:auto;flex-wrap:wrap}
+select{font-family:inherit;font-size:13px;color:var(--text);background:var(--raised);
+  border:1px solid var(--line);border-radius:2px;padding:5px 8px}
+a.back{font-family:"Barlow Condensed",sans-serif;font-weight:600;font-size:13px;
+  text-transform:uppercase;letter-spacing:.05em;color:var(--muted);text-decoration:none;
+  border:1px solid var(--line);border-radius:2px;padding:5px 10px;white-space:nowrap}
+a.back:hover{color:var(--accent);border-color:var(--accent)}
+.state{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:9px 0 0}
+.pill{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.06em;
+  text-transform:uppercase;border:1px solid var(--line);border-radius:2px;padding:2px 7px;
+  color:var(--muted)}
+.pill.live{border-color:var(--accent);color:var(--accent)}
+main{padding:16px 0 60px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:3px;margin-bottom:14px}
+.card>.hd{padding:10px 14px;border-bottom:1px solid var(--line);
+  display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.card>.bd{padding:12px 14px}.card>.bd.flush{padding:0}
+.card>.ft{padding:8px 14px 10px;border-top:1px solid var(--line);font-size:11.5px;
+  line-height:1.5;color:var(--muted);max-width:104ch}
+.card>.ft b{font-family:"Barlow Condensed",sans-serif;font-weight:700;text-transform:uppercase;
+  letter-spacing:.08em;font-size:10px;color:var(--text);margin-right:6px}
+.plate{font-family:"IBM Plex Mono",monospace;font-size:11px;font-weight:600;
+  color:var(--accent);margin-right:8px;letter-spacing:.05em}
+.chip{font-family:"IBM Plex Mono",monospace;font-size:10px;color:var(--muted);
+  border:1px solid var(--line);border-radius:2px;padding:1px 6px;white-space:nowrap}
+.tw{overflow-x:auto;max-height:640px}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{padding:5px 10px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--line)}
+th:first-child,td:first-child{text-align:left;position:sticky;left:0;background:var(--surface)}
+thead th{position:sticky;top:0;z-index:2;background:var(--raised);
+  font-family:"Barlow Condensed",sans-serif;font-weight:600;font-size:11px;
+  text-transform:uppercase;letter-spacing:.07em;color:var(--muted);cursor:pointer}
+thead th:first-child{z-index:3;background:var(--raised)}
+thead th:hover,thead th[data-on]{color:var(--accent)}
+tbody tr:hover td,tbody tr:hover td:first-child{background:var(--raised)}
+td.n{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums}
+.pos{color:var(--win)}.neg{color:var(--loss)}
+.me td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
+.tag{font-family:"IBM Plex Mono",monospace;font-size:10px;padding:1px 4px;border-radius:2px;
+  background:var(--raised);color:var(--muted);border:1px solid var(--line)}
+.tag.gold{background:var(--accentbg);color:var(--accent);border-color:var(--accent)}
+/* matchup cards */
+.mus{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));padding:12px 14px}
+.mu{border:1px solid var(--line);border-radius:3px;background:var(--surface);overflow:hidden}
+.mu .row{display:flex;align-items:center;gap:10px;padding:8px 12px}
+.mu .row+.row{border-top:1px solid var(--line)}
+.mu .who{flex:1;min-width:0}
+.mu .nm{font-weight:600;font-size:14px}
+.mu .tm{font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mu .pj{font-family:"IBM Plex Mono",monospace;font-size:15px;font-variant-numeric:tabular-nums}
+.mu .fav{color:var(--accent);font-weight:600}
+.mu .prob{height:5px;background:var(--raised);display:flex}
+.mu .prob i{display:block;height:100%}
+.mu .lab{display:flex;justify-content:space-between;padding:5px 12px 8px;
+  font-family:"IBM Plex Mono",monospace;font-size:10px;color:var(--muted)}
+.empty{color:var(--muted);font-size:12.5px;padding:22px 14px;text-align:center;line-height:1.6}
+.empty b{color:var(--text);font-weight:600}
+:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+</style>
+
+<header><div class="wrap">
+  <div class="hbar">
+    <div class="brand" id="brand"></div>
+    <div class="ctl">
+      <select id="fWeek"></select>
+      <select id="fPerson"></select>
+      <a class="back" id="back">All-time record book</a>
+    </div>
+  </div>
+  <div class="state" id="state"></div>
+  <div style="height:10px"></div>
+</div></header>
+
+<main class="wrap">
+  <div id="preview"></div>
+  <div id="standings"></div>
+  <div id="schedule"></div>
+  <div id="rosters"></div>
+  <div id="draft"></div>
+  <div id="form"></div>
+</main>
+
+<script id="payload" type="application/json">__DATA__</script>
+<script>
+const D = JSON.parse(document.getElementById('payload').textContent);
+const M = D.meta, C = D.calib;
+const $ = s => document.querySelector(s);
+const el = (t,c,x)=>{const n=document.createElement(t);if(c)n.className=c;
+  if(x!==undefined&&x!==null)n.textContent=x;return n};
+const num=(v,d=1)=>v===null||v===undefined?'–':(+v).toFixed(d);
+let PLATE=0;
+function card(host,o){
+  const c=el('div','card'),hd=el('div','hd');
+  const h=el('h2'); h.append(el('span','plate',String(++PLATE).padStart(2,'0')));
+  h.append(document.createTextNode(o.title)); hd.append(h);
+  if(o.scope) hd.append(el('span','chip',o.scope));
+  if(o.sub) hd.append(el('div','sub',o.sub));
+  const bd=el('div','bd flush'); c.append(hd,bd);
+  if(o.methods){const f=el('div','ft');f.append(el('b',null,'Method'));
+    f.append(document.createTextNode(o.methods));c.append(f);}
+  host.append(c); return bd;
+}
+function table(host,cols,rows,opts={}){
+  const w=el('div','tw'),t=el('table'),thead=el('thead'),hr=el('tr');
+  cols.forEach((c,i)=>{const th=el('th',null,c.h);th.dataset.i=i;if(c.t)th.title=c.t;hr.append(th)});
+  thead.append(hr);t.append(thead);
+  const tb=el('tbody');t.append(tb);
+  let sk=opts.sort??1,asc=opts.asc??false;
+  function draw(){
+    tb.textContent='';
+    const sorted=[...rows].sort((a,b)=>{const x=cols[sk].v(a),y=cols[sk].v(b);
+      if(x===null||x===undefined)return 1; if(y===null||y===undefined)return -1;
+      const r=typeof x==='string'?x.localeCompare(y):x-y; return asc?r:-r;});
+    if(!sorted.length){const tr=el('tr'),td=el('td');td.colSpan=cols.length;
+      td.className='empty';td.textContent='Nothing here yet.';tr.append(td);tb.append(tr);return}
+    sorted.forEach(r=>{
+      const tr=el('tr',opts.me&&opts.me(r)?'me':'');
+      cols.forEach(c=>{const td=el('td',c.n===false?'':'n');
+        const o=c.f?c.f(r):c.v(r);
+        if(o instanceof Node)td.append(o);else td.textContent=o;
+        if(c.cls)td.classList.add(...[].concat(c.cls(r)||[]));tr.append(td)});
+      tb.append(tr)});
+    thead.querySelectorAll('th').forEach((th,i)=>th.toggleAttribute('data-on',i===sk));
+  }
+  thead.querySelectorAll('th').forEach(th=>th.addEventListener('click',()=>{
+    const i=+th.dataset.i; if(i===sk)asc=!asc; else {sk=i;asc=cols[i].n===false;} draw();}));
+  draw(); w.append(t); host.append(w);
+}
+
+/* ---- header ---- */
+$('#brand').innerHTML='';
+$('#brand').append(document.createTextNode(M.season+' Season '));
+const sp=el('span',null,'Tracker'); $('#brand').append(sp);
+$('#back').href=M.recordBook;
+const F={week:'all',person:'all'};
+const fw=$('#fWeek'), fp=$('#fPerson');
+fw.append(new Option('All weeks','all'));
+for(let i=1;i<=(M.regularWeeks||14);i++) fw.append(new Option('Week '+i,i));
+fw.value = M.currentWeek<= (M.regularWeeks||14) ? String(M.currentWeek) : 'all';
+F.week = fw.value;
+fp.append(new Option('All managers','all'));
+[...new Set(D.standings.map(s=>s.p))].sort().forEach(p=>fp.append(new Option(p,p)));
+const ME = D.standings.find(s=>s.tm && s.tm.indexOf('Double-Doink')>=0)?.p || null;
+[fw,fp].forEach(s=>s.addEventListener('change',()=>{F.week=fw.value;F.person=fp.value;render()}));
+
+const st=$('#state'); st.textContent='';
+st.append(el('span','pill'+(M.started?' live':''),
+  M.started?`Week ${M.currentWeek} of ${M.regularWeeks}`:'Preseason — no games played'));
+st.append(el('span','pill',`${M.teams} teams`));
+st.append(el('span','pill',`${M.playoffTeams} make the playoffs`));
+st.append(el('span','pill',`Data pulled ${M.generated}`));
+
+const wkOK = w => F.week==='all' || +w===+F.week;
+const perOK = p => F.person==='all' || p===F.person;
+
+/* ---- 1. this week ---- */
+function renderPreview(){
+  const host=$('#preview'); host.textContent='';
+  const wk = F.week==='all' ? M.currentWeek : +F.week;
+  const games = D.schedule.filter(g=>g.wk===wk && (perOK(g.hp)||perOK(g.ap)));
+  const graded = games.filter(g=>g.won);
+  const b=card(host,{
+    title: graded.length ? `Week ${wk} results` : `Week ${wk} preview`,
+    scope: `${games.length} matchup${games.length===1?'':'s'}`,
+    methods: graded.length
+      ? `Final scores as recorded by ESPN.`
+      : `Projected totals are the sum of each manager's currently-started players, using ESPN's `
+        +`own per-player projections. Win probability treats the projected margin as normal with `
+        +`a spread of ${(C.sd*Math.SQRT2).toFixed(1)} points — derived from ${C.residN} `
+        +`historical team-weeks where actual minus projected had a standard deviation of `
+        +`${C.sd}. Treat these lightly: across ${C.n} past matchups the higher projection won `
+        +`only ${(C.hit*100).toFixed(1)}% of the time, so a projection edge inside about ten `
+        +`points is close to a coin flip. Lineups also change before kickoff.`});
+  if(!games.length){ b.append(el('div','empty','No matchups for this week.')); return; }
+  const g=el('div','mus');
+  games.forEach(m=>{
+    const c=el('div','mu');
+    const hw = m.won==='HOME', aw = m.won==='AWAY';
+    const side=(nm,tm,val,fav,won)=>{
+      const r=el('div','row');
+      const w=el('div','who'); w.append(el('div','nm',nm), el('div','tm',tm||''));
+      r.append(w);
+      const v=el('div','pj'+(fav||won?' fav':''), val);
+      r.append(v); return r;
+    };
+    c.append(side(m.hp,m.htm, m.hs!==null&&m.hs!==undefined?num(m.hs,2):(m.hproj?num(m.hproj):'–'),
+      m.pw!==null&&m.pw>0.5, hw));
+    c.append(side(m.ap,m.atm, m.as!==null&&m.as!==undefined?num(m.as,2):(m.aproj?num(m.aproj):'–'),
+      m.pw!==null&&m.pw<0.5, aw));
+    if(m.pw!==null&&m.pw!==undefined&&!m.won){
+      const bar=el('div','prob');
+      const a=el('i'); a.style.width=(m.pw*100).toFixed(1)+'%'; a.style.background='var(--accent)';
+      const bb=el('i'); bb.style.width=((1-m.pw)*100).toFixed(1)+'%'; bb.style.background='var(--muted)';
+      bar.append(a,bb); c.append(bar);
+      const lab=el('div','lab');
+      lab.append(el('span',null,`${m.hp} ${(m.pw*100).toFixed(0)}%`),
+                 el('span',null,`${(100-m.pw*100).toFixed(0)}% ${m.ap}`));
+      c.append(lab);
+    }
+    g.append(c);
+  });
+  b.append(g);
+}
+
+/* ---- 2. standings ---- */
+function renderStandings(){
+  const host=$('#standings'); host.textContent='';
+  const rows=D.standings.filter(s=>perOK(s.p));
+  const b=card(host,{
+    title:'Standings', scope:`${M.season} · ${rows.length} teams`,
+    methods:`All-play is the record against every other team every week, which ranks teams by `
+      +`scoring rather than by who the schedule handed them. Benched counts points scored by `
+      +`players left in bench slots. Both fill in as weeks are played.`});
+  if(!M.started){
+    // append() returns undefined, so this must not be chained
+    const e=el('div','empty');
+    e.innerHTML = `<b>No games played yet.</b><br>Standings, all-play records and bench `
+      +`totals populate from week 1 onward. Until then the draft board, rosters and schedule `
+      +`below are the live data.`;
+    b.append(e);
+    return;
+  }
+  table(b,[
+    {h:'Manager',n:false,v:r=>r.p},
+    {h:'Team',n:false,v:r=>r.tm||''},
+    {h:'W',v:r=>r.w},{h:'L',v:r=>r.l},
+    {h:'PF',v:r=>r.pf},{h:'PA',v:r=>r.pa},
+    {h:'All-play',n:false,v:r=>r.apw,f:r=>`${r.apw}-${r.apl}`},
+    {h:'Streak',n:false,v:r=>r.streak||'',cls:r=>r.streak?(r.streak[0]==='W'?'pos':'neg'):''},
+    {h:'Benched',v:r=>r.bn,f:r=>num(r.bn,0)},
+  ],rows,{sort:2,me:r=>r.p===ME});
+}
+
+/* ---- 3. schedule ---- */
+function renderSchedule(){
+  const host=$('#schedule'); host.textContent='';
+  const rows=D.schedule.filter(g=>wkOK(g.wk)&&(perOK(g.hp)||perOK(g.ap)));
+  const b=card(host,{
+    title:'Schedule', scope:`${rows.length} of ${D.schedule.length} matchups`,
+    methods:`The full ${M.season} slate as drawn by ESPN, regular season and playoff rounds. `
+      +`Projections appear only for weeks whose rosters have been pulled — currently week `
+      +`${M.currentWeek} — because ESPN publishes per-player projections for the active `
+      +`week only.`});
+  table(b,[
+    {h:'Wk',v:r=>r.wk},
+    {h:'Home',n:false,v:r=>r.hp},
+    {h:'Score',n:false,v:r=>r.hs??-1,f:r=>r.hs!=null?num(r.hs,2):(r.hproj?`~${num(r.hproj)}`:'–'),
+     cls:r=>r.won==='HOME'?'pos':''},
+    {h:'Away',n:false,v:r=>r.ap},
+    {h:'Score',n:false,v:r=>r.as??-1,f:r=>r.as!=null?num(r.as,2):(r.aproj?`~${num(r.aproj)}`:'–'),
+     cls:r=>r.won==='AWAY'?'pos':''},
+    {h:'P(home)',v:r=>r.pw,f:r=>r.pw==null?'–':(r.pw*100).toFixed(0)+'%'},
+    {h:'Round',n:false,v:r=>r.po?1:0,f:r=>r.po?el('span','tag','PLAYOFF'):''},
+  ],rows,{sort:0,asc:true,me:r=>r.hp===ME||r.ap===ME});
+}
+
+/* ---- 4. rosters ---- */
+function renderRosters(){
+  const host=$('#rosters'); host.textContent='';
+  const rs=D.rosters.filter(r=>perOK(r.p));
+  const rows=[];
+  rs.forEach(r=>r.players.forEach(pl=>rows.push({...pl,p:r.p,tm:r.tm})));
+  const b=card(host,{
+    title:'Rosters', scope:`${rs.length} teams · ${rows.length} players`,
+    methods:`Rosters as of the most recent pull (week ${D.rosters[0]?.wk ?? M.currentWeek}). `
+      +`Proj is ESPN's projection for that player this week; Act fills in once games are played. `
+      +`Starters are listed above bench players within each team.`});
+  table(b,[
+    {h:'Player',n:false,v:r=>r.n||''},
+    {h:'Pos',n:false,v:r=>r.pos||''},
+    {h:'Manager',n:false,v:r=>r.p},
+    {h:'Slot',n:false,v:r=>r.slot||''},
+    {h:'Starting',n:false,v:r=>r.st?1:0,f:r=>r.st?el('span','tag gold','START'):el('span','tag','BE')},
+    {h:'Proj',v:r=>r.proj},
+    {h:'Act',v:r=>r.act,f:r=>r.act==null?'–':num(r.act,1)},
+  ],rows,{sort:5,me:r=>r.p===ME});
+}
+
+/* ---- 5. draft ---- */
+function renderDraft(){
+  const host=$('#draft'); host.textContent='';
+  const rows=D.draft.filter(r=>perOK(r.p));
+  const b=card(host,{
+    title:`${M.season} draft board`, scope:`${rows.length} picks`,
+    methods:`Every pick of the ${M.season} draft in order. Production columns are deliberately `
+      +`absent until games are played — a zero here would read as a bust rather than as a `
+      +`season that has not started. They appear in the all-time record book once the year `
+      +`has results.`});
+  table(b,[
+    {h:'Pick',v:r=>r.ov},{h:'Rd',v:r=>r.rd},
+    {h:'Player',n:false,v:r=>r.pl||''},
+    {h:'Pos',n:false,v:r=>r.pos||''},
+    {h:'Manager',n:false,v:r=>r.p||''},
+    {h:'Keeper',n:false,v:r=>r.k,f:r=>r.k?el('span','tag','K'):''},
+  ],rows,{sort:0,asc:true,me:r=>r.p===ME});
+}
+
+/* ---- 6. form ---- */
+function renderForm(){
+  const host=$('#form'); host.textContent='';
+  const rows=D.form.filter(r=>perOK(r.p));
+  const b=card(host,{
+    title:'Coming in', scope:`career form before ${M.season}`,
+    methods:`Regular-season record across every prior season each manager has played, with `
+      +`their most recent finish. Context for the season ahead, not part of it.`});
+  table(b,[
+    {h:'Manager',n:false,v:r=>r.p},
+    {h:'Seasons',v:r=>r.seasons},
+    {h:'W',v:r=>r.w},{h:'L',v:r=>r.l},
+    {h:'Win%',v:r=>r.pct,f:r=>r.pct==null?'–':r.pct.toFixed(3)},
+    {h:'Titles',v:r=>r.titles,f:r=>r.titles?el('span','tag gold','★'.repeat(r.titles)):'–'},
+    {h:'Last season',n:false,v:r=>r.last?r.last.s:0,
+     f:r=>r.last?`${r.last.s}: ${r.last.w}-${r.last.l}, finished ${r.last.rk??'–'}`:'–'},
+  ],rows,{sort:4,me:r=>r.p===ME});
+}
+
+function render(){
+  PLATE=0;
+  renderPreview(); renderStandings(); renderSchedule();
+  renderRosters(); renderDraft(); renderForm();
+}
+render();
+</script>

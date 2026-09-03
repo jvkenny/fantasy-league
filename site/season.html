@@ -1,0 +1,357 @@
+<title>2026 Season Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  --ground:#F2F4F8;--surface:#FFFFFF;--raised:#E9EDF4;--line:#D5DCE7;
+  --text:#101620;--muted:#5A6577;--accent:#A85F16;--accentbg:#F6E7D2;
+  --win:#1F7A47;--loss:#A83E30;--grid:#E2E7EF;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --ground:#0B0F16;--surface:#121824;--raised:#1A2231;--line:#232D3E;
+  --text:#DCE3ED;--muted:#7C89A0;--accent:#F2A03D;--accentbg:#2E2416;
+  --win:#45A06A;--loss:#C2564A;--grid:#1B2432;
+}}
+:root[data-theme="dark"]{
+  --ground:#0B0F16;--surface:#121824;--raised:#1A2231;--line:#232D3E;
+  --text:#DCE3ED;--muted:#7C89A0;--accent:#F2A03D;--accentbg:#2E2416;
+  --win:#45A06A;--loss:#C2564A;--grid:#1B2432;
+}
+*{box-sizing:border-box}
+html,body{max-width:100%;overflow-x:hidden}
+body{margin:0;background:var(--ground);color:var(--text);
+  font-family:Barlow,system-ui,sans-serif;font-size:14px;line-height:1.45;
+  -webkit-font-smoothing:antialiased}
+.wrap{max-width:1280px;margin:0 auto;padding:0 18px}
+h2{font-family:"Barlow Condensed",sans-serif;font-weight:700;text-transform:uppercase;
+  letter-spacing:.04em;font-size:19px;margin:0}
+.sub{color:var(--muted);font-size:12px;margin:2px 0 0}
+header{position:sticky;top:0;z-index:20;background:var(--surface);border-bottom:1px solid var(--line)}
+.hbar{display:flex;align-items:center;gap:14px;padding:10px 0;flex-wrap:wrap}
+.brand{font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:20px;
+  text-transform:uppercase;letter-spacing:.05em;white-space:nowrap}
+.brand span{color:var(--accent)}
+.ctl{display:flex;align-items:center;gap:8px;margin-left:auto;flex-wrap:wrap}
+select{font-family:inherit;font-size:13px;color:var(--text);background:var(--raised);
+  border:1px solid var(--line);border-radius:2px;padding:5px 8px}
+a.back{font-family:"Barlow Condensed",sans-serif;font-weight:600;font-size:13px;
+  text-transform:uppercase;letter-spacing:.05em;color:var(--muted);text-decoration:none;
+  border:1px solid var(--line);border-radius:2px;padding:5px 10px;white-space:nowrap}
+a.back:hover{color:var(--accent);border-color:var(--accent)}
+.state{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:9px 0 0}
+.pill{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.06em;
+  text-transform:uppercase;border:1px solid var(--line);border-radius:2px;padding:2px 7px;
+  color:var(--muted)}
+.pill.live{border-color:var(--accent);color:var(--accent)}
+main{padding:16px 0 60px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:3px;margin-bottom:14px}
+.card>.hd{padding:10px 14px;border-bottom:1px solid var(--line);
+  display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.card>.bd{padding:12px 14px}.card>.bd.flush{padding:0}
+.card>.ft{padding:8px 14px 10px;border-top:1px solid var(--line);font-size:11.5px;
+  line-height:1.5;color:var(--muted);max-width:104ch}
+.card>.ft b{font-family:"Barlow Condensed",sans-serif;font-weight:700;text-transform:uppercase;
+  letter-spacing:.08em;font-size:10px;color:var(--text);margin-right:6px}
+.plate{font-family:"IBM Plex Mono",monospace;font-size:11px;font-weight:600;
+  color:var(--accent);margin-right:8px;letter-spacing:.05em}
+.chip{font-family:"IBM Plex Mono",monospace;font-size:10px;color:var(--muted);
+  border:1px solid var(--line);border-radius:2px;padding:1px 6px;white-space:nowrap}
+.tw{overflow-x:auto;max-height:640px}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{padding:5px 10px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--line)}
+th:first-child,td:first-child{text-align:left;position:sticky;left:0;background:var(--surface)}
+thead th{position:sticky;top:0;z-index:2;background:var(--raised);
+  font-family:"Barlow Condensed",sans-serif;font-weight:600;font-size:11px;
+  text-transform:uppercase;letter-spacing:.07em;color:var(--muted);cursor:pointer}
+thead th:first-child{z-index:3;background:var(--raised)}
+thead th:hover,thead th[data-on]{color:var(--accent)}
+tbody tr:hover td,tbody tr:hover td:first-child{background:var(--raised)}
+td.n{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums}
+.pos{color:var(--win)}.neg{color:var(--loss)}
+.me td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
+.tag{font-family:"IBM Plex Mono",monospace;font-size:10px;padding:1px 4px;border-radius:2px;
+  background:var(--raised);color:var(--muted);border:1px solid var(--line)}
+.tag.gold{background:var(--accentbg);color:var(--accent);border-color:var(--accent)}
+/* matchup cards */
+.mus{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));padding:12px 14px}
+.mu{border:1px solid var(--line);border-radius:3px;background:var(--surface);overflow:hidden}
+.mu .row{display:flex;align-items:center;gap:10px;padding:8px 12px}
+.mu .row+.row{border-top:1px solid var(--line)}
+.mu .who{flex:1;min-width:0}
+.mu .nm{font-weight:600;font-size:14px}
+.mu .tm{font-size:11px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mu .pj{font-family:"IBM Plex Mono",monospace;font-size:15px;font-variant-numeric:tabular-nums}
+.mu .fav{color:var(--accent);font-weight:600}
+.mu .prob{height:5px;background:var(--raised);display:flex}
+.mu .prob i{display:block;height:100%}
+.mu .lab{display:flex;justify-content:space-between;padding:5px 12px 8px;
+  font-family:"IBM Plex Mono",monospace;font-size:10px;color:var(--muted)}
+.empty{color:var(--muted);font-size:12.5px;padding:22px 14px;text-align:center;line-height:1.6}
+.empty b{color:var(--text);font-weight:600}
+:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+</style>
+
+<header><div class="wrap">
+  <div class="hbar">
+    <div class="brand" id="brand"></div>
+    <div class="ctl">
+      <select id="fWeek"></select>
+      <select id="fPerson"></select>
+      <a class="back" id="back">All-time record book</a>
+    </div>
+  </div>
+  <div class="state" id="state"></div>
+  <div style="height:10px"></div>
+</div></header>
+
+<main class="wrap">
+  <div id="preview"></div>
+  <div id="standings"></div>
+  <div id="schedule"></div>
+  <div id="rosters"></div>
+  <div id="draft"></div>
+  <div id="form"></div>
+</main>
+
+<script id="payload" type="application/json">{"meta":{"season":2026,"league":"The Fantasy League Est. 2018","currentWeek":1,"weeksDone":[],"regularWeeks":14,"playoffTeams":5,"teams":10,"started":false,"generated":"2026-09-03 00:23 UTC","recordBook":"https://jvkenny.github.io/fantasy-league/"},"calib":{"sd":23.31,"hit":0.557,"n":458,"residN":918},"standings":[{"p":"Chris","tm":"The Goofballs","tid":1,"w":0,"l":0,"pf":0,"pa":0,"apw":0,"apl":0,"streak":null,"bn":null,"seed":10,"rk":0},{"p":"Jeffrey","tm":"The Reaper","tid":2,"w":0,"l":0,"pf":0,"pa":0,"apw":0,"apl":0,"streak":null,"bn":null,"seed":9,"rk":0},{"p":"Richard","tm":"Rich's Rowdy Team","tid":4,"w":0,"l":0,"pf":0,"pa":0,"apw":0,"apl":0,"streak":null,"bn":null,"seed":8,"rk":0},{"p":"Gabriel","tm":"The Injured Reserves","tid":5,"w":0,"l":0,"pf":0,"pa":0,"apw":0,"apl":0,"streak":null,"bn":null,"seed":7,"rk":0},{"p":"Mark","tm":"Marky Mark\u2019s funky bunch","tid":6,"w":0,"l":0,"pf":0,"pa":0,"apw":0,"apl":0,"streak":null,"bn":null,"seed":6,"rk":0},{"p":"Jared","tm":"GoodLadds","tid":7,"w":0,"l":0,"pf":0,"pa":0,"apw":0,"apl":0,"streak":null,"bn":null,"seed":5,"rk":0},{"p":"John","tm":"Chicago Double-Doink","tid":8,"w":0,"l":0,"pf":0,"pa":0,"apw":0,"apl":0,"streak":null,"bn":null,"seed":4,"rk":0},{"p":"Maddie","tm":"Losing Tua Girl","tid":9,"w":0,"l":0,"pf":0,"pa":0,"apw":0,"apl":0,"streak":null,"bn":null,"seed":3,"rk":0},{"p":"Conor","tm":"Winning Eleven Seven","tid":10,"w":0,"l":0,"pf":0,"pa":0,"apw":0,"apl":0,"streak":null,"bn":null,"seed":2,"rk":0},{"p":"Andy","tm":"Bootball Baddies","tid":11,"w":0,"l":0,"pf":0,"pa":0,"apw":0,"apl":0,"streak":null,"bn":null,"seed":1,"rk":0}],"schedule":[{"wk":1,"hp":"Chris","ap":"Jared","htm":"The Goofballs","atm":"GoodLadds","hs":null,"as":null,"won":null,"hproj":126.8,"aproj":120.5,"pw":0.575,"po":false},{"wk":1,"hp":"Jeffrey","ap":"Gabriel","htm":"The Reaper","atm":"The Injured Reserves","hs":null,"as":null,"won":null,"hproj":117.4,"aproj":121.7,"pw":0.448,"po":false},{"wk":1,"hp":"John","ap":"Mark","htm":"Chicago Double-Doink","atm":"Marky Mark\u2019s funky bunch","hs":null,"as":null,"won":null,"hproj":126.2,"aproj":118.1,"pw":0.597,"po":false},{"wk":1,"hp":"Conor","ap":"Maddie","htm":"Winning Eleven Seven","atm":"Losing Tua Girl","hs":null,"as":null,"won":null,"hproj":120.3,"aproj":122.1,"pw":0.479,"po":false},{"wk":1,"hp":"Andy","ap":"Richard","htm":"Bootball Baddies","atm":"Rich's Rowdy Team","hs":null,"as":null,"won":null,"hproj":114.1,"aproj":122.2,"pw":0.404,"po":false},{"wk":2,"hp":"Richard","ap":"Jeffrey","htm":"Rich's Rowdy Team","atm":"The Reaper","hs":null,"as":null,"won":null,"hproj":null,"aproj":null,"pw":null,"po":false},{"wk":2,"hp":"Gabriel","ap":"Maddie","htm":"The Injured Reserves","atm":"Losing Tua Girl","hs":null,"as":null,"won":null,"hproj":null,"aproj":null,"pw":null,"po":false},{"wk":2,"hp":"Mark","ap":"Andy","htm":"Marky Mark\u2019s funky bunch","atm":"Bootball Baddies","hs":null,"as":null,"won":null,"hproj":null,"aproj":null,"pw":null,"po":false},{"wk":2,"hp":"Jared","ap":"Conor","htm":"GoodLadds","atm":"Winning Eleven Seven","hs":null,"as":null,"won":null,"hproj":null,"aproj":null,"pw":null,"po":false},{"wk":2,"hp":"John","ap":"Chris","htm":"Chicago Double-Doink","atm":"The Goofballs","hs":null,"as":null,"won":null,"hproj":null,"aproj":null,"pw":null,"po":false},{"wk":3,"hp":"Jeffrey","ap":"Mark","htm":"The Reaper","atm":"Marky Mark\u2019s funky bunch","hs":null,"as":null,"won":null,"hproj":null,"aproj":null,"pw":null,"po":false},{"wk":3,"hp":"Richard","ap":"Gabriel","htm":"Rich's Rowdy Team","atm":"The Injured Reserves","hs":null,"as":null,"won":null,"hproj":null,"aproj":null,"pw":null,"po":false},{"wk":3,"hp":"Maddie","ap":"Jared","htm":"Losing Tua Girl","atm":"GoodLadds","hs":null,"as":null,"won":null,"hproj":null,"aproj":null,"pw":null,"po":false},{"wk":3,"hp":"Conor","ap":"John","htm":"Winning Eleven Seven","atm":"Chicago Double-Doink","hs":null,"as":null,"won":null,"hproj":null,"aproj":null,"pw":null,"po":false},{"wk":3,"hp":"Andy","ap":"Chris","htm":"Bootball Baddies","atm":"The Goofballs","hs":null,"as":null,"won":null,"hproj":null,"aproj":null,"pw":null,"po":false},{"wk":4,"hp":"Chris","ap":"Jeffrey","htm":"The Goofballs","atm":"The Reaper","hs":null,"as":null,"won":null,"hproj":null,"aproj":null,"pw":null,"po":false},{"wk":4,"hp":"Gabriel","ap":"Jared","htm":"The Injured Reserves","atm":"GoodLadds","hs":null,"as":null,"won":null,"hproj":null,"aproj":null,"pw":null,"po":false},{"wk":4,"hp":"Mark","ap":"Richard","htm":"Marky Mark\u2019s funky bunch","atm":"Rich's Rowdy Team","hs":null,"as":null,"won":null,"hproj":null,"aproj":null,"pw":null,"po":false},{"wk":4,"hp":"John","ap":"Maddie","htm":"Chicago Double-Doink","atm":"Losing Tua Girl","hs":null,"as":null,"won":null,"hproj":null,"aproj":null,"pw":null,"po":false},{"wk":4,"hp":"Andy","ap":"Conor","htm":"Bootball Baddies","atm":"Winning Eleven Seven","hs":null,"as":null,"won":null,"hproj":null,"aproj":null,"pw":null,"po":false},{"wk":5,"hp":"Jeffrey","ap":"Conor","htm":"The Reaper","atm":"Winning Eleven Seven","hs":null,"as":null,"won":null,"hproj":null,"aproj":null,"pw":null,"po":false},{"wk":5,"hp":"Richard","ap":"Chris","htm":"Rich's Rowdy Team","atm":"The Goofballs","hs":null,"as":null,"won":null,"hproj":null,"aproj":null,"pw":null,"po":false},{"wk":5,"hp":"Mark","ap":"Gabriel","htm":"Marky Mark\u2019s funky bunch","atm":"The Injured Reserves","hs":null,"as":null,"won":null,"hproj":null,"aproj":null,"pw":null,"po":false},{"wk":5,"hp":"Jared","ap":"John","htm":"GoodLadds","atm":"Chicago Double-Doink","hs":null,"as":null,"won":null,"hproj":null,"aproj":null,"pw":null,"po":false},{"wk":5,"hp":"Maddie","ap":"Andy","htm":"Losing Tua Girl","atm":"Bootball Baddies","hs":null,"as":null,"won":null,"hproj":null,"aproj":null,"pw":null,"po":false},{"wk":6,"hp":"Chris","ap":"Mark","htm":"The Goofballs","atm":"Marky Mark\u2019s funky bunch","hs":null,"as":null,"won":null,"hproj":null,"aproj":null,"pw":null,"po":false},{"wk":6,"hp":"Jeffrey","ap":"Maddie","htm":"The Reaper","atm":"Losing Tua Girl","hs":null,"as":null,"won":null,"hproj":null,"aproj":null,"pw":null,"po":false},{"wk":6,"hp":"Gabriel","ap":"John","htm":"The Injured Reserves","atm":"Chicago Double-Doink","hs":null,"as":null,"won":null,"hproj":null,"aproj":null,"pw":null,"po":false},{"wk":6,"hp":"Conor","ap":"Richard","htm":"Winning Eleven Seven","atm":"Rich's Rowdy Team","hs":null,"as":null,"won":null,"hproj":null,"aproj":null,"pw":null,"po":false},{"wk":6,"hp":"Andy","ap":"Jared","htm":"Bootball Baddies","atm":"GoodLadds","hs":null,"as":null,"won":null,"hproj":null,"aproj":null,"pw":null,"po":false},{"wk":7,"hp":"Chris","ap":"Gabriel","htm":"The Goofballs","atm":"The Injured Reserves","hs":null,"as":null,"won":null,"hproj":null,"aproj":null,"pw":null,"po":false},{"wk":7,"hp":"Richard","ap":"Maddie","htm":"Rich's Rowdy Team","atm":"Losing Tua Girl","hs":null,"as":null,"won":null,"hproj":null,"aproj":null,"pw":null,"po":false},{"wk":7,"hp":"Mark","ap":"Conor","htm":"Marky Mark\u2019s funky bunch","atm":"Winning Eleven Seven","hs":null,"as":null,"won":null,"hproj":null,"aproj":null,"pw":null,"po":false},{"wk":7,"hp":"Jared","ap":"Jeffrey","htm":"GoodLadds","atm":"The Reaper","hs":null,"as":null,"won":null,"hproj":null,"aproj":null,"pw":null,"po":false},{"wk":7,"hp":"John","ap":"Andy","htm":"Chicago Double-Doink","atm":"Bootball Baddies","hs":null,"as":null,"won":null,"hproj":null,"aproj":null,"pw":null,"po":false},{"wk":8,"hp":"Jeffrey","ap":"John","htm":"The Reaper","atm":"Chicago Double-Doink","hs":null,"as":null,"won":null,"hproj":null,"aproj":null,"pw":null,"po":false},{"wk":8,"hp":"Richard","ap":"Jared","htm":"Rich's Rowdy Team","atm":"GoodLadds","hs":null,"as":null,"won":null,"hproj":null,"aproj":null,"pw":null,"po":false},{"wk":8,"hp":"Gabriel","ap":"Andy","htm":"The Injured Reserves","atm":"Bootball Baddies","hs":null,"as":null,"won":null,"hproj":null,"aproj":null,"pw":null,"po":false},{"wk":8,"hp":"Maddie","ap":"Mark","htm":"Losing Tua Girl","atm":"Marky Mark\u2019s funky bunch","hs":null,"as":null,"won":null,"hproj":null,"aproj":null,"pw":null,"po":false},{"wk":8,"hp":"Conor","ap":"Chris","htm":"Winning Eleven Seven","atm":"The Goofballs","hs":null,"as":null,"won":null,"hproj":null,"aproj":null,"pw":null,"po":false},{"wk":9,"hp":"Chris","ap":"Maddie","htm":"The Goofballs","atm":"Losing Tua Girl","hs":null,"as":null,"won":null,"hproj":null,"aproj":null,"pw":null,"po":false},{"wk":9,"hp":"Mark","ap":"Jared","htm":"Marky Mark\u2019s funky bunch","atm":"GoodLadds","hs":null,"as":null,"won":null,"hproj":null,"aproj":null,"pw":null,"po":false},{"wk":9,"hp":"John","ap":"Richard","htm":"Chicago Double-Doink","atm":"Rich's Rowdy Team","hs":null,"as":null,"won":null,"hproj":null,"aproj":null,"pw":null,"po":false},{"wk":9,"hp":"Conor","ap":"Gabriel","htm":"Winning Eleven Seven","atm":"The Injured Reserves","hs":null,"as":null,"won":null,"hproj":null,"aproj":null,"pw":null,"po":false},{"wk":9,"hp":"Andy","ap":"Jeffrey","htm":"Bootball Baddies","atm":"The Reaper","hs":null,"as":null,"won":null,"hproj":null,"aproj":null,"pw":null,"po":false},{"wk":10,"hp":"Richard","ap":"Andy","htm":"Rich's Rowdy Team","atm":"Bootball Baddies","hs":null,"as":null,"won":null,"hproj":null,"aproj":null,"pw":null,"po":false},{"wk":10,"hp":"Gabriel","ap":"Jeffrey","htm":"The Injured Reserves","atm":"The Reaper","hs":null,"as":null,"won":null,"hproj":null,"aproj":null,"pw":null,"po":false},{"wk":10,"hp":"Mark","ap":"John","htm":"Marky Mark\u2019s funky bunch","atm":"Chicago Double-Doink","hs":null,"as":null,"won":null,"hproj":null,"aproj":null,"pw":null,"po":false},{"wk":10,"hp":"Jared","ap":"Chris","htm":"GoodLadds","atm":"The Goofballs","hs":null,"as":null,"won":null,"hproj":null,"aproj":null,"pw":null,"po":false},{"wk":10,"hp":"Maddie","ap":"Conor","htm":"Losing Tua Girl","atm":"Winning Eleven Seven","hs":null,"as":null,"won":null,"hproj":null,"aproj":null,"pw":null,"po":false},{"wk":11,"hp":"Chris","ap":"John","htm":"The Goofballs","atm":"Chicago Double-Doink","hs":null,"as":null,"won":null,"hproj":null,"aproj":null,"pw":null,"po":false},{"wk":11,"hp":"Jeffrey","ap":"Richard","htm":"The Reaper","atm":"Rich's Rowdy Team","hs":null,"as":null,"won":null,"hproj":null,"aproj":null,"pw":null,"po":false},{"wk":11,"hp":"Maddie","ap":"Gabriel","htm":"Losing Tua Girl","atm":"The Injured Reserves","hs":null,"as":null,"won":null,"hproj":null,"aproj":null,"pw":null,"po":false},{"wk":11,"hp":"Conor","ap":"Jared","htm":"Winning Eleven Seven","atm":"GoodLadds","hs":null,"as":null,"won":null,"hproj":null,"aproj":null,"pw":null,"po":false},{"wk":11,"hp":"Andy","ap":"Mark","htm":"Bootball Baddies","atm":"Marky Mark\u2019s funky bunch","hs":null,"as":null,"won":null,"hproj":null,"aproj":null,"pw":null,"po":false},{"wk":12,"hp":"Chris","ap":"Andy","htm":"The Goofballs","atm":"Bootball Baddies","hs":null,"as":null,"won":null,"hproj":null,"aproj":null,"pw":null,"po":false},{"wk":12,"hp":"Gabriel","ap":"Richard","htm":"The Injured Reserves","atm":"Rich's Rowdy Team","hs":null,"as":null,"won":null,"hproj":null,"aproj":null,"pw":null,"po":false},{"wk":12,"hp":"Mark","ap":"Jeffrey","htm":"Marky Mark\u2019s funky bunch","atm":"The Reaper","hs":null,"as":null,"won":null,"hproj":null,"aproj":null,"pw":null,"po":false},{"wk":12,"hp":"Jared","ap":"Maddie","htm":"GoodLadds","atm":"Losing Tua Girl","hs":null,"as":null,"won":null,"hproj":null,"aproj":null,"pw":null,"po":false},{"wk":12,"hp":"John","ap":"Conor","htm":"Chicago Double-Doink","atm":"Winning Eleven Seven","hs":null,"as":null,"won":null,"hproj":null,"aproj":null,"pw":null,"po":false},{"wk":13,"hp":"Jeffrey","ap":"Chris","htm":"The Reaper","atm":"The Goofballs","hs":null,"as":null,"won":null,"hproj":null,"aproj":null,"pw":null,"po":false},{"wk":13,"hp":"Richard","ap":"Mark","htm":"Rich's Rowdy Team","atm":"Marky Mark\u2019s funky bunch","hs":null,"as":null,"won":null,"hproj":null,"aproj":null,"pw":null,"po":false},{"wk":13,"hp":"Jared","ap":"Gabriel","htm":"GoodLadds","atm":"The Injured Reserves","hs":null,"as":null,"won":null,"hproj":null,"aproj":null,"pw":null,"po":false},{"wk":13,"hp":"Maddie","ap":"John","htm":"Losing Tua Girl","atm":"Chicago Double-Doink","hs":null,"as":null,"won":null,"hproj":null,"aproj":null,"pw":null,"po":false},{"wk":13,"hp":"Conor","ap":"Andy","htm":"Winning Eleven Seven","atm":"Bootball Baddies","hs":null,"as":null,"won":null,"hproj":null,"aproj":null,"pw":null,"po":false},{"wk":14,"hp":"Chris","ap":"Richard","htm":"The Goofballs","atm":"Rich's Rowdy Team","hs":null,"as":null,"won":null,"hproj":null,"aproj":null,"pw":null,"po":false},{"wk":14,"hp":"Gabriel","ap":"Mark","htm":"The Injured Reserves","atm":"Marky Mark\u2019s funky bunch","hs":null,"as":null,"won":null,"hproj":null,"aproj":null,"pw":null,"po":false},{"wk":14,"hp":"John","ap":"Jared","htm":"Chicago Double-Doink","atm":"GoodLadds","hs":null,"as":null,"won":null,"hproj":null,"aproj":null,"pw":null,"po":false},{"wk":14,"hp":"Conor","ap":"Jeffrey","htm":"Winning Eleven Seven","atm":"The Reaper","hs":null,"as":null,"won":null,"hproj":null,"aproj":null,"pw":null,"po":false},{"wk":14,"hp":"Andy","ap":"Maddie","htm":"Bootball Baddies","atm":"Losing Tua Girl","hs":null,"as":null,"won":null,"hproj":null,"aproj":null,"pw":null,"po":false}],"rosters":[{"tid":1,"p":"Chris","tm":"The Goofballs","wk":1,"players":[{"n":"Jalen Hurts","pos":"QB","slot":"QB","st":true,"proj":21.1,"act":null},{"n":"Ja'Marr Chase","pos":"WR","slot":"WR","st":true,"proj":19.9,"act":null},{"n":"Drake London","pos":"WR","slot":"WR","st":true,"proj":15.1,"act":null},{"n":"A.J. Brown","pos":"WR","slot":"FLEX","st":true,"proj":14.3,"act":null},{"n":"Cam Skattebo","pos":"RB","slot":"RB","st":true,"proj":13.7,"act":null},{"n":"Jadarian Price","pos":"RB","slot":"RB","st":true,"proj":13.6,"act":null},{"n":"Harold Fannin Jr.","pos":"TE","slot":"TE","st":true,"proj":11.1,"act":null},{"n":"Ka'imi Fairbairn","pos":"K","slot":"K","st":true,"proj":9.7,"act":null},{"n":"Jaguars D/ST","pos":"D/ST","slot":"D/ST","st":true,"proj":8.2,"act":null},{"n":"MarShawn Lloyd","pos":"RB","slot":"BE","st":false,"proj":12.9,"act":null},{"n":"Rico Dowdle","pos":"RB","slot":"BE","st":false,"proj":12.5,"act":null},{"n":"Dallas Goedert","pos":"TE","slot":"BE","st":false,"proj":10.9,"act":null},{"n":"Quentin Johnston","pos":"WR","slot":"BE","st":false,"proj":10.4,"act":null},{"n":"Jalen Coker","pos":"WR","slot":"BE","st":false,"proj":9.2,"act":null},{"n":"KC Concepcion","pos":"WR","slot":"BE","st":false,"proj":9.1,"act":null},{"n":"Jacory Croskey-Merritt","pos":"RB","slot":"BE","st":false,"proj":8.3,"act":null}]},{"tid":2,"p":"Jeffrey","tm":"The Reaper","wk":1,"players":[{"n":"Jahmyr Gibbs","pos":"RB","slot":"RB","st":true,"proj":21.5,"act":null},{"n":"Josh Allen","pos":"QB","slot":"QB","st":true,"proj":19.3,"act":null},{"n":"Jeremiyah Love","pos":"RB","slot":"RB","st":true,"proj":14.7,"act":null},{"n":"Davante Adams","pos":"WR","slot":"WR","st":true,"proj":13.8,"act":null},{"n":"D'Andre Swift","pos":"RB","slot":"FLEX","st":true,"proj":12.3,"act":null},{"n":"Terry McLaurin","pos":"WR","slot":"WR","st":true,"proj":12.3,"act":null},{"n":"Jason Myers","pos":"K","slot":"K","st":true,"proj":9.3,"act":null},{"n":"George Kittle","pos":"TE","slot":"TE","st":true,"proj":8.4,"act":null},{"n":"Broncos D/ST","pos":"D/ST","slot":"D/ST","st":true,"proj":5.9,"act":null},{"n":"Jared Goff","pos":"QB","slot":"BE","st":false,"proj":15.8,"act":null},{"n":"Matthew Golden","pos":"WR","slot":"BE","st":false,"proj":11.1,"act":null},{"n":"Mark Andrews","pos":"TE","slot":"BE","st":false,"proj":10.1,"act":null},{"n":"Alec Pierce","pos":"WR","slot":"BE","st":false,"proj":9.7,"act":null},{"n":"Tyjae Spears","pos":"RB","slot":"BE","st":false,"proj":9.4,"act":null},{"n":"Lions D/ST","pos":"D/ST","slot":"BE","st":false,"proj":7.4,"act":null},{"n":"Zach Charbonnet","pos":"RB","slot":"BE","st":false,"proj":0.0,"act":null}]},{"tid":4,"p":"Richard","tm":"Rich's Rowdy Team","wk":1,"players":[{"n":"CeeDee Lamb","pos":"WR","slot":"WR","st":true,"proj":17.2,"act":null},{"n":"Justin Jefferson","pos":"WR","slot":"WR","st":true,"proj":17.1,"act":null},{"n":"Jayden Daniels","pos":"QB","slot":"QB","st":true,"proj":16.8,"act":null},{"n":"Breece Hall","pos":"RB","slot":"RB","st":true,"proj":16.5,"act":null},{"n":"Javonte Williams","pos":"RB","slot":"RB","st":true,"proj":15.2,"act":null},{"n":"Tyler Warren","pos":"TE","slot":"TE","st":true,"proj":12.2,"act":null},{"n":"Tony Pollard","pos":"RB","slot":"FLEX","st":true,"proj":11.5,"act":null},{"n":"Eddy Pineiro","pos":"K","slot":"K","st":true,"proj":8.7,"act":null},{"n":"Ravens D/ST","pos":"D/ST","slot":"D/ST","st":true,"proj":6.8,"act":null},{"n":"Marvin Harrison Jr.","pos":"WR","slot":"BE","st":false,"proj":11.5,"act":null},{"n":"Michael Wilson","pos":"WR","slot":"BE","st":false,"proj":10.5,"act":null},{"n":"Jayden Reed","pos":"WR","slot":"BE","st":false,"proj":10.2,"act":null},{"n":"Jordan Addison","pos":"WR","slot":"BE","st":false,"proj":9.9,"act":null},{"n":"Blake Corum","pos":"RB","slot":"BE","st":false,"proj":9.4,"act":null},{"n":"Jordan Mason","pos":"RB","slot":"BE","st":false,"proj":8.7,"act":null},{"n":"Romeo Doubs","pos":"WR","slot":"BE","st":false,"proj":8.2,"act":null}]},{"tid":5,"p":"Gabriel","tm":"The Injured Reserves","wk":1,"players":[{"n":"Christian McCaffrey","pos":"RB","slot":"RB","st":true,"proj":18.4,"act":null},{"n":"Saquon Barkley","pos":"RB","slot":"RB","st":true,"proj":17.7,"act":null},{"n":"Baker Mayfield","pos":"QB","slot":"QB","st":true,"proj":16.2,"act":null},{"n":"Trey McBride","pos":"TE","slot":"TE","st":true,"proj":14.4,"act":null},{"n":"Malik Nabers","pos":"WR","slot":"WR","st":true,"proj":13.8,"act":null},{"n":"Tee Higgins","pos":"WR","slot":"WR","st":true,"proj":13.0,"act":null},{"n":"Bucky Irving","pos":"RB","slot":"FLEX","st":true,"proj":12.4,"act":null},{"n":"Cam Little","pos":"K","slot":"K","st":true,"proj":8.8,"act":null},{"n":"Seahawks D/ST","pos":"D/ST","slot":"D/ST","st":true,"proj":7.2,"act":null},{"n":"Patrick Mahomes","pos":"QB","slot":"BE","st":false,"proj":15.5,"act":null},{"n":"Michael Pittman Jr.","pos":"WR","slot":"BE","st":false,"proj":12.3,"act":null},{"n":"Carnell Tate","pos":"WR","slot":"BE","st":false,"proj":12.0,"act":null},{"n":"Jonathon Brooks","pos":"RB","slot":"BE","st":false,"proj":11.8,"act":null},{"n":"J.K. Dobbins","pos":"RB","slot":"BE","st":false,"proj":9.5,"act":null},{"n":"Josh Downs","pos":"WR","slot":"BE","st":false,"proj":9.1,"act":null},{"n":"Alvin Kamara","pos":"RB","slot":"BE","st":false,"proj":0.0,"act":null}]},{"tid":6,"p":"Mark","tm":"Marky Mark\u2019s funky bunch","wk":1,"players":[{"n":"Amon-Ra St. Brown","pos":"WR","slot":"WR","st":true,"proj":18.8,"act":null},{"n":"Joe Burrow","pos":"QB","slot":"QB","st":true,"proj":18.2,"act":null},{"n":"Omarion Hampton","pos":"RB","slot":"RB","st":true,"proj":17.6,"act":null},{"n":"Rashee Rice","pos":"WR","slot":"WR","st":true,"proj":14.4,"act":null},{"n":"David Montgomery","pos":"RB","slot":"RB","st":true,"proj":12.7,"act":null},{"n":"Colston Loveland","pos":"TE","slot":"TE","st":true,"proj":12.0,"act":null},{"n":"Rhamondre Stevenson","pos":"RB","slot":"FLEX","st":true,"proj":10.5,"act":null},{"n":"Harrison Mevis","pos":"K","slot":"K","st":true,"proj":9.3,"act":null},{"n":"Patriots D/ST","pos":"D/ST","slot":"D/ST","st":true,"proj":4.7,"act":null},{"n":"Dak Prescott","pos":"QB","slot":"BE","st":false,"proj":16.7,"act":null},{"n":"Courtland Sutton","pos":"WR","slot":"BE","st":false,"proj":11.7,"act":null},{"n":"Aaron Jones","pos":"RB","slot":"BE","st":false,"proj":10.3,"act":null},{"n":"Jake Ferguson","pos":"TE","slot":"BE","st":false,"proj":9.8,"act":null},{"n":"Xavier Worthy","pos":"WR","slot":"BE","st":false,"proj":9.5,"act":null},{"n":"Deebo Samuel","pos":"WR","slot":"BE","st":false,"proj":8.9,"act":null},{"n":"Dalton Kincaid","pos":"TE","slot":"BE","st":false,"proj":8.7,"act":null}]},{"tid":7,"p":"Jared","tm":"GoodLadds","wk":1,"players":[{"n":"Jaxon Smith-Njigba","pos":"WR","slot":"WR","st":true,"proj":18.9,"act":null},{"n":"Caleb Williams","pos":"QB","slot":"QB","st":true,"proj":16.3,"act":null},{"n":"Chase Brown","pos":"RB","slot":"RB","st":true,"proj":16.0,"act":null},{"n":"Nico Collins","pos":"WR","slot":"WR","st":true,"proj":15.6,"act":null},{"n":"Travis Etienne Jr.","pos":"RB","slot":"RB","st":true,"proj":15.0,"act":null},{"n":"Zay Flowers","pos":"WR","slot":"FLEX","st":true,"proj":14.2,"act":null},{"n":"Travis Kelce","pos":"TE","slot":"TE","st":true,"proj":9.8,"act":null},{"n":"Evan McPherson","pos":"K","slot":"K","st":true,"proj":8.4,"act":null},{"n":"Rams D/ST","pos":"D/ST","slot":"D/ST","st":true,"proj":6.2,"act":null},{"n":"Bhayshul Tuten","pos":"RB","slot":"BE","st":false,"proj":12.4,"act":null},{"n":"Christian Watson","pos":"WR","slot":"BE","st":false,"proj":11.1,"act":null},{"n":"Parker Washington","pos":"WR","slot":"BE","st":false,"proj":10.8,"act":null},{"n":"Chris Godwin","pos":"WR","slot":"BE","st":false,"proj":9.7,"act":null},{"n":"Rachaad White","pos":"RB","slot":"BE","st":false,"proj":8.9,"act":null},{"n":"Juwan Johnson","pos":"WR","slot":"BE","st":false,"proj":8.8,"act":null},{"n":"RJ Harvey","pos":"RB","slot":"BE","st":false,"proj":8.5,"act":null}]},{"tid":8,"p":"John","tm":"Chicago Double-Doink","wk":1,"players":[{"n":"Puka Nacua","pos":"WR","slot":"WR","st":true,"proj":21.1,"act":null},{"n":"Lamar Jackson","pos":"QB","slot":"QB","st":true,"proj":19.1,"act":null},{"n":"Ashton Jeanty","pos":"RB","slot":"RB","st":true,"proj":18.1,"act":null},{"n":"Kenneth Walker III","pos":"RB","slot":"RB","st":true,"proj":14.7,"act":null},{"n":"Ladd McConkey","pos":"WR","slot":"WR","st":true,"proj":13.8,"act":null},{"n":"Rome Odunze","pos":"WR","slot":"FLEX","st":true,"proj":12.4,"act":null},{"n":"Sam LaPorta","pos":"TE","slot":"TE","st":true,"proj":11.0,"act":null},{"n":"Brandon Aubrey","pos":"K","slot":"K","st":true,"proj":9.9,"act":null},{"n":"Eagles D/ST","pos":"D/ST","slot":"D/ST","st":true,"proj":6.3,"act":null},{"n":"Trevor Lawrence","pos":"QB","slot":"BE","st":false,"proj":17.0,"act":null},{"n":"Brock Purdy","pos":"QB","slot":"BE","st":false,"proj":15.5,"act":null},{"n":"DK Metcalf","pos":"WR","slot":"BE","st":false,"proj":12.2,"act":null},{"n":"Kenneth Gainwell","pos":"RB","slot":"BE","st":false,"proj":10.8,"act":null},{"n":"Jakobi Meyers","pos":"WR","slot":"BE","st":false,"proj":10.4,"act":null},{"n":"De'Zhaun Stribling","pos":"WR","slot":"BE","st":false,"proj":9.6,"act":null},{"n":"Woody Marks","pos":"RB","slot":"BE","st":false,"proj":8.3,"act":null}]},{"tid":9,"p":"Maddie","tm":"Losing Tua Girl","wk":1,"players":[{"n":"Jaxson Dart","pos":"QB","slot":"QB","st":true,"proj":18.5,"act":null},{"n":"Jonathan Taylor","pos":"RB","slot":"RB","st":true,"proj":17.8,"act":null},{"n":"Derrick Henry","pos":"RB","slot":"RB","st":true,"proj":16.4,"act":null},{"n":"DeVonta Smith","pos":"WR","slot":"WR","st":true,"proj":14.8,"act":null},{"n":"Tetairoa McMillan","pos":"WR","slot":"FLEX","st":true,"proj":14.8,"act":null},{"n":"George Pickens","pos":"WR","slot":"WR","st":true,"proj":14.7,"act":null},{"n":"Tucker Kraft","pos":"TE","slot":"TE","st":true,"proj":9.1,"act":null},{"n":"Jake Bates","pos":"K","slot":"K","st":true,"proj":8.6,"act":null},{"n":"Steelers D/ST","pos":"D/ST","slot":"D/ST","st":true,"proj":7.5,"act":null},{"n":"Jordan Love","pos":"QB","slot":"BE","st":false,"proj":15.3,"act":null},{"n":"DJ Moore","pos":"WR","slot":"BE","st":false,"proj":11.6,"act":null},{"n":"Chuba Hubbard","pos":"RB","slot":"BE","st":false,"proj":11.2,"act":null},{"n":"Kyle Monangai","pos":"RB","slot":"BE","st":false,"proj":10.3,"act":null},{"n":"TreVeyon Henderson","pos":"RB","slot":"BE","st":false,"proj":10.1,"act":null},{"n":"Khalil Shakir","pos":"WR","slot":"BE","st":false,"proj":9.5,"act":null},{"n":"Isaiah Likely","pos":"TE","slot":"BE","st":false,"proj":9.4,"act":null}]},{"tid":10,"p":"Conor","tm":"Winning Eleven Seven","wk":1,"players":[{"n":"Bijan Robinson","pos":"RB","slot":"RB","st":true,"proj":19.3,"act":null},{"n":"Kyler Murray","pos":"QB","slot":"QB","st":true,"proj":16.4,"act":null},{"n":"Brock Bowers","pos":"TE","slot":"TE","st":true,"proj":15.6,"act":null},{"n":"Chris Olave","pos":"WR","slot":"WR","st":true,"proj":14.8,"act":null},{"n":"Emeka Egbuka","pos":"WR","slot":"WR","st":true,"proj":14.0,"act":null},{"n":"Quinshon Judkins","pos":"RB","slot":"RB","st":true,"proj":13.2,"act":null},{"n":"Luther Burden III","pos":"WR","slot":"FLEX","st":true,"proj":12.0,"act":null},{"n":"Cameron Dicker","pos":"K","slot":"K","st":true,"proj":10.2,"act":null},{"n":"Browns D/ST","pos":"D/ST","slot":"D/ST","st":true,"proj":4.9,"act":null},{"n":"Matthew Stafford","pos":"QB","slot":"BE","st":false,"proj":17.5,"act":null},{"n":"Tyler Shough","pos":"QB","slot":"BE","st":false,"proj":14.2,"act":null},{"n":"Jaylen Warren","pos":"RB","slot":"BE","st":false,"proj":12.6,"act":null},{"n":"Jameson Williams","pos":"WR","slot":"BE","st":false,"proj":12.1,"act":null},{"n":"Stefon Diggs","pos":"WR","slot":"BE","st":false,"proj":9.7,"act":null},{"n":"Makai Lemon","pos":"WR","slot":"BE","st":false,"proj":8.5,"act":null},{"n":"Josh Jacobs","pos":"RB","slot":"BE","st":false,"proj":0.0,"act":null}]},{"tid":11,"p":"Andy","tm":"Bootball Baddies","wk":1,"players":[{"n":"De'Von Achane","pos":"RB","slot":"RB","st":true,"proj":18.2,"act":null},{"n":"Drake Maye","pos":"QB","slot":"QB","st":true,"proj":16.2,"act":null},{"n":"James Cook","pos":"RB","slot":"RB","st":true,"proj":14.9,"act":null},{"n":"Garrett Wilson","pos":"WR","slot":"WR","st":true,"proj":14.8,"act":null},{"n":"Kyren Williams","pos":"RB","slot":"FLEX","st":true,"proj":13.7,"act":null},{"n":"Jaylen Waddle","pos":"WR","slot":"WR","st":true,"proj":12.2,"act":null},{"n":"Kyle Pitts","pos":"TE","slot":"TE","st":true,"proj":10.4,"act":null},{"n":"Harrison Butker","pos":"K","slot":"K","st":true,"proj":8.5,"act":null},{"n":"Texans D/ST","pos":"D/ST","slot":"D/ST","st":true,"proj":5.3,"act":null},{"n":"Justin Herbert","pos":"QB","slot":"BE","st":false,"proj":19.0,"act":null},{"n":"Bo Nix","pos":"QB","slot":"BE","st":false,"proj":16.2,"act":null},{"n":"Mike Evans","pos":"WR","slot":"BE","st":false,"proj":10.6,"act":null},{"n":"Wan'Dale Robinson","pos":"WR","slot":"BE","st":false,"proj":10.4,"act":null},{"n":"Brian Thomas Jr.","pos":"WR","slot":"BE","st":false,"proj":10.1,"act":null},{"n":"Jalen McMillan","pos":"WR","slot":"BE","st":false,"proj":8.2,"act":null},{"n":"Travis Hunter","pos":"WR","slot":"BE","st":false,"proj":5.9,"act":null}]}],"draft":[{"ov":1,"rd":1,"p":"Jeffrey","pl":"Jahmyr Gibbs","pos":"RB","k":0},{"ov":2,"rd":1,"p":"Conor","pl":"Bijan Robinson","pos":"RB","k":0},{"ov":3,"rd":1,"p":"Chris","pl":"Ja'Marr Chase","pos":"WR","k":0},{"ov":4,"rd":1,"p":"Jared","pl":"Jaxon Smith-Njigba","pos":"WR","k":0},{"ov":5,"rd":1,"p":"Mark","pl":"Amon-Ra St. Brown","pos":"WR","k":0},{"ov":6,"rd":1,"p":"John","pl":"Puka Nacua","pos":"WR","k":0},{"ov":7,"rd":1,"p":"Maddie","pl":"Jonathan Taylor","pos":"RB","k":0},{"ov":8,"rd":1,"p":"Gabriel","pl":"Christian McCaffrey","pos":"RB","k":0},{"ov":9,"rd":1,"p":"Andy","pl":"James Cook","pos":"RB","k":0},{"ov":10,"rd":1,"p":"Richard","pl":"CeeDee Lamb","pos":"WR","k":0},{"ov":11,"rd":2,"p":"Richard","pl":"Justin Jefferson","pos":"WR","k":0},{"ov":12,"rd":2,"p":"Andy","pl":"De'Von Achane","pos":"RB","k":0},{"ov":13,"rd":2,"p":"Gabriel","pl":"Saquon Barkley","pos":"RB","k":0},{"ov":14,"rd":2,"p":"Maddie","pl":"Derrick Henry","pos":"RB","k":0},{"ov":15,"rd":2,"p":"John","pl":"Ashton Jeanty","pos":"RB","k":0},{"ov":16,"rd":2,"p":"Mark","pl":"Omarion Hampton","pos":"RB","k":0},{"ov":17,"rd":2,"p":"Jared","pl":"Chase Brown","pos":"RB","k":0},{"ov":18,"rd":2,"p":"Chris","pl":"Drake London","pos":"WR","k":0},{"ov":19,"rd":2,"p":"Conor","pl":"Brock Bowers","pos":"TE","k":0},{"ov":20,"rd":2,"p":"Jeffrey","pl":"Jeremiyah Love","pos":"RB","k":0},{"ov":21,"rd":3,"p":"Jeffrey","pl":"Josh Allen","pos":"QB","k":0},{"ov":22,"rd":3,"p":"Conor","pl":"Chris Olave","pos":"WR","k":0},{"ov":23,"rd":3,"p":"Chris","pl":"A.J. Brown","pos":"WR","k":0},{"ov":24,"rd":3,"p":"Jared","pl":"Nico Collins","pos":"WR","k":0},{"ov":25,"rd":3,"p":"Mark","pl":"Rashee Rice","pos":"WR","k":0},{"ov":26,"rd":3,"p":"John","pl":"Kenneth Walker III","pos":"RB","k":0},{"ov":27,"rd":3,"p":"Maddie","pl":"George Pickens","pos":"WR","k":0},{"ov":28,"rd":3,"p":"Gabriel","pl":"Trey McBride","pos":"TE","k":0},{"ov":29,"rd":3,"p":"Andy","pl":"Garrett Wilson","pos":"WR","k":0},{"ov":30,"rd":3,"p":"Richard","pl":"Breece Hall","pos":"RB","k":0},{"ov":31,"rd":4,"p":"Richard","pl":"Javonte Williams","pos":"RB","k":0},{"ov":32,"rd":4,"p":"Andy","pl":"Kyren Williams","pos":"RB","k":0},{"ov":33,"rd":4,"p":"Gabriel","pl":"Malik Nabers","pos":"WR","k":0},{"ov":34,"rd":4,"p":"Maddie","pl":"DeVonta Smith","pos":"WR","k":0},{"ov":35,"rd":4,"p":"John","pl":"Lamar Jackson","pos":"QB","k":0},{"ov":36,"rd":4,"p":"Mark","pl":"Colston Loveland","pos":"TE","k":0},{"ov":37,"rd":4,"p":"Jared","pl":"Travis Etienne Jr.","pos":"RB","k":0},{"ov":38,"rd":4,"p":"Chris","pl":"Cam Skattebo","pos":"RB","k":0},{"ov":39,"rd":4,"p":"Conor","pl":"Quinshon Judkins","pos":"RB","k":0},{"ov":40,"rd":4,"p":"Jeffrey","pl":"Davante Adams","pos":"WR","k":0},{"ov":41,"rd":5,"p":"Jeffrey","pl":"D'Andre Swift","pos":"RB","k":0},{"ov":42,"rd":5,"p":"Conor","pl":"Emeka Egbuka","pos":"WR","k":0},{"ov":43,"rd":5,"p":"Chris","pl":"Jalen Hurts","pos":"QB","k":0},{"ov":44,"rd":5,"p":"Jared","pl":"Zay Flowers","pos":"WR","k":0},{"ov":45,"rd":5,"p":"Mark","pl":"David Montgomery","pos":"RB","k":0},{"ov":46,"rd":5,"p":"John","pl":"Ladd McConkey","pos":"WR","k":0},{"ov":47,"rd":5,"p":"Maddie","pl":"Tetairoa McMillan","pos":"WR","k":0},{"ov":48,"rd":5,"p":"Gabriel","pl":"Tee Higgins","pos":"WR","k":0},{"ov":49,"rd":5,"p":"Andy","pl":"Jaylen Waddle","pos":"WR","k":0},{"ov":50,"rd":5,"p":"Richard","pl":"Jayden Daniels","pos":"QB","k":0},{"ov":51,"rd":6,"p":"Richard","pl":"Tyler Warren","pos":"TE","k":0},{"ov":52,"rd":6,"p":"Andy","pl":"Drake Maye","pos":"QB","k":0},{"ov":53,"rd":6,"p":"Gabriel","pl":"Bucky Irving","pos":"RB","k":0},{"ov":54,"rd":6,"p":"Maddie","pl":"DJ Moore","pos":"WR","k":0},{"ov":55,"rd":6,"p":"John","pl":"Rome Odunze","pos":"WR","k":0},{"ov":56,"rd":6,"p":"Mark","pl":"Joe Burrow","pos":"QB","k":0},{"ov":57,"rd":6,"p":"Jared","pl":"Bhayshul Tuten","pos":"RB","k":0},{"ov":58,"rd":6,"p":"Chris","pl":"Jadarian Price","pos":"RB","k":0},{"ov":59,"rd":6,"p":"Conor","pl":"Luther Burden III","pos":"WR","k":0},{"ov":60,"rd":6,"p":"Jeffrey","pl":"Terry McLaurin","pos":"WR","k":0},{"ov":61,"rd":7,"p":"Jeffrey","pl":"George Kittle","pos":"TE","k":0},{"ov":62,"rd":7,"p":"Conor","pl":"Jameson Williams","pos":"WR","k":0},{"ov":63,"rd":7,"p":"Chris","pl":"Harold Fannin Jr.","pos":"TE","k":0},{"ov":64,"rd":7,"p":"Jared","pl":"Caleb Williams","pos":"QB","k":0},{"ov":65,"rd":7,"p":"Mark","pl":"Rhamondre Stevenson","pos":"RB","k":0},{"ov":66,"rd":7,"p":"John","pl":"Sam LaPorta","pos":"TE","k":0},{"ov":67,"rd":7,"p":"Maddie","pl":"TreVeyon Henderson","pos":"RB","k":0},{"ov":68,"rd":7,"p":"Gabriel","pl":"Carnell Tate","pos":"WR","k":0},{"ov":69,"rd":7,"p":"Andy","pl":"Kyle Pitts","pos":"TE","k":0},{"ov":70,"rd":7,"p":"Richard","pl":"Tony Pollard","pos":"RB","k":0},{"ov":71,"rd":8,"p":"Richard","pl":"Marvin Harrison Jr.","pos":"WR","k":0},{"ov":72,"rd":8,"p":"Andy","pl":"Mike Evans","pos":"WR","k":0},{"ov":73,"rd":8,"p":"Gabriel","pl":"Michael Pittman Jr.","pos":"WR","k":0},{"ov":74,"rd":8,"p":"Maddie","pl":"Tucker Kraft","pos":"TE","k":0},{"ov":75,"rd":8,"p":"John","pl":"DK Metcalf","pos":"WR","k":0},{"ov":76,"rd":8,"p":"Mark","pl":"Courtland Sutton","pos":"WR","k":0},{"ov":77,"rd":8,"p":"Jared","pl":"Christian Watson","pos":"WR","k":0},{"ov":78,"rd":8,"p":"Chris","pl":"MarShawn Lloyd","pos":"RB","k":0},{"ov":79,"rd":8,"p":"Conor","pl":"Jaylen Warren","pos":"RB","k":0},{"ov":80,"rd":8,"p":"Jeffrey","pl":"Broncos D/ST","pos":"D/ST","k":0},{"ov":81,"rd":9,"p":"Jeffrey","pl":"Matthew Golden","pos":"WR","k":0},{"ov":82,"rd":9,"p":"Conor","pl":"Josh Jacobs","pos":"RB","k":0},{"ov":83,"rd":9,"p":"Chris","pl":"Rico Dowdle","pos":"RB","k":0},{"ov":84,"rd":9,"p":"Jared","pl":"Parker Washington","pos":"WR","k":0},{"ov":85,"rd":9,"p":"Mark","pl":"Dak Prescott","pos":"QB","k":0},{"ov":86,"rd":9,"p":"John","pl":"Kenneth Gainwell","pos":"RB","k":0},{"ov":87,"rd":9,"p":"Maddie","pl":"Jaxson Dart","pos":"QB","k":0},{"ov":88,"rd":9,"p":"Gabriel","pl":"Jonathon Brooks","pos":"RB","k":0},{"ov":89,"rd":9,"p":"Andy","pl":"Wan'Dale Robinson","pos":"WR","k":0},{"ov":90,"rd":9,"p":"Richard","pl":"Michael Wilson","pos":"WR","k":0},{"ov":91,"rd":10,"p":"Richard","pl":"Jayden Reed","pos":"WR","k":0},{"ov":92,"rd":10,"p":"Andy","pl":"Justin Herbert","pos":"QB","k":0},{"ov":93,"rd":10,"p":"Gabriel","pl":"Patrick Mahomes","pos":"QB","k":0},{"ov":94,"rd":10,"p":"Maddie","pl":"Chuba Hubbard","pos":"RB","k":0},{"ov":95,"rd":10,"p":"John","pl":"Brandon Aubrey","pos":"K","k":0},{"ov":96,"rd":10,"p":"Mark","pl":"Aaron Jones","pos":"RB","k":0},{"ov":97,"rd":10,"p":"Jared","pl":"Travis Kelce","pos":"TE","k":0},{"ov":98,"rd":10,"p":"Chris","pl":"Quentin Johnston","pos":"WR","k":0},{"ov":99,"rd":10,"p":"Conor","pl":"Stefon Diggs","pos":"WR","k":0},{"ov":100,"rd":10,"p":"Jeffrey","pl":"Alec Pierce","pos":"WR","k":0},{"ov":101,"rd":11,"p":"Jeffrey","pl":"Jason Myers","pos":"K","k":0},{"ov":102,"rd":11,"p":"Conor","pl":"Makai Lemon","pos":"WR","k":0},{"ov":103,"rd":11,"p":"Chris","pl":"Dallas Goedert","pos":"TE","k":0},{"ov":104,"rd":11,"p":"Jared","pl":"Chris Godwin","pos":"WR","k":0},{"ov":105,"rd":11,"p":"Mark","pl":"Jake Ferguson","pos":"TE","k":0},{"ov":106,"rd":11,"p":"John","pl":"Jakobi Meyers","pos":"WR","k":0},{"ov":107,"rd":11,"p":"Maddie","pl":"Khalil Shakir","pos":"WR","k":0},{"ov":108,"rd":11,"p":"Gabriel","pl":"J.K. Dobbins","pos":"RB","k":0},{"ov":109,"rd":11,"p":"Andy","pl":"Travis Hunter","pos":"WR","k":0},{"ov":110,"rd":11,"p":"Richard","pl":"Blake Corum","pos":"RB","k":0},{"ov":111,"rd":12,"p":"Richard","pl":"Jordan Addison","pos":"WR","k":0},{"ov":112,"rd":12,"p":"Andy","pl":"Brian Thomas Jr.","pos":"WR","k":0},{"ov":113,"rd":12,"p":"Gabriel","pl":"Josh Downs","pos":"WR","k":0},{"ov":114,"rd":12,"p":"Maddie","pl":"Kyle Monangai","pos":"RB","k":0},{"ov":115,"rd":12,"p":"John","pl":"Trevor Lawrence","pos":"QB","k":0},{"ov":116,"rd":12,"p":"Mark","pl":"Xavier Worthy","pos":"WR","k":0},{"ov":117,"rd":12,"p":"Jared","pl":"Rachaad White","pos":"RB","k":0},{"ov":118,"rd":12,"p":"Chris","pl":"Jacory Croskey-Merritt","pos":"RB","k":0},{"ov":119,"rd":12,"p":"Conor","pl":"Kyler Murray","pos":"QB","k":0},{"ov":120,"rd":12,"p":"Jeffrey","pl":"Mark Andrews","pos":"TE","k":0},{"ov":121,"rd":13,"p":"Jeffrey","pl":"Jared Goff","pos":"QB","k":0},{"ov":122,"rd":13,"p":"Conor","pl":"Matthew Stafford","pos":"QB","k":0},{"ov":123,"rd":13,"p":"Chris","pl":"KC Concepcion","pos":"WR","k":0},{"ov":124,"rd":13,"p":"Jared","pl":"RJ Harvey","pos":"RB","k":0},{"ov":125,"rd":13,"p":"Mark","pl":"Dalton Kincaid","pos":"TE","k":0},{"ov":126,"rd":13,"p":"John","pl":"Brock Purdy","pos":"QB","k":0},{"ov":127,"rd":13,"p":"Maddie","pl":"Isaiah Likely","pos":"TE","k":0},{"ov":128,"rd":13,"p":"Gabriel","pl":"Alvin Kamara","pos":"RB","k":0},{"ov":129,"rd":13,"p":"Andy","pl":"Bo Nix","pos":"QB","k":0},{"ov":130,"rd":13,"p":"Richard","pl":"Romeo Doubs","pos":"WR","k":0},{"ov":131,"rd":14,"p":"Richard","pl":"Jordan Mason","pos":"RB","k":0},{"ov":132,"rd":14,"p":"Andy","pl":"Texans D/ST","pos":"D/ST","k":0},{"ov":133,"rd":14,"p":"Gabriel","pl":"Baker Mayfield","pos":"QB","k":0},{"ov":134,"rd":14,"p":"Maddie","pl":"Jordan Love","pos":"QB","k":0},{"ov":135,"rd":14,"p":"John","pl":"De'Zhaun Stribling","pos":"WR","k":0},{"ov":136,"rd":14,"p":"Mark","pl":"Deebo Samuel","pos":"WR","k":0},{"ov":137,"rd":14,"p":"Jared","pl":"Juwan Johnson","pos":"WR","k":0},{"ov":138,"rd":14,"p":"Chris","pl":"Jalen Coker","pos":"WR","k":0},{"ov":139,"rd":14,"p":"Conor","pl":"Cameron Dicker","pos":"K","k":0},{"ov":140,"rd":14,"p":"Jeffrey","pl":"Tyjae Spears","pos":"RB","k":0},{"ov":141,"rd":15,"p":"Jeffrey","pl":"Zach Charbonnet","pos":"RB","k":0},{"ov":142,"rd":15,"p":"Conor","pl":"Tyler Shough","pos":"QB","k":0},{"ov":143,"rd":15,"p":"Chris","pl":"Ka'imi Fairbairn","pos":"K","k":0},{"ov":144,"rd":15,"p":"Jared","pl":"Rams D/ST","pos":"D/ST","k":0},{"ov":145,"rd":15,"p":"Mark","pl":"Harrison Mevis","pos":"K","k":0},{"ov":146,"rd":15,"p":"John","pl":"Woody Marks","pos":"RB","k":0},{"ov":147,"rd":15,"p":"Maddie","pl":"Steelers D/ST","pos":"D/ST","k":0},{"ov":148,"rd":15,"p":"Gabriel","pl":"Seahawks D/ST","pos":"D/ST","k":0},{"ov":149,"rd":15,"p":"Andy","pl":"Jalen McMillan","pos":"WR","k":0},{"ov":150,"rd":15,"p":"Richard","pl":"Ravens D/ST","pos":"D/ST","k":0},{"ov":151,"rd":16,"p":"Richard","pl":"Eddy Pineiro","pos":"K","k":0},{"ov":152,"rd":16,"p":"Andy","pl":"Harrison Butker","pos":"K","k":0},{"ov":153,"rd":16,"p":"Gabriel","pl":"Cam Little","pos":"K","k":0},{"ov":154,"rd":16,"p":"Maddie","pl":"Jake Bates","pos":"K","k":0},{"ov":155,"rd":16,"p":"John","pl":"Eagles D/ST","pos":"D/ST","k":0},{"ov":156,"rd":16,"p":"Mark","pl":"Patriots D/ST","pos":"D/ST","k":0},{"ov":157,"rd":16,"p":"Jared","pl":"Evan McPherson","pos":"K","k":0},{"ov":158,"rd":16,"p":"Chris","pl":"Jaguars D/ST","pos":"D/ST","k":0},{"ov":159,"rd":16,"p":"Conor","pl":"Browns D/ST","pos":"D/ST","k":0},{"ov":160,"rd":16,"p":"Jeffrey","pl":"Lions D/ST","pos":"D/ST","k":0}],"form":[{"p":"Andy","w":33,"l":21,"seasons":4,"pct":0.611,"titles":1,"last":{"s":2025,"rk":2,"w":11,"l":3}},{"p":"Chris","w":63,"l":45,"seasons":8,"pct":0.583,"titles":1,"last":{"s":2025,"rk":9,"w":5,"l":9}},{"p":"Conor","w":44,"l":37,"seasons":6,"pct":0.543,"titles":1,"last":{"s":2025,"rk":4,"w":7,"l":7}},{"p":"Maddie","w":30,"l":26,"seasons":4,"pct":0.536,"titles":0,"last":{"s":2025,"rk":8,"w":5,"l":9}},{"p":"Gabriel","w":56,"l":53,"seasons":8,"pct":0.514,"titles":1,"last":{"s":2025,"rk":3,"w":10,"l":4}},{"p":"Jeffrey","w":52,"l":56,"seasons":8,"pct":0.481,"titles":0,"last":{"s":2025,"rk":5,"w":8,"l":6}},{"p":"Jared","w":42,"l":54,"seasons":7,"pct":0.438,"titles":2,"last":{"s":2025,"rk":1,"w":8,"l":6}},{"p":"John","w":35,"l":48,"seasons":6,"pct":0.422,"titles":0,"last":{"s":2025,"rk":6,"w":6,"l":8}}]}</script>
+<script>
+const D = JSON.parse(document.getElementById('payload').textContent);
+const M = D.meta, C = D.calib;
+const $ = s => document.querySelector(s);
+const el = (t,c,x)=>{const n=document.createElement(t);if(c)n.className=c;
+  if(x!==undefined&&x!==null)n.textContent=x;return n};
+const num=(v,d=1)=>v===null||v===undefined?'\u2013':(+v).toFixed(d);
+let PLATE=0;
+function card(host,o){
+  const c=el('div','card'),hd=el('div','hd');
+  const h=el('h2'); h.append(el('span','plate',String(++PLATE).padStart(2,'0')));
+  h.append(document.createTextNode(o.title)); hd.append(h);
+  if(o.scope) hd.append(el('span','chip',o.scope));
+  if(o.sub) hd.append(el('div','sub',o.sub));
+  const bd=el('div','bd flush'); c.append(hd,bd);
+  if(o.methods){const f=el('div','ft');f.append(el('b',null,'Method'));
+    f.append(document.createTextNode(o.methods));c.append(f);}
+  host.append(c); return bd;
+}
+function table(host,cols,rows,opts={}){
+  const w=el('div','tw'),t=el('table'),thead=el('thead'),hr=el('tr');
+  cols.forEach((c,i)=>{const th=el('th',null,c.h);th.dataset.i=i;if(c.t)th.title=c.t;hr.append(th)});
+  thead.append(hr);t.append(thead);
+  const tb=el('tbody');t.append(tb);
+  let sk=opts.sort??1,asc=opts.asc??false;
+  function draw(){
+    tb.textContent='';
+    const sorted=[...rows].sort((a,b)=>{const x=cols[sk].v(a),y=cols[sk].v(b);
+      if(x===null||x===undefined)return 1; if(y===null||y===undefined)return -1;
+      const r=typeof x==='string'?x.localeCompare(y):x-y; return asc?r:-r;});
+    if(!sorted.length){const tr=el('tr'),td=el('td');td.colSpan=cols.length;
+      td.className='empty';td.textContent='Nothing here yet.';tr.append(td);tb.append(tr);return}
+    sorted.forEach(r=>{
+      const tr=el('tr',opts.me&&opts.me(r)?'me':'');
+      cols.forEach(c=>{const td=el('td',c.n===false?'':'n');
+        const o=c.f?c.f(r):c.v(r);
+        if(o instanceof Node)td.append(o);else td.textContent=o;
+        if(c.cls)td.classList.add(...[].concat(c.cls(r)||[]));tr.append(td)});
+      tb.append(tr)});
+    thead.querySelectorAll('th').forEach((th,i)=>th.toggleAttribute('data-on',i===sk));
+  }
+  thead.querySelectorAll('th').forEach(th=>th.addEventListener('click',()=>{
+    const i=+th.dataset.i; if(i===sk)asc=!asc; else {sk=i;asc=cols[i].n===false;} draw();}));
+  draw(); w.append(t); host.append(w);
+}
+
+/* ---- header ---- */
+$('#brand').innerHTML='';
+$('#brand').append(document.createTextNode(M.season+' Season '));
+const sp=el('span',null,'Tracker'); $('#brand').append(sp);
+$('#back').href=M.recordBook;
+const F={week:'all',person:'all'};
+const fw=$('#fWeek'), fp=$('#fPerson');
+fw.append(new Option('All weeks','all'));
+for(let i=1;i<=(M.regularWeeks||14);i++) fw.append(new Option('Week '+i,i));
+fw.value = M.currentWeek<= (M.regularWeeks||14) ? String(M.currentWeek) : 'all';
+F.week = fw.value;
+fp.append(new Option('All managers','all'));
+[...new Set(D.standings.map(s=>s.p))].sort().forEach(p=>fp.append(new Option(p,p)));
+const ME = D.standings.find(s=>s.tm && s.tm.indexOf('Double-Doink')>=0)?.p || null;
+[fw,fp].forEach(s=>s.addEventListener('change',()=>{F.week=fw.value;F.person=fp.value;render()}));
+
+const st=$('#state'); st.textContent='';
+st.append(el('span','pill'+(M.started?' live':''),
+  M.started?`Week ${M.currentWeek} of ${M.regularWeeks}`:'Preseason \u2014 no games played'));
+st.append(el('span','pill',`${M.teams} teams`));
+st.append(el('span','pill',`${M.playoffTeams} make the playoffs`));
+st.append(el('span','pill',`Data pulled ${M.generated}`));
+
+const wkOK = w => F.week==='all' || +w===+F.week;
+const perOK = p => F.person==='all' || p===F.person;
+
+/* ---- 1. this week ---- */
+function renderPreview(){
+  const host=$('#preview'); host.textContent='';
+  const wk = F.week==='all' ? M.currentWeek : +F.week;
+  const games = D.schedule.filter(g=>g.wk===wk && (perOK(g.hp)||perOK(g.ap)));
+  const graded = games.filter(g=>g.won);
+  const b=card(host,{
+    title: graded.length ? `Week ${wk} results` : `Week ${wk} preview`,
+    scope: `${games.length} matchup${games.length===1?'':'s'}`,
+    methods: graded.length
+      ? `Final scores as recorded by ESPN.`
+      : `Projected totals are the sum of each manager's currently-started players, using ESPN's `
+        +`own per-player projections. Win probability treats the projected margin as normal with `
+        +`a spread of ${(C.sd*Math.SQRT2).toFixed(1)} points \u2014 derived from ${C.residN} `
+        +`historical team-weeks where actual minus projected had a standard deviation of `
+        +`${C.sd}. Treat these lightly: across ${C.n} past matchups the higher projection won `
+        +`only ${(C.hit*100).toFixed(1)}% of the time, so a projection edge inside about ten `
+        +`points is close to a coin flip. Lineups also change before kickoff.`});
+  if(!games.length){ b.append(el('div','empty','No matchups for this week.')); return; }
+  const g=el('div','mus');
+  games.forEach(m=>{
+    const c=el('div','mu');
+    const hw = m.won==='HOME', aw = m.won==='AWAY';
+    const side=(nm,tm,val,fav,won)=>{
+      const r=el('div','row');
+      const w=el('div','who'); w.append(el('div','nm',nm), el('div','tm',tm||''));
+      r.append(w);
+      const v=el('div','pj'+(fav||won?' fav':''), val);
+      r.append(v); return r;
+    };
+    c.append(side(m.hp,m.htm, m.hs!==null&&m.hs!==undefined?num(m.hs,2):(m.hproj?num(m.hproj):'\u2013'),
+      m.pw!==null&&m.pw>0.5, hw));
+    c.append(side(m.ap,m.atm, m.as!==null&&m.as!==undefined?num(m.as,2):(m.aproj?num(m.aproj):'\u2013'),
+      m.pw!==null&&m.pw<0.5, aw));
+    if(m.pw!==null&&m.pw!==undefined&&!m.won){
+      const bar=el('div','prob');
+      const a=el('i'); a.style.width=(m.pw*100).toFixed(1)+'%'; a.style.background='var(--accent)';
+      const bb=el('i'); bb.style.width=((1-m.pw)*100).toFixed(1)+'%'; bb.style.background='var(--muted)';
+      bar.append(a,bb); c.append(bar);
+      const lab=el('div','lab');
+      lab.append(el('span',null,`${m.hp} ${(m.pw*100).toFixed(0)}%`),
+                 el('span',null,`${(100-m.pw*100).toFixed(0)}% ${m.ap}`));
+      c.append(lab);
+    }
+    g.append(c);
+  });
+  b.append(g);
+}
+
+/* ---- 2. standings ---- */
+function renderStandings(){
+  const host=$('#standings'); host.textContent='';
+  const rows=D.standings.filter(s=>perOK(s.p));
+  const b=card(host,{
+    title:'Standings', scope:`${M.season} \u00b7 ${rows.length} teams`,
+    methods:`All-play is the record against every other team every week, which ranks teams by `
+      +`scoring rather than by who the schedule handed them. Benched counts points scored by `
+      +`players left in bench slots. Both fill in as weeks are played.`});
+  if(!M.started){
+    // append() returns undefined, so this must not be chained
+    const e=el('div','empty');
+    e.innerHTML = `<b>No games played yet.</b><br>Standings, all-play records and bench `
+      +`totals populate from week 1 onward. Until then the draft board, rosters and schedule `
+      +`below are the live data.`;
+    b.append(e);
+    return;
+  }
+  table(b,[
+    {h:'Manager',n:false,v:r=>r.p},
+    {h:'Team',n:false,v:r=>r.tm||''},
+    {h:'W',v:r=>r.w},{h:'L',v:r=>r.l},
+    {h:'PF',v:r=>r.pf},{h:'PA',v:r=>r.pa},
+    {h:'All-play',n:false,v:r=>r.apw,f:r=>`${r.apw}-${r.apl}`},
+    {h:'Streak',n:false,v:r=>r.streak||'',cls:r=>r.streak?(r.streak[0]==='W'?'pos':'neg'):''},
+    {h:'Benched',v:r=>r.bn,f:r=>num(r.bn,0)},
+  ],rows,{sort:2,me:r=>r.p===ME});
+}
+
+/* ---- 3. schedule ---- */
+function renderSchedule(){
+  const host=$('#schedule'); host.textContent='';
+  const rows=D.schedule.filter(g=>wkOK(g.wk)&&(perOK(g.hp)||perOK(g.ap)));
+  const b=card(host,{
+    title:'Schedule', scope:`${rows.length} of ${D.schedule.length} matchups`,
+    methods:`The full ${M.season} slate as drawn by ESPN, regular season and playoff rounds. `
+      +`Projections appear only for weeks whose rosters have been pulled \u2014 currently week `
+      +`${M.currentWeek} \u2014 because ESPN publishes per-player projections for the active `
+      +`week only.`});
+  table(b,[
+    {h:'Wk',v:r=>r.wk},
+    {h:'Home',n:false,v:r=>r.hp},
+    {h:'Score',n:false,v:r=>r.hs??-1,f:r=>r.hs!=null?num(r.hs,2):(r.hproj?`~${num(r.hproj)}`:'\u2013'),
+     cls:r=>r.won==='HOME'?'pos':''},
+    {h:'Away',n:false,v:r=>r.ap},
+    {h:'Score',n:false,v:r=>r.as??-1,f:r=>r.as!=null?num(r.as,2):(r.aproj?`~${num(r.aproj)}`:'\u2013'),
+     cls:r=>r.won==='AWAY'?'pos':''},
+    {h:'P(home)',v:r=>r.pw,f:r=>r.pw==null?'\u2013':(r.pw*100).toFixed(0)+'%'},
+    {h:'Round',n:false,v:r=>r.po?1:0,f:r=>r.po?el('span','tag','PLAYOFF'):''},
+  ],rows,{sort:0,asc:true,me:r=>r.hp===ME||r.ap===ME});
+}
+
+/* ---- 4. rosters ---- */
+function renderRosters(){
+  const host=$('#rosters'); host.textContent='';
+  const rs=D.rosters.filter(r=>perOK(r.p));
+  const rows=[];
+  rs.forEach(r=>r.players.forEach(pl=>rows.push({...pl,p:r.p,tm:r.tm})));
+  const b=card(host,{
+    title:'Rosters', scope:`${rs.length} teams \u00b7 ${rows.length} players`,
+    methods:`Rosters as of the most recent pull (week ${D.rosters[0]?.wk ?? M.currentWeek}). `
+      +`Proj is ESPN's projection for that player this week; Act fills in once games are played. `
+      +`Starters are listed above bench players within each team.`});
+  table(b,[
+    {h:'Player',n:false,v:r=>r.n||''},
+    {h:'Pos',n:false,v:r=>r.pos||''},
+    {h:'Manager',n:false,v:r=>r.p},
+    {h:'Slot',n:false,v:r=>r.slot||''},
+    {h:'Starting',n:false,v:r=>r.st?1:0,f:r=>r.st?el('span','tag gold','START'):el('span','tag','BE')},
+    {h:'Proj',v:r=>r.proj},
+    {h:'Act',v:r=>r.act,f:r=>r.act==null?'\u2013':num(r.act,1)},
+  ],rows,{sort:5,me:r=>r.p===ME});
+}
+
+/* ---- 5. draft ---- */
+function renderDraft(){
+  const host=$('#draft'); host.textContent='';
+  const rows=D.draft.filter(r=>perOK(r.p));
+  const b=card(host,{
+    title:`${M.season} draft board`, scope:`${rows.length} picks`,
+    methods:`Every pick of the ${M.season} draft in order. Production columns are deliberately `
+      +`absent until games are played \u2014 a zero here would read as a bust rather than as a `
+      +`season that has not started. They appear in the all-time record book once the year `
+      +`has results.`});
+  table(b,[
+    {h:'Pick',v:r=>r.ov},{h:'Rd',v:r=>r.rd},
+    {h:'Player',n:false,v:r=>r.pl||''},
+    {h:'Pos',n:false,v:r=>r.pos||''},
+    {h:'Manager',n:false,v:r=>r.p||''},
+    {h:'Keeper',n:false,v:r=>r.k,f:r=>r.k?el('span','tag','K'):''},
+  ],rows,{sort:0,asc:true,me:r=>r.p===ME});
+}
+
+/* ---- 6. form ---- */
+function renderForm(){
+  const host=$('#form'); host.textContent='';
+  const rows=D.form.filter(r=>perOK(r.p));
+  const b=card(host,{
+    title:'Coming in', scope:`career form before ${M.season}`,
+    methods:`Regular-season record across every prior season each manager has played, with `
+      +`their most recent finish. Context for the season ahead, not part of it.`});
+  table(b,[
+    {h:'Manager',n:false,v:r=>r.p},
+    {h:'Seasons',v:r=>r.seasons},
+    {h:'W',v:r=>r.w},{h:'L',v:r=>r.l},
+    {h:'Win%',v:r=>r.pct,f:r=>r.pct==null?'\u2013':r.pct.toFixed(3)},
+    {h:'Titles',v:r=>r.titles,f:r=>r.titles?el('span','tag gold','\u2605'.repeat(r.titles)):'\u2013'},
+    {h:'Last season',n:false,v:r=>r.last?r.last.s:0,
+     f:r=>r.last?`${r.last.s}: ${r.last.w}-${r.last.l}, finished ${r.last.rk??'\u2013'}`:'\u2013'},
+  ],rows,{sort:4,me:r=>r.p===ME});
+}
+
+function render(){
+  PLATE=0;
+  renderPreview(); renderStandings(); renderSchedule();
+  renderRosters(); renderDraft(); renderForm();
+}
+render();
+</script>
