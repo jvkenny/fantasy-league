@@ -87,6 +87,30 @@ td.n{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums}
 .mu .prob i{display:block;height:100%}
 .mu .lab{display:flex;justify-content:space-between;padding:5px 12px 8px;
   font-family:"IBM Plex Mono",monospace;font-size:10px;color:var(--muted)}
+.aw{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));padding:12px 14px}
+.ac{background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--muted);
+  border-radius:3px;padding:12px 14px;display:flex;flex-direction:column;gap:5px}
+.ac[data-k=mvp],.ac[data-k=sleeper],.ac[data-k=high],.ac[data-k=blowout]{border-left-color:var(--win)}
+.ac[data-k=facepalm],.ac[data-k=bust],.ac[data-k=low]{border-left-color:var(--loss)}
+.ac[data-k=lucky],.ac[data-k=robbed]{border-left-color:var(--accent)}
+.ac .v{font-family:"IBM Plex Mono",monospace;font-size:19px;font-weight:600;color:var(--accent);
+  line-height:1.05;font-variant-numeric:tabular-nums}
+.ac .t{font-family:"Barlow Condensed",sans-serif;font-weight:700;text-transform:uppercase;
+  letter-spacing:.05em;font-size:13px}
+.ac .d{font-size:12.5px;color:var(--muted);line-height:1.5}
+.banner{margin:12px 14px 0;padding:9px 12px;border:1px dashed var(--line);border-radius:3px;
+  font-size:12px;color:var(--muted);line-height:1.5}
+.banner b{color:var(--accent);font-weight:600}
+.sub-form{display:flex;gap:8px;flex-wrap:wrap;padding:12px 14px 4px;align-items:center}
+.sub-form input{font-family:inherit;font-size:14px;color:var(--text);background:var(--raised);
+  border:1px solid var(--line);border-radius:2px;padding:8px 10px;min-width:240px;flex:1;max-width:340px}
+.sub-form button{font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:14px;
+  text-transform:uppercase;letter-spacing:.05em;color:var(--ground);background:var(--accent);
+  border:1px solid var(--accent);border-radius:2px;padding:8px 16px;cursor:pointer}
+.sub-form button:hover{opacity:.88}
+.sub-msg{padding:2px 14px 12px;font-size:12.5px;color:var(--muted);line-height:1.5}
+.sub-msg.ok{color:var(--win)}
+.sub-msg.bad{color:var(--loss)}
 .empty{color:var(--muted);font-size:12.5px;padding:22px 14px;text-align:center;line-height:1.6}
 .empty b{color:var(--text);font-weight:600}
 :focus-visible{outline:2px solid var(--accent);outline-offset:1px}
@@ -106,12 +130,13 @@ td.n{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums}
 </div></header>
 
 <main class="wrap">
-  <div id="preview"></div>
+  <div id="awards"></div>
   <div id="standings"></div>
   <div id="schedule"></div>
   <div id="rosters"></div>
   <div id="draft"></div>
   <div id="form"></div>
+  <div id="subscribe"></div>
 </main>
 
 <script id="payload" type="application/json">__DATA__</script>
@@ -187,50 +212,43 @@ st.append(el('span','pill',`Data pulled ${M.generated}`));
 const wkOK = w => F.week==='all' || +w===+F.week;
 const perOK = p => F.person==='all' || p===F.person;
 
-/* ---- 1. this week ---- */
-function renderPreview(){
-  const host=$('#preview'); host.textContent='';
-  const wk = F.week==='all' ? M.currentWeek : +F.week;
-  const games = D.schedule.filter(g=>g.wk===wk && (perOK(g.hp)||perOK(g.ap)));
-  const graded = games.filter(g=>g.won);
+/* ---- 1. weekly awards (post-game) ---- */
+function renderAwards(){
+  const host=$('#awards'); host.textContent='';
+  const keys=Object.keys(D.awards||{});
+  const wk = F.week==='all' ? null : +F.week;
+  let key = wk!==null ? `${M.season}|${wk}` : null;
+  if(!key || !D.awards[key]) key = keys[keys.length-1];
+  const list = key ? D.awards[key] : null;
+  const isSample = D.sample && key === `${D.sample.season}|${D.sample.week}`;
+  const shownWeek = key ? key.split('|') : null;
+
   const b=card(host,{
-    title: graded.length ? `Week ${wk} results` : `Week ${wk} preview`,
-    scope: `${games.length} matchup${games.length===1?'':'s'}`,
-    methods: graded.length
-      ? `Final scores as recorded by ESPN.`
-      : `Projected totals are the sum of each manager's currently-started players, using ESPN's `
-        +`own per-player projections. Win probability treats the projected margin as normal with `
-        +`a spread of ${(C.sd*Math.SQRT2).toFixed(1)} points — derived from ${C.residN} `
-        +`historical team-weeks where actual minus projected had a standard deviation of `
-        +`${C.sd}. Treat these lightly: across ${C.n} past matchups the higher projection won `
-        +`only ${(C.hit*100).toFixed(1)}% of the time, so a projection edge inside about ten `
-        +`points is close to a coin flip. Lineups also change before kickoff.`});
-  if(!games.length){ b.append(el('div','empty','No matchups for this week.')); return; }
-  const g=el('div','mus');
-  games.forEach(m=>{
-    const c=el('div','mu');
-    const hw = m.won==='HOME', aw = m.won==='AWAY';
-    const side=(nm,tm,val,fav,won)=>{
-      const r=el('div','row');
-      const w=el('div','who'); w.append(el('div','nm',nm), el('div','tm',tm||''));
-      r.append(w);
-      const v=el('div','pj'+(fav||won?' fav':''), val);
-      r.append(v); return r;
-    };
-    c.append(side(m.hp,m.htm, m.hs!==null&&m.hs!==undefined?num(m.hs,2):(m.hproj?num(m.hproj):'–'),
-      m.pw!==null&&m.pw>0.5, hw));
-    c.append(side(m.ap,m.atm, m.as!==null&&m.as!==undefined?num(m.as,2):(m.aproj?num(m.aproj):'–'),
-      m.pw!==null&&m.pw<0.5, aw));
-    if(m.pw!==null&&m.pw!==undefined&&!m.won){
-      const bar=el('div','prob');
-      const a=el('i'); a.style.width=(m.pw*100).toFixed(1)+'%'; a.style.background='var(--accent)';
-      const bb=el('i'); bb.style.width=((1-m.pw)*100).toFixed(1)+'%'; bb.style.background='var(--muted)';
-      bar.append(a,bb); c.append(bar);
-      const lab=el('div','lab');
-      lab.append(el('span',null,`${m.hp} ${(m.pw*100).toFixed(0)}%`),
-                 el('span',null,`${(100-m.pw*100).toFixed(0)}% ${m.ap}`));
-      c.append(lab);
-    }
+    title: shownWeek ? `Week ${shownWeek[1]} awards` : 'Weekly awards',
+    scope: shownWeek ? `${shownWeek[0]} season` : `${M.season} season`,
+    methods:`Handed out from the completed week only - nothing here is a prediction. `
+      +`The Lucky One is the winner whose score beat the fewest other teams that week; Robbed `
+      +`is the loser whose score beat the most, which is the all-play view applied to a single `
+      +`week. Facepalm ranks a loss where the bench outscored the losing margin above merely `
+      +`benching a lot of points, because only one of those cost a game. Bust and Overachiever `
+      +`compare a started player's actual score against ESPN's projection for that week.`});
+  if(!list){
+    const e=el('div','empty');
+    e.innerHTML=`<b>No completed weeks yet.</b><br>Awards are handed out the morning after `
+      +`each week finishes, once results are final.`;
+    b.append(e); return;
+  }
+  if(isSample && !M.started){
+    const bn=el('div','banner');
+    bn.innerHTML=`<b>Sample week.</b> The ${M.season} season has not kicked off, so this shows `
+      +`${D.sample.season} week ${D.sample.week} to demonstrate what lands here each week. `
+      +`It will switch to live ${M.season} results automatically once week 1 is final.`;
+    b.append(bn);
+  }
+  const g=el('div','aw');
+  list.forEach(a=>{
+    const c=el('div','ac'); c.dataset.k=a.k;
+    c.append(el('div','v',a.v), el('div','t',a.l), el('div','d',a.d));
     g.append(c);
   });
   b.append(g);
@@ -278,12 +296,11 @@ function renderSchedule(){
   table(b,[
     {h:'Wk',v:r=>r.wk},
     {h:'Home',n:false,v:r=>r.hp},
-    {h:'Score',n:false,v:r=>r.hs??-1,f:r=>r.hs!=null?num(r.hs,2):(r.hproj?`~${num(r.hproj)}`:'–'),
+    {h:'Score',n:false,v:r=>r.hs??-1,f:r=>r.hs!=null?num(r.hs,2):'-',
      cls:r=>r.won==='HOME'?'pos':''},
     {h:'Away',n:false,v:r=>r.ap},
-    {h:'Score',n:false,v:r=>r.as??-1,f:r=>r.as!=null?num(r.as,2):(r.aproj?`~${num(r.aproj)}`:'–'),
+    {h:'Score',n:false,v:r=>r.as??-1,f:r=>r.as!=null?num(r.as,2):'-',
      cls:r=>r.won==='AWAY'?'pos':''},
-    {h:'P(home)',v:r=>r.pw,f:r=>r.pw==null?'–':(r.pw*100).toFixed(0)+'%'},
     {h:'Round',n:false,v:r=>r.po?1:0,f:r=>r.po?el('span','tag','PLAYOFF'):''},
   ],rows,{sort:0,asc:true,me:r=>r.hp===ME||r.ap===ME});
 }
@@ -348,10 +365,51 @@ function renderForm(){
   ],rows,{sort:4,me:r=>r.p===ME});
 }
 
+function renderSubscribe(){
+  const host=$('#subscribe'); host.textContent='';
+  const b=card(host,{
+    title:'Weekly recap by email',
+    scope:'opt in',
+    methods:`This page is static, so there is no server here to store an address. Submitting `
+      +`opens a pre-filled message in your own mail app addressed to the commissioner - you `
+      +`just press send, and you get added to the list by hand. Nothing is transmitted from `
+      +`this page, and your address is not stored anywhere on it.`});
+  const f=el('form','sub-form');
+  const inp=el('input'); inp.type='email'; inp.required=true;
+  inp.placeholder='you@example.com'; inp.setAttribute('aria-label','Your email address');
+  const btn=el('button'); btn.type='submit'; btn.textContent='Send me the recap';
+  f.append(inp,btn); b.append(f);
+  const msg=el('div','sub-msg'); b.append(msg);
+
+  let already=null;
+  try{ already=localStorage.getItem('ffl-sub'); }catch(e){}
+  if(already){ msg.className='sub-msg ok';
+    msg.textContent=`You already opted in as ${already}. Submit again to resend.`; }
+  else msg.textContent='Sent after each week is final, with the awards above and the standings.';
+
+  f.addEventListener('submit',ev=>{
+    ev.preventDefault();
+    const v=inp.value.trim();
+    if(!/^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/.test(v)){
+      msg.className='sub-msg bad'; msg.textContent='That does not look like an email address.';
+      return;
+    }
+    // assembled at runtime rather than sitting in the markup as plain text
+    const to=['jkenny2334','gmail.com'].join('@');
+    const subj=encodeURIComponent(`Fantasy League weekly recap - subscribe`);
+    const body=encodeURIComponent(
+      `Please add me to the ${M.season} weekly recap list.\n\nEmail: ${v}\n`);
+    try{ localStorage.setItem('ffl-sub',v); }catch(e){}
+    msg.className='sub-msg ok';
+    msg.textContent='Opening your mail app - press send and you are on the list.';
+    window.location.href=`mailto:${to}?subject=${subj}&body=${body}`;
+  });
+}
+
 function render(){
   PLATE=0;
-  renderPreview(); renderStandings(); renderSchedule();
-  renderRosters(); renderDraft(); renderForm();
+  renderAwards(); renderStandings(); renderSchedule();
+  renderRosters(); renderDraft(); renderForm(); renderSubscribe();
 }
 render();
 </script>

@@ -37,6 +37,119 @@ def norm_cdf(z: float) -> float:
     return 0.5 * (1.0 + math.erf(z / math.sqrt(2.0)))
 
 
+
+def weekly_awards(season, week, pw, matchups, owner, tname, pname, ppos):
+    """Post-game awards for one completed week.
+
+    Returns [] when the week has no result yet, so the page can render an
+    honest empty state rather than inventing a winner.
+    """
+    games = [m for m in matchups if m["season"] == season and m["week"] == week
+             and m["winner"] and m["winner"] != "UNDECIDED"]
+    if not games:
+        return []
+    rows = [r for r in pw if r["season"] == season and r["week"] == week]
+
+    score, won, opp = {}, {}, {}
+    for m in games:
+        h, a = m["homeTeamId"], m["awayTeamId"]
+        score[h], score[a] = m["homeScore"], m["awayScore"]
+        won[h], won[a] = m["winner"] == "HOME", m["winner"] == "AWAY"
+        opp[h], opp[a] = a, h
+    who = lambda t: owner.get((season, t))
+    # how many of the other nine this score would have beaten - the all-play view
+    beat = {t: sum(1 for u, v in score.items() if u != t and score[t] > v) for t in score}
+    n_others = len(score) - 1
+
+    A = []
+    def add(key, label, value, detail):
+        A.append({"k": key, "l": label, "v": value, "d": detail})
+
+    started = [r for r in rows if r["started"] and r["actual"] is not None]
+    benched = [r for r in rows if not r["started"] and r["slotId"] == 20
+               and r["actual"] is not None]
+
+    if started:
+        m0 = max(started, key=lambda r: r["actual"])
+        add("mvp", "MVP", f"{m0['actual']:.1f}",
+            f"{pname.get(m0['playerId'])} ({ppos.get(m0['playerId'])}) was the "
+            f"highest-scoring started player of the week, for {who(m0['teamId'])}.")
+
+    # facepalm: losing with the win on the bench beats merely benching a lot
+    bench_by = {}
+    for r in benched:
+        bench_by[r["teamId"]] = bench_by.get(r["teamId"], 0) + r["actual"]
+    cand = []
+    for t, v in bench_by.items():
+        if t not in score:
+            continue
+        margin = score[opp[t]] - score[t]
+        cand.append((not won.get(t) and v > margin, v - max(margin, 0), t, v, margin))
+    if cand:
+        cand.sort(key=lambda c: (-c[0], -c[1]))
+        fatal, surplus, t, v, margin = cand[0]
+        if fatal:
+            add("facepalm", "Facepalm of the week", f"{v:.1f} benched",
+                f"{who(t)} lost to {who(opp[t])} by {margin:.2f} with {v:.1f} points sitting "
+                f"on the bench - {surplus:.1f} more than the game needed.")
+        else:
+            add("facepalm", "Facepalm of the week", f"{v:.1f} benched",
+                f"{who(t)} left {v:.1f} points in bench slots"
+                + (f" and got away with it." if won.get(t)
+                   else f" and lost by {margin:.2f} - though the bench would not have saved it."))
+
+    winners = [t for t in score if won.get(t)]
+    losers = [t for t in score if not won.get(t)]
+    if winners:
+        lucky = min(winners, key=lambda t: beat[t])
+        add("lucky", "The Lucky One", f"{score[lucky]:.1f}",
+            f"{who(lucky)} won while outscoring only {beat[lucky]} of the other {n_others} "
+            f"teams. Drew {who(opp[lucky])}, who managed {score[opp[lucky]]:.1f}.")
+    if losers:
+        robbed = max(losers, key=lambda t: beat[t])
+        add("robbed", "Robbed", f"{score[robbed]:.1f}",
+            f"{who(robbed)} lost despite a score that would have beaten "
+            f"{beat[robbed]} of the other {n_others} teams. {who(opp[robbed])} happened to "
+            f"put up {score[opp[robbed]]:.1f}.")
+
+    proj = [r for r in started if r["projected"] is not None]
+    if proj:
+        b = min(proj, key=lambda r: r["actual"] - r["projected"])
+        add("bust", "Bust of the week", f"{b['actual'] - b['projected']:+.1f}",
+            f"{pname.get(b['playerId'])} scored {b['actual']:.1f} against a "
+            f"{b['projected']:.1f} projection, in {who(b['teamId'])}'s starting lineup.")
+        g = max(proj, key=lambda r: r["actual"] - r["projected"])
+        add("sleeper", "Overachiever", f"{g['actual'] - g['projected']:+.1f}",
+            f"{pname.get(g['playerId'])} put up {g['actual']:.1f} on a "
+            f"{g['projected']:.1f} projection for {who(g['teamId'])}.")
+
+    if benched:
+        bh = max(benched, key=lambda r: r["actual"])
+        add("benchhero", "Best player nobody started", f"{bh['actual']:.1f}",
+            f"{pname.get(bh['playerId'])} ({ppos.get(bh['playerId'])}) scored "
+            f"{bh['actual']:.1f} on {who(bh['teamId'])}'s bench.")
+
+    hi = max(score, key=score.get); lo = min(score, key=score.get)
+    add("high", "Highest score", f"{score[hi]:.1f}", f"{who(hi)}.")
+    add("low", "Lowest score", f"{score[lo]:.1f}", f"{who(lo)}.")
+
+    blow = max(games, key=lambda m: abs(m["homeScore"] - m["awayScore"]))
+    bw = blow["homeTeamId"] if blow["winner"] == "HOME" else blow["awayTeamId"]
+    add("blowout", "Biggest beating", f"{abs(blow['homeScore'] - blow['awayScore']):.1f}",
+        f"{who(bw)} over {who(opp[bw])}, "
+        f"{max(blow['homeScore'], blow['awayScore']):.1f} to "
+        f"{min(blow['homeScore'], blow['awayScore']):.1f}.")
+    nail = min(games, key=lambda m: abs(m["homeScore"] - m["awayScore"]))
+    nw = nail["homeTeamId"] if nail["winner"] == "HOME" else nail["awayTeamId"]
+    add("nail", "Closest game", f"{abs(nail['homeScore'] - nail['awayScore']):.2f}",
+        f"{who(nw)} edged {who(opp[nw])}.")
+
+    avg = sum(score.values()) / len(score)
+    add("avg", "League average", f"{avg:.1f}",
+        f"Across {len(score)} teams, from {score[lo]:.1f} to {score[hi]:.1f}.")
+    return A
+
+
 def main(season: int | None = None):
     seasons = load("seasons"); teams = load("teams"); matchups = load("matchups")
     pw = load("player_weeks"); picks = load("draft_picks"); players = load("players")
@@ -161,18 +274,13 @@ def main(season: int | None = None):
             continue
         ph = proj_tot.get((SEASON, m["week"], m["homeTeamId"]))
         pa = proj_tot.get((SEASON, m["week"], m["awayTeamId"]))
-        wp = None
-        if ph and pa and ph > 20 and pa > 20:
-            wp = round(norm_cdf((ph - pa) / (sd * math.sqrt(2))), 3)
         sched.append({
             "wk": m["week"], "hp": hp, "ap": apn,
             "htm": tname.get((SEASON, m["homeTeamId"])),
             "atm": tname.get((SEASON, m["awayTeamId"])),
             "hs": m["homeScore"] or None, "as": m["awayScore"] or None,
             "won": m["winner"] if m["winner"] != "UNDECIDED" else None,
-            "hproj": round(ph, 1) if ph else None,
-            "aproj": round(pa, 1) if pa else None,
-            "pw": wp, "po": m["isPlayoff"],
+            "po": m["isPlayoff"],
         })
 
     # ---- rosters (latest week we have) ------------------------------------
@@ -218,6 +326,29 @@ def main(season: int | None = None):
             for p, a in agg.items() if p in {s["p"] for s in standings}]
     form.sort(key=lambda r: -(r["pct"] or 0))
 
+    done_weeks = sorted({m["week"] for m in matchups if m["season"] == SEASON
+                         and m["winner"] and m["winner"] != "UNDECIDED"})
+    awards = {}
+    for wk in done_weeks:
+        a = weekly_awards(SEASON, wk, pw, matchups, owner, tname, pname, ppos)
+        if a:
+            awards[f"{SEASON}|{wk}"] = a
+    sample = None
+    if not awards:
+        # Season has not started. Rather than ship a dead page, show the most
+        # recent week the league ever played, clearly labelled as such.
+        reg = {s_["season"]: (s_.get("regularSeasonWeeks") or 99) for s_ in seasons}
+        prev = [(m["season"], m["week"]) for m in matchups
+                if m["winner"] and m["winner"] != "UNDECIDED"
+                and m["week"] <= reg.get(m["season"], 99)]
+        if prev:
+            ps, pwk = max(prev)
+            own_prev = {(t["season"], t["teamId"]): short.get(t["owner"]) for t in teams}
+            a = weekly_awards(ps, pwk, pw, matchups, own_prev, tname, pname, ppos)
+            if a:
+                sample = {"season": ps, "week": pwk}
+                awards[f"{ps}|{pwk}"] = a
+
     payload = {
         "meta": {
             "season": SEASON, "league": meta_s.get("name"),
@@ -230,6 +361,7 @@ def main(season: int | None = None):
         },
         "calib": {"sd": round(sd, 2), "hit": round(hit / tot, 3) if tot else None,
                   "n": tot, "residN": len(resid)},
+        "awards": awards, "sample": sample,
         "standings": standings, "schedule": sched, "rosters": rosters,
         "draft": draft, "form": form,
     }
@@ -242,11 +374,10 @@ def main(season: int | None = None):
 
 if __name__ == "__main__":
     d = main()
-    c = d["calib"]
-    print(f"  calibration: residual sd {c['sd']} over {c['residN']} team-weeks; "
-          f"ESPN picked the winner {c['hit']:.1%} of {c['n']}")
-    up = [s for s in d["schedule"] if s["pw"] is not None]
-    print(f"  matchups with a projection: {len(up)}")
-    for s in up[:5]:
-        print(f"    wk{s['wk']} {s['hp']:<9} {s['hproj']:6.1f} vs {s['ap']:<9} {s['aproj']:6.1f} "
-              f"-> P(home) {s['pw']:.0%}")
+    m = d["meta"]
+    print(f"  season {m['season']} started={m['started']} week={m['currentWeek']}")
+    if d["sample"]:
+        print(f"  no results yet - showing {d['sample']['season']} week "
+              f"{d['sample']['week']} as the sample")
+    for k, a in d["awards"].items():
+        print(f"  awards for {k}: {len(a)}")
