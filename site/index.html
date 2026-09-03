@@ -1,126 +1,165 @@
 <title>Fantasy League Record Book</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 <style>
+/* Shared stylesheet for both pages, injected at render time.
+   Harpers Ferry house rules applied to a stat sheet: two typefaces, warm
+   desaturated ground, colourblind-safe blue/orange diverging pair (never
+   red-green on decision-critical data), white space as structure.
+
+   LIGHT IS THE DEFAULT, deliberately - there is no prefers-color-scheme block,
+   so the OS does not decide. Dark is opt-in through the header toggle, which
+   stamps data-theme="dark" and remembers the choice.
+   Every token below was contrast-checked to 4.5:1 on both grounds. */
 :root{
-  --ground:#F2F4F8;--surface:#FFFFFF;--raised:#E9EDF4;--line:#D5DCE7;
-  --text:#101620;--muted:#5A6577;--accent:#A85F16;--accentbg:#F6E7D2;
-  --win:#1F7A47;--loss:#A83E30;--grid:#E2E7EF;
+  --ground:#F2EFE9;--surface:#FBFAF7;--raised:#E8E3D9;--line:#D6CFC2;
+  --text:#241F1A;--muted:#61584C;--accent:#0F5C8C;--accentbg:#DCE8F1;
+  --win:#00618F;--loss:#B24A00;--grid:#E4DED2;
 }
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --ground:#0B0F16;--surface:#121824;--raised:#1A2231;--line:#232D3E;
-  --text:#DCE3ED;--muted:#7C89A0;--accent:#F2A03D;--accentbg:#2E2416;
-  --win:#45A06A;--loss:#C2564A;--grid:#1B2432;
-}}
 :root[data-theme="dark"]{
-  --ground:#0B0F16;--surface:#121824;--raised:#1A2231;--line:#232D3E;
-  --text:#DCE3ED;--muted:#7C89A0;--accent:#F2A03D;--accentbg:#2E2416;
-  --win:#45A06A;--loss:#C2564A;--grid:#1B2432;
+  --ground:#191614;--surface:#221E1A;--raised:#2C2721;--line:#3A342C;
+  --text:#EDE7DC;--muted:#A2988A;--accent:#7FB6DD;--accentbg:#20303C;
+  --win:#56B4E9;--loss:#E69F00;--grid:#2A251F;
 }
 *{box-sizing:border-box}
 html,body{max-width:100%;overflow-x:hidden}
-.card,.cols,.panel{min-width:0}
 body{margin:0;background:var(--ground);color:var(--text);
-  font-family:Barlow,system-ui,sans-serif;font-size:14px;line-height:1.45;
-  -webkit-font-smoothing:antialiased}
-.wrap{max-width:1280px;margin:0 auto;padding:0 18px}
+  font-family:"Source Sans 3",system-ui,-apple-system,sans-serif;
+  font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1200px;margin:0 auto;padding:0 28px}
 .mono{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums}
-h2{font-family:"Barlow Condensed",sans-serif;font-weight:700;text-transform:uppercase;
-  letter-spacing:.04em;font-size:19px;margin:0}
-.sub{color:var(--muted);font-size:12px;margin:2px 0 12px}
-
+h2{font-weight:700;text-transform:uppercase;letter-spacing:.09em;font-size:15px;margin:0}
+.sub{color:var(--muted);font-size:13px;margin:3px 0 0}
 /* header */
 header{position:sticky;top:0;z-index:20;background:var(--surface);
   border-bottom:1px solid var(--line)}
-.hbar{display:flex;align-items:center;gap:16px;padding:10px 0;flex-wrap:wrap}
-.brand{font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:20px;
-  text-transform:uppercase;letter-spacing:.05em;white-space:nowrap}
+.hbar{display:flex;align-items:center;gap:20px;padding:16px 0;flex-wrap:wrap}
+.brand{font-weight:700;font-size:17px;text-transform:uppercase;letter-spacing:.13em;
+  white-space:nowrap}
 .brand span{color:var(--accent)}
-.ctl{display:flex;align-items:center;gap:6px;margin-left:auto;flex-wrap:wrap}
-select,input[type=search]{font-family:inherit;font-size:13px;color:var(--text);
-  background:var(--raised);border:1px solid var(--line);border-radius:2px;padding:5px 8px}
-input[type=search]{width:190px}
-a.back{font-family:"Barlow Condensed",sans-serif;font-weight:600;font-size:13px;
-  text-transform:uppercase;letter-spacing:.05em;color:var(--muted);text-decoration:none;
-  border:1px solid var(--line);border-radius:2px;padding:5px 10px;white-space:nowrap}
+.ctl{display:flex;align-items:center;gap:10px;margin-left:auto;flex-wrap:wrap}
+select,input[type=search]{font-family:inherit;font-size:14px;color:var(--text);
+  background:var(--surface);border:1px solid var(--line);border-radius:2px;padding:7px 10px}
+input[type=search]{width:210px}
+a.back{font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.09em;
+  color:var(--muted);text-decoration:none;border:1px solid var(--line);border-radius:2px;
+  padding:7px 12px;white-space:nowrap}
 a.back:hover{color:var(--accent);border-color:var(--accent)}
-nav{display:flex;gap:2px;overflow-x:auto;border-top:1px solid var(--line)}
-nav button{font-family:"Barlow Condensed",sans-serif;font-weight:600;font-size:14px;
-  text-transform:uppercase;letter-spacing:.05em;background:none;border:none;color:var(--muted);
-  padding:9px 14px;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap}
+/* theme toggle */
+.theme{display:inline-flex;border:1px solid var(--line);border-radius:2px;overflow:hidden}
+.theme button{font-family:inherit;font-weight:600;font-size:11px;text-transform:uppercase;
+  letter-spacing:.09em;background:var(--surface);border:none;color:var(--muted);
+  padding:7px 11px;cursor:pointer}
+.theme button+button{border-left:1px solid var(--line)}
+.theme button:hover{color:var(--text)}
+.theme button[aria-pressed="true"]{background:var(--raised);color:var(--accent)}
+nav{display:flex;gap:6px;overflow-x:auto;border-top:1px solid var(--line)}
+nav button{font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.1em;
+  background:none;border:none;color:var(--muted);padding:13px 4px;margin-right:18px;
+  cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap}
 nav button:hover{color:var(--text)}
-nav button[aria-current]{color:var(--accent);border-bottom-color:var(--accent)}
-
-main{padding:18px 0 60px}
+nav button[aria-current]{color:var(--text);border-bottom-color:var(--accent)}
+main{padding:28px 0 80px}
 .panel{display:none}.panel.on{display:block}
-.card{background:var(--surface);border:1px solid var(--line);border-radius:3px;margin-bottom:14px}
-.card>.hd{padding:10px 14px;border-bottom:1px solid var(--line);
-  display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
-.card>.bd{padding:12px 14px}
-.card>.bd.flush{padding:0}
-.cols{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(360px,1fr))}
-
+/* cards */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:2px;
+  margin-bottom:24px}
+.card>.hd{padding:16px 20px 14px;border-bottom:1px solid var(--line);
+  display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.card>.bd{padding:18px 20px}.card>.bd.flush{padding:0}
+.card>.ft{padding:12px 20px 14px;border-top:1px solid var(--line);font-size:12.5px;
+  line-height:1.6;color:var(--muted);max-width:92ch}
+.card>.ft b{font-weight:700;text-transform:uppercase;letter-spacing:.1em;font-size:10.5px;
+  color:var(--text);margin-right:8px}
+.chip{font-family:"IBM Plex Mono",monospace;font-size:10.5px;color:var(--muted);
+  border:1px solid var(--line);border-radius:2px;padding:2px 8px;white-space:nowrap}
+.cols{display:grid;gap:24px;grid-template-columns:repeat(auto-fit,minmax(360px,1fr))}
 /* tables */
 .tw{overflow-x:auto;max-height:620px}
-table{border-collapse:collapse;width:100%;font-size:13px}
-th,td{padding:5px 10px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--line)}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{padding:8px 14px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--line)}
 th:first-child,td:first-child{text-align:left;position:sticky;left:0;background:var(--surface)}
-thead th{position:sticky;top:0;z-index:2;background:var(--raised);
-  font-family:"Barlow Condensed",sans-serif;font-weight:600;font-size:11px;
-  text-transform:uppercase;letter-spacing:.07em;color:var(--muted);cursor:pointer}
+thead th{position:sticky;top:0;z-index:2;background:var(--raised);font-weight:700;
+  font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);cursor:pointer}
 thead th:first-child{z-index:3;background:var(--raised)}
-thead th:hover{color:var(--accent)}
-thead th[data-on]{color:var(--accent)}
-tbody tr:hover td{background:var(--raised)}
-tbody tr:hover td:first-child{background:var(--raised)}
-td.n{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums}
+thead th:hover,thead th[data-on]{color:var(--accent)}
+tbody tr:hover td,tbody tr:hover td:first-child{background:var(--raised)}
+td.n{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;font-size:13px}
 .pos{color:var(--win)}.neg{color:var(--loss)}
 .me td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
-.tag{font-family:"IBM Plex Mono",monospace;font-size:10px;padding:1px 4px;border-radius:2px;
+.tag{font-family:"IBM Plex Mono",monospace;font-size:10px;padding:2px 6px;border-radius:2px;
   background:var(--raised);color:var(--muted);border:1px solid var(--line)}
 .tag.gold{background:var(--accentbg);color:var(--accent);border-color:var(--accent)}
 .bar-c{position:relative}
-.bar-c i{position:absolute;left:0;top:2px;bottom:2px;background:var(--accent);opacity:.16;border-radius:1px}
+.bar-c i{position:absolute;left:0;top:3px;bottom:3px;background:var(--accent);opacity:.18;
+  border-radius:1px}
 .bar-c span{position:relative}
-
+.matrix{overflow-x:auto}
 /* charts */
 svg{display:block;width:100%;height:auto;overflow:visible}
 .ax{stroke:var(--grid);stroke-width:1}
-.axl{fill:var(--muted);font-family:"IBM Plex Mono",monospace;font-size:9px}
+.axl{fill:var(--muted);font-family:"IBM Plex Mono",monospace;font-size:9.5px}
+.ref{stroke:var(--muted);stroke-dasharray:3 3;stroke-width:1;opacity:.6}
 .dot{cursor:pointer}
 .dot:hover circle{stroke:var(--text);stroke-width:2}
-.dlbl{fill:var(--text);font-family:"Barlow Condensed",sans-serif;font-size:10px;font-weight:600}
-.ref{stroke:var(--muted);stroke-dasharray:3 3;stroke-width:1;opacity:.5}
-.note{font-size:11px;color:var(--muted);margin-top:6px}
-.plate{font-family:"IBM Plex Mono",monospace;font-size:11px;font-weight:600;
-  color:var(--accent);margin-right:8px;letter-spacing:.05em}
-.chip{font-family:"IBM Plex Mono",monospace;font-size:10px;color:var(--muted);
-  border:1px solid var(--line);border-radius:2px;padding:1px 6px;white-space:nowrap}
-.card>.ft{padding:8px 14px 10px;border-top:1px solid var(--line);font-size:11.5px;
-  line-height:1.5;color:var(--muted);max-width:104ch}
-.card>.ft b{font-family:"Barlow Condensed",sans-serif;font-weight:700;
-  text-transform:uppercase;letter-spacing:.08em;font-size:10px;color:var(--text);
-  margin-right:6px}
-.empty{color:var(--muted);font-size:12px;padding:16px 0;text-align:center}
-.catline{display:flex;align-items:baseline;gap:10px;margin:20px 0 9px}
-.catline h3{font-family:"Barlow Condensed",sans-serif;font-weight:700;text-transform:uppercase;
-  letter-spacing:.06em;font-size:16px;margin:0}
+.dlbl{fill:var(--text);font-size:10.5px;font-weight:600}
+.note{font-size:12px;color:var(--muted);margin-top:10px}
+/* findings + weekly awards: category reads as a quiet rule underneath rather
+   than a colour bar down the side - the number is the subject */
+.catline{display:flex;align-items:baseline;gap:14px;margin:28px 0 12px}
+.catline h3{font-weight:700;text-transform:uppercase;letter-spacing:.11em;font-size:13px;margin:0}
 .catline .rule{flex:1;height:1px;background:var(--line)}
-.catline .ct{font-family:"IBM Plex Mono",monospace;font-size:10px;color:var(--muted)}
-.find{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(310px,1fr))}
-.fi{background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--muted);
-  border-radius:3px;padding:12px 14px;display:flex;flex-direction:column;gap:5px}
-.fi[data-c="Bragging rights"]{border-left-color:var(--win)}
-.fi[data-c="Facepalm"]{border-left-color:var(--loss)}
-.fi[data-c="Robbed"]{border-left-color:var(--accent)}
-.fi .v{font-family:"IBM Plex Mono",monospace;font-size:19px;font-weight:600;
+.catline .ct{font-family:"IBM Plex Mono",monospace;font-size:10.5px;color:var(--muted)}
+.find,.aw{display:grid;gap:16px;grid-template-columns:repeat(auto-fill,minmax(330px,1fr))}
+.aw{padding:18px 20px}
+.fi,.ac{background:var(--surface);border:1px solid var(--line);
+  border-bottom:2px solid var(--line);border-radius:2px;padding:16px 18px 15px;
+  display:flex;flex-direction:column;gap:7px}
+.fi[data-c="Bragging rights"]{border-bottom-color:color-mix(in oklab,var(--win) 45%,var(--line))}
+.fi[data-c="Facepalm"]{border-bottom-color:color-mix(in oklab,var(--loss) 45%,var(--line))}
+.fi[data-c="Robbed"]{border-bottom-color:color-mix(in oklab,var(--accent) 45%,var(--line))}
+.ac[data-k=mvp],.ac[data-k=sleeper],.ac[data-k=high],.ac[data-k=blowout]{
+  border-bottom-color:color-mix(in oklab,var(--win) 45%,var(--line))}
+.ac[data-k=facepalm],.ac[data-k=bust],.ac[data-k=low]{
+  border-bottom-color:color-mix(in oklab,var(--loss) 45%,var(--line))}
+.ac[data-k=lucky],.ac[data-k=robbed]{
+  border-bottom-color:color-mix(in oklab,var(--accent) 45%,var(--line))}
+.fi .v,.ac .v{font-family:"IBM Plex Mono",monospace;font-size:20px;font-weight:500;
   color:var(--accent);line-height:1.05;font-variant-numeric:tabular-nums}
-.fi .t{font-family:"Barlow Condensed",sans-serif;font-weight:700;text-transform:uppercase;
-  letter-spacing:.05em;font-size:13px}
-.fi .d{font-size:12.5px;color:var(--muted);line-height:1.5}
-:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.fi .t,.ac .t{font-weight:700;text-transform:uppercase;letter-spacing:.07em;font-size:12.5px}
+.fi .d,.ac .d{font-size:13px;color:var(--muted);line-height:1.55}
+/* season page */
+.state{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:0 0 14px}
+.pill{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.07em;
+  text-transform:uppercase;border:1px solid var(--line);border-radius:2px;padding:3px 9px;
+  color:var(--muted)}
+.pill.live{border-color:var(--accent);color:var(--accent)}
+.banner{margin:18px 20px 0;padding:12px 14px;border:1px dashed var(--line);border-radius:2px;
+  font-size:13px;color:var(--muted);line-height:1.6}
+.banner b{color:var(--accent);font-weight:600}
+.sub-form{display:flex;gap:10px;flex-wrap:wrap;padding:18px 20px 6px;align-items:center}
+.sub-form input{font-family:inherit;font-size:15px;color:var(--text);background:var(--surface);
+  border:1px solid var(--line);border-radius:2px;padding:9px 12px;min-width:250px;flex:1;
+  max-width:360px}
+.sub-form button{font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.09em;
+  color:var(--surface);background:var(--accent);border:1px solid var(--accent);border-radius:2px;
+  padding:10px 18px;cursor:pointer}
+.sub-form button:hover{opacity:.9}
+.sub-msg{padding:4px 20px 18px;font-size:13px;color:var(--muted);line-height:1.55}
+.sub-msg.ok{color:var(--win)}
+.sub-msg.bad{color:var(--loss)}
+.empty{color:var(--muted);font-size:13px;padding:24px 20px;text-align:center;line-height:1.6}
+.empty b{color:var(--text);font-weight:600}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
 </style>
+<script>
+/* Apply the stored choice before anything paints, so switching to dark and
+   reloading does not flash the light ground first. */
+try{if(localStorage.getItem('ffl-theme')==='dark')
+  document.documentElement.setAttribute('data-theme','dark');}catch(e){}
+</script>
 
 <header><div class="wrap">
   <div class="hbar">
@@ -129,6 +168,10 @@ svg{display:block;width:100%;height:auto;overflow:visible}
       <select id="fSeason"></select>
       <select id="fPerson"></select>
       <input type="search" id="fSearch" placeholder="Search player, manager, team">
+      <div class="theme" role="group" aria-label="Colour theme">
+        <button type="button" data-t="light" aria-pressed="true">Light</button>
+        <button type="button" data-t="dark" aria-pressed="false">Dark</button>
+      </div>
       <a class="back" href="https://jvkenny.github.io/fantasy-league/season.html">2026 season</a>
     </div>
   </div>
@@ -151,6 +194,22 @@ const D = JSON.parse(document.getElementById('payload').textContent);
 const ME = D.meta.me;
 const $ = s => document.querySelector(s);
 const el = (t,c,x)=>{const n=document.createElement(t);if(c)n.className=c;
+
+/* ---------- theme toggle (light is the default; dark is opt-in) ---------- */
+(function(){
+  const root=document.documentElement;
+  const btns=[...document.querySelectorAll('.theme button')];
+  function apply(t,store){
+    if(t==='dark') root.setAttribute('data-theme','dark');
+    else root.removeAttribute('data-theme');
+    btns.forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.t===t)));
+    if(store){ try{ localStorage.setItem('ffl-theme',t); }catch(e){} }
+  }
+  let cur='light';
+  try{ if(localStorage.getItem('ffl-theme')==='dark') cur='dark'; }catch(e){}
+  apply(cur,false);
+  btns.forEach(b=>b.addEventListener('click',()=>apply(b.dataset.t,true)));
+})();
   if(x!==undefined&&x!==null)n.textContent=x;return n};
 const num = (v,d=1)=> v===null||v===undefined||Number.isNaN(v) ? '\u2013' : (+v).toFixed(d);
 const sgn = v => v===null||v===undefined ? '\u2013' : (v>0?'+':'')+(+v).toFixed(1);
@@ -375,10 +434,7 @@ function table(host, cols, rows, opts={}){
 let PLATE = 0;
 function card(host, o){
   const c=el('div','card'), hd=el('div','hd');
-  const h=el('h2');
-  h.append(el('span','plate', String(++PLATE).padStart(2,'0')));
-  h.append(document.createTextNode(o.title));
-  hd.append(h);
+  const h=el('h2',null,o.title); hd.append(h);
   if(o.scope) hd.append(el('span','chip',o.scope));
   if(o.sub) hd.append(el('div','sub',o.sub));
   const bd=el('div','bd flush'); c.append(hd,bd);

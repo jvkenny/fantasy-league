@@ -41,7 +41,9 @@ def build(tpl_path: Path, data_path: Path, frag_out: Path, pages_out: Path) -> i
         return 1
 
     charts = (REPO / "site" / "_charts.js").read_text(encoding="utf-8")
+    theme = (REPO / "site" / "_theme.css").read_text(encoding="utf-8")
     out = (head + escape_non_ascii(script)) \
+        .replace("__THEME__", escape_non_ascii(theme)) \
         .replace("__CHARTS__", escape_non_ascii(charts)) \
         .replace("__DATA__", data)
     if not out.isascii():
