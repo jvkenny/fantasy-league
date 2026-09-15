@@ -104,7 +104,10 @@ def weekly_awards(season, week, pw, matchups, owner, tname, pname, ppos):
         lucky = min(winners, key=lambda t: beat[t])
         add("lucky", "The Lucky One", f"{score[lucky]:.1f}",
             f"{who(lucky)} won while outscoring only {beat[lucky]} of the other {n_others} "
-            f"teams. Drew {who(opp[lucky])}, who managed {score[opp[lucky]]:.1f}.")
+            # "Drew X" read as a first name on a page that is otherwise all
+            # first names. Say what the sentence actually means instead.
+            f"teams. The schedule handed them {who(opp[lucky])}, "
+            f"who managed {score[opp[lucky]]:.1f}.")
     if losers:
         robbed = max(losers, key=lambda t: beat[t])
         add("robbed", "Robbed", f"{score[robbed]:.1f}",
