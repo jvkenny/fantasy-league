@@ -1,13 +1,14 @@
 <title>2026 Season Tracker</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&family=Barlow+Condensed:wght@600;700&display=swap">
 <style>
 __THEME__
 </style>
 <script>
 /* Apply the stored choice before anything paints, so switching to dark and
    reloading does not flash the light ground first. */
+document.documentElement.setAttribute('data-page','season');
 try{if(localStorage.getItem('ffl-theme')==='dark')
   document.documentElement.setAttribute('data-theme','dark');}catch(e){}
 </script>
@@ -30,11 +31,17 @@ try{if(localStorage.getItem('ffl-theme')==='dark')
 </div></header>
 
 <main class="wrap">
+  <div id="scoreboard"></div>
   <div id="awards"></div>
+  <div class="yard"><i>50</i></div>
   <div id="charts"></div>
+  <div id="heat"></div>
   <div id="standings"></div>
-  <div id="schedule"></div>
+  <div id="swap"></div>
+  <div class="yard"><i>50</i></div>
   <div id="power"></div>
+  <div id="trophy"></div>
+  <div id="schedule"></div>
   <div id="rosters"></div>
   <div id="draft"></div>
   <div id="form"></div>
@@ -105,6 +112,72 @@ function table(host,cols,rows,opts={}){
 
 __CHARTS__
 
+/* ---- team identity kit ----
+   Colours and monogram per manager from data/kits.json; anyone missing gets a
+   stable hash hue so a new manager is never invisible. Identity only - every
+   use sits beside the name. */
+const KITS=D.kits||{};
+function kit(p){
+  const k=KITS[p]; if(k) return k;
+  let h=0; for(const ch of String(p||'')) h=(h*31+ch.charCodeAt(0))>>>0;
+  return {c1:`hsl(${h%360} 45% 36%)`,c2:'#F2EFE9',mono:String(p||'??').slice(0,2).toUpperCase()};
+}
+function ink(hex){ // white or near-black text on a kit colour
+  const m=/^#?([0-9a-f]{6})$/i.exec(hex||''); if(!m) return '#fff';
+  const n=parseInt(m[1],16), r=n>>16&255,g=n>>8&255,b=n&255;
+  const L=(0.2126*r+0.7152*g+0.0722*b)/255; return L>0.6?'#1A1A1A':'#FFFFFF';
+}
+function crest(p,cls){
+  const k=kit(p);
+  if(k.logo){
+    const img=el('img','crest logo'+(cls?' '+cls:'')); img.src=k.logo; img.alt=''; img.loading='lazy';
+    img.style.setProperty('--k1',k.c1);
+    img.onerror=()=>{img.replaceWith(shield(p,cls))};
+    return img;
+  }
+  return shield(p,cls);
+}
+function shield(p,cls){
+  const k=kit(p);
+  const svg=mkS('svg',{viewBox:'0 0 40 46',class:'crest'+(cls?' '+cls:''),'aria-hidden':'true'});
+  svg.append(mkS('path',{d:'M20 2 L37 8 V24 C37 36 28 42 20 45 C12 42 3 36 3 24 V8 Z',fill:k.c1}));
+  svg.append(mkS('path',{d:'M3 18 L37 8 V16 L3 26 Z',fill:k.c2,'fill-opacity':.9}));
+  svg.append(mkS('path',{d:'M20 2 L37 8 V24 C37 36 28 42 20 45 C12 42 3 36 3 24 V8 Z',
+    fill:'none',stroke:'rgba(0,0,0,.25)','stroke-width':1}));
+  const t=mkS('text',{x:20,y:36,'text-anchor':'middle','font-size':'15',fill:ink(k.c1)});
+  t.textContent=k.mono; svg.append(t);
+  return svg;
+}
+function who(p,tm){ // crest + name (+ team) inline
+  const w=el('span','who'); w.append(crest(p));
+  const b=el('b',null,p); w.append(b);
+  if(tm) w.append(el('span','sub',tm));
+  return w;
+}
+/* ESPN's CDN serves headshots by player id and club marks by abbreviation.
+   D/ST entries have negative ids and no face - they get the club mark. */
+function headshot(pid,pro,cls,ring){
+  const img=el('img',cls||'hs'); img.loading='lazy'; img.alt='';
+  img.src = pid<0 ? nflUrl(pro) : `https://a.espncdn.com/i/headshots/nfl/players/full/${pid}.png`;
+  if(ring) img.style.setProperty('--k1',ring);
+  img.onerror=()=>{img.style.visibility='hidden'};
+  return img;
+}
+const nflUrl=pro=>pro&&pro!=='FA'?`https://a.espncdn.com/i/teamlogos/nfl/500/${String(pro).toLowerCase()}.png`:'';
+function nflMark(pro){
+  if(!pro||pro==='FA') return document.createTextNode('');
+  const img=el('img','mark'); img.loading='lazy'; img.alt=pro; img.src=nflUrl(pro);
+  img.onerror=()=>{img.style.display='none'}; return img;
+}
+/* diverging cell tint: blue above, orange below, strength by |v|/max */
+function tint(v,max){
+  if(!max||!v) return 'var(--raised)';
+  const pct=Math.round(Math.min(1,Math.abs(v)/max)*72);
+  return `color-mix(in oklab,${v>0?'var(--win)':'var(--loss)'} ${pct}%,var(--surface))`;
+}
+const NAMES=[...new Set(D.standings.map(s=>s.p))];
+const TID={}; D.standings.forEach(s=>TID[s.p]=s.tid);
+
 /* ---- header ---- */
 $('#brand').innerHTML='';
 $('#brand').append(document.createTextNode(M.season+' Season '));
@@ -135,6 +208,67 @@ try{window.matchMedia('(max-width:640px)').addEventListener('change',()=>render(
 const wkOK = w => F.week==='all' || +w===+F.week;
 const perOK = p => F.person==='all' || p===F.person;
 
+/* ---- 0. scoreboard: the week, as tiles ---- */
+function h2hLine(a,b){
+  const [A,B]=[a,b].sort(); const r=(D.h2h||{})[`${A}|${B}`];
+  const line=el('div','sb-riv');
+  if(!r||!(r.w+r.l)){ line.append(el('span',null,'First ever meeting.')); return line; }
+  const aw=A===a?r.w:r.l, bw=A===a?r.l:r.w;
+  const lead=aw===bw?`Series level ${aw}-${bw}`:(aw>bw?`${a} leads ${aw}-${bw}`:`${b} leads ${bw}-${aw}`);
+  line.append(el('span','lead',lead));
+  if(r.runN>1) line.append(document.createTextNode(` · ${r.run} has won ${r.runN} straight`));
+  if(r.last){const L=r.last;
+    const other=L.winner===a?b:a;
+    line.append(document.createTextNode(' · last: '),
+      el('b',null,`${L.winner} ${L.ws}–${L.ls}`),
+      document.createTextNode(` over ${other}, ${L.s} wk ${L.wk}${L.po?' (playoff)':''}`));}
+  return line;
+}
+function renderScoreboard(){
+  const host=$('#scoreboard'); host.textContent='';
+  const played=(M.weeksDone||[]);
+  let wk = F.week==='all' ? (played.length?played[played.length-1]:M.currentWeek) : +F.week;
+  const games=D.schedule.filter(g=>g.wk===wk&&(perOK(g.hp)||perOK(g.ap)));
+  if(!games.length) return;
+  const done=games.some(g=>g.hs!=null);
+  const b=card(host,{title:`Week ${wk} scoreboard`,
+    scope:done?`${games.length} games · final`:`${games.length} games · not yet played`,
+    methods:`Final scores for the week, winner ruled in the team's colour. Beneath each game: the `
+      +`top scorer on the winning side, and the all-time series between the two managers - every `
+      +`season since 2018, playoffs included - which is where the grudges come from.`});
+  const g=el('div','sbg');
+  games.forEach(m=>{
+    const t=el('div','sb');
+    if(m.po) t.append(el('div','sb-wk','PLAYOFF'));
+    const hw=m.won==='HOME', aw=m.won==='AWAY';
+    const row=(p,tm,sc,won)=>{
+      const r=el('div','sb-row'+(won?' win':'')+(sc==null?' tbd':''));
+      r.style.setProperty('--k1',kit(p).c1);
+      r.append(crest(p));
+      const w=el('div','sb-who'); w.append(el('b',null,p),el('span',null,tm||'')); r.append(w);
+      r.append(el('div','sb-sc',sc==null?'–':sc.toFixed(1)));
+      return r;
+    };
+    // winner on top, the way a final is read
+    const H=[m.hp,m.htm,m.hs,hw], A=[m.ap,m.atm,m.as,aw];
+    const [top,bot]= aw?[A,H]:[H,A];
+    t.append(row(...top),row(...bot));
+    if(m.hs!=null){
+      const ft=el('div','sb-ft');
+      const wp=aw?m.ap:m.hp, wid=aw?m.aid:m.hid;
+      const margin=Math.abs(m.hs-m.as);
+      const tp=(D.gameTop||{})[`${m.wk}|${wid}`];
+      ft.append(el('span','mono',`by ${margin.toFixed(1)}`));
+      if(tp){ ft.append(headshot(tp.pid,tp.pro,'hs',kit(wp).c1));
+        const sp=el('span'); sp.append(el('b',null,tp.n),document.createTextNode(` ${tp.pts.toFixed(1)}`)); ft.append(sp); }
+      t.append(ft);
+    }
+    t.append(h2hLine(m.hp,m.ap));
+    g.append(t);
+  });
+  b.append(g);
+}
+
 /* ---- 1. weekly awards (post-game) ---- */
 function renderAwards(){
   const host=$('#awards'); host.textContent='';
@@ -152,8 +286,10 @@ function renderAwards(){
     methods:`Handed out from the completed week only - nothing here is a prediction. `
       +`The Lucky One is the winner whose score beat the fewest other teams that week; Robbed `
       +`is the loser whose score beat the most, which is the all-play view applied to a single `
-      +`week. Facepalm ranks a loss where the bench outscored the losing margin above merely `
-      +`benching a lot of points, because only one of those cost a game. Bust and Overachiever `
+      +`week. Facepalm is a lineup decision, not a big bench: it counts only points a legal `
+      +`swap would have captured - a benched player who could have filled the slot and `
+      +`outscored the starter - and ranks a loss where the projected lineup would have won `
+      +`above one where only hindsight would, above merely leaving points. Bust and Overachiever `
       +`compare a started player's actual score against ESPN's projection for that week. `
       +`Those projections are used here only after the fact, never to preview a matchup: `
       +`across ${C.n} past matchups the higher projected team has won just `
@@ -173,10 +309,31 @@ function renderAwards(){
       +`It will switch to live ${M.season} results automatically once week 1 is final.`;
     b.append(bn);
   }
+  const HERO={mvp:1,facepalm:1,robbed:1};
+  const heroes=list.filter(a=>HERO[a.k]), rest=list.filter(a=>!HERO[a.k]);
+  const byline=a=>{
+    const by=el('div','by');
+    if(a.mgr){ by.append(crest(a.mgr),el('span',null,a.mgr)); }
+    return by;
+  };
+  const hg=el('div','aw-hero');
+  heroes.forEach(a=>{
+    const c=el('div','ac hero'); c.dataset.k=a.k;
+    const top=el('div','top');
+    if(a.pid!=null) top.append(headshot(a.pid,a.pro,'hs',a.mgr?kit(a.mgr).c1:null));
+    else if(a.mgr){ const cr=crest(a.mgr); cr.style.width='52px'; cr.style.height='60px'; top.append(cr); }
+    const tx=el('div'); tx.append(el('div','v',a.v),el('div','t',a.l)); top.append(tx);
+    c.append(top,el('div','d',a.d),byline(a));
+    hg.append(c);
+  });
+  b.append(hg);
   const g=el('div','aw');
-  list.forEach(a=>{
+  rest.forEach(a=>{
     const c=el('div','ac'); c.dataset.k=a.k;
     c.append(el('div','v',a.v), el('div','t',a.l), el('div','d',a.d));
+    const by=byline(a);
+    if(a.pid!=null) by.prepend(headshot(a.pid,a.pro,'hs sm',a.mgr?kit(a.mgr).c1:null));
+    c.append(by);
     g.append(c);
   });
   b.append(g);
@@ -189,8 +346,10 @@ function renderStandings(){
   const b=card(host,{
     title:'Standings', scope:`${M.season} · ${rows.length} teams`,
     methods:`All-play is the record against every other team every week, which ranks teams by `
-      +`scoring rather than by who the schedule handed them. Benched counts points scored by `
-      +`players left in bench slots. Both fill in as weeks are played.`});
+      +`scoring rather than by who the schedule handed them. Regret is points a legal swap would `
+      +`have captured - a benched player who could have filled a starter's slot and outscored `
+      +`him - summed over the season. Bench points that could not have been started are not `
+      +`counted. Both fill in as weeks are played.`});
   if(!M.started){
     // append() returns undefined, so this must not be chained
     const e=el('div','empty');
@@ -201,13 +360,13 @@ function renderStandings(){
     return;
   }
   table(b,[
-    {h:'Manager',n:false,v:r=>r.p},
+    {h:'Manager',n:false,v:r=>r.p,f:r=>who(r.p)},
     {h:'Team',n:false,v:r=>r.tm||''},
     {h:'W',v:r=>r.w},{h:'L',v:r=>r.l},
     {h:'PF',v:r=>r.pf},{h:'PA',v:r=>r.pa},
     {h:'All-play',n:false,v:r=>r.apw,f:r=>`${r.apw}-${r.apl}`},
     {h:'Streak',n:false,v:r=>r.streak||'',cls:r=>r.streak?(r.streak[0]==='W'?'pos':'neg'):''},
-    {h:'Benched',v:r=>r.bn,f:r=>num(r.bn,0)},
+    {h:'Regret',t:'Points a legal swap would have captured',v:r=>r.rg,f:r=>num(r.rg,0)},
   ],rows,{sort:2});
 }
 
@@ -245,9 +404,9 @@ function renderRosters(){
       +`Proj is ESPN's projection for that player this week; Act fills in once games are played. `
       +`Starters are listed above bench players within each team.`});
   table(b,[
-    {h:'Player',n:false,v:r=>r.n||''},
+    {h:'Player',n:false,v:r=>r.n||'',f:r=>{const sp=el('span');sp.append(nflMark(r.pro),document.createTextNode(r.n||''));return sp}},
     {h:'Pos',n:false,v:r=>r.pos||''},
-    {h:'Manager',n:false,v:r=>r.p},
+    {h:'Manager',n:false,v:r=>r.p,f:r=>who(r.p)},
     {h:'Slot',n:false,v:r=>r.slot||''},
     {h:'Starting',n:false,v:r=>r.st?1:0,f:r=>r.st?el('span','tag gold','START'):el('span','tag','BE')},
     {h:'Proj',v:r=>r.proj},
@@ -295,6 +454,133 @@ function renderForm(){
 
 
 
+/* ---- position strength heatmap ---- */
+function renderHeat(){
+  const host=$('#heat'); host.textContent='';
+  const wk = F.week==='all' ? null : +F.week;
+  const rows=(D.slotPts||[]).filter(r=>wk===null||r.wk===wk);
+  if(!rows.length) return;
+  const slots=D.slots||[];
+  const per={}; const wkOf={};
+  rows.forEach(r=>{const a=per[r.p]=per[r.p]||{}; a[r.slot]=(a[r.slot]||0)+r.pts;
+    (wkOf[r.p]=wkOf[r.p]||new Set()).add(r.wk);});
+  const mgrs=Object.keys(per).filter(perOK);
+  const games=p=>wkOf[p].size||1;
+  const avg={}; slots.forEach(sl=>{const v=Object.keys(per).map(p=>(per[p][sl]||0)/games(p));
+    avg[sl]=v.reduce((a,b)=>a+b,0)/(v.length||1);});
+  let max=0; const cell={};
+  mgrs.forEach(p=>slots.forEach(sl=>{const d=(per[p][sl]||0)/games(p)-avg[sl]; cell[p+'|'+sl]=d; max=Math.max(max,Math.abs(d));}));
+  const tot=p=>slots.reduce((a,sl)=>a+cell[p+'|'+sl],0);
+  mgrs.sort((a,b)=>tot(b)-tot(a));
+  const best=mgrs.length?{p:mgrs[0]}:null;
+  let bestCell=null; mgrs.forEach(p=>slots.forEach(sl=>{const d=cell[p+'|'+sl];
+    if(!bestCell||d>bestCell.d) bestCell={p,sl,d};}));
+  const b=card(host,{title:'Position strength',
+    scope:(wk===null?'per game, season to date':'week '+wk)+' · '+mgrs.length+' managers',
+    methods:'Points from the players STARTED in each slot, per game, minus the league average '
+      +'for that slot. Blue is above the field, orange below; the deeper the tint, the further '
+      +'from average. This is what each roster is actually producing where it is used - a '
+      +'stud on the bench does not show here, a weak spot shows in orange every week. '
+      +(bestCell?(bestCell.p+'’s '+bestCell.sl+' slot is the single biggest edge in the '
+        +'league at +'+bestCell.d.toFixed(1)+' a game.'):'')});
+  const w=el('div','hmw'), t=el('table','hm');
+  const th=el('thead'), hr=el('tr'); hr.append(el('th',null,'Manager'));
+  slots.forEach(sl=>hr.append(el('th',null,sl))); hr.append(el('th',null,'Net'));
+  th.append(hr); t.append(th);
+  const tb=el('tbody');
+  mgrs.forEach(p=>{
+    const tr=el('tr'); const td0=el('td'); td0.append(who(p)); tr.append(td0);
+    slots.forEach(sl=>{const d=cell[p+'|'+sl]; const td=el('td',Math.abs(d)/max>.5?'hi':'');
+      td.style.background=tint(d,max); td.textContent=(d>=0?'+':'')+d.toFixed(1);
+      td.title=p+' '+sl+': '+((per[p][sl]||0)/games(p)).toFixed(1)+' a game vs '+avg[sl].toFixed(1); tr.append(td);});
+    const n=tot(p); const tdn=el('td','hi'); tdn.textContent=(n>=0?'+':'')+n.toFixed(1);
+    tdn.style.background=tint(n,Math.max(...mgrs.map(q=>Math.abs(tot(q))))||1); tr.append(tdn);
+    tb.append(tr);
+  });
+  t.append(tb);
+  const tf=el('tfoot'), fr=el('tr'); fr.append(el('td','cap','league avg'));
+  slots.forEach(sl=>fr.append(el('td',null,avg[sl].toFixed(1)))); fr.append(el('td'));
+  tf.append(fr); t.append(tf);
+  w.append(t); b.append(w);
+}
+
+/* ---- schedule swap matrix ---- */
+function renderSwap(){
+  const host=$('#swap'); host.textContent='';
+  const games=D.schedule.filter(g=>g.hs!=null&&!g.po);
+  if(!games.length) return;
+  // score and opponent by (manager, week)
+  const sc={}, op={};
+  games.forEach(g=>{sc[g.hp+'|'+g.wk]=g.hs; sc[g.ap+'|'+g.wk]=g.as; op[g.hp+'|'+g.wk]=g.ap; op[g.ap+'|'+g.wk]=g.hp;});
+  const weeks=[...new Set(games.map(g=>g.wk))];
+  const mgrs=NAMES.filter(p=>weeks.some(w=>sc[p+'|'+w]!=null));
+  const rec=(r,c)=>{ // r's scores against c's schedule
+    let w=0,l=0;
+    weeks.forEach(wk=>{const mine=sc[r+'|'+wk]; if(mine==null) return;
+      let o=op[c+'|'+wk]; if(o==null) return; if(o===r) o=c;
+      const theirs=sc[o+'|'+wk]; if(theirs==null) return;
+      if(mine>theirs) w++; else if(mine<theirs) l++;});
+    return [w,l];
+  };
+  const cell={}; let max=0;
+  mgrs.forEach(r=>{const [aw]=rec(r,r); mgrs.forEach(c=>{const [w,l]=rec(r,c); cell[r+'|'+c]={w,l,d:w-aw}; max=Math.max(max,Math.abs(w-aw));});});
+  const shown=mgrs.filter(perOK);
+  // who gains most from someone else's slate, for the footnote
+  let gain=null, lose=null;
+  mgrs.forEach(r=>mgrs.forEach(c=>{if(r===c) return; const x=cell[r+'|'+c];
+    if(!gain||x.d>gain.d) gain={r,c,...x}; if(!lose||x.d<lose.d) lose={r,c,...x};}));
+  const b=card(host,{title:'Schedule swap',scope:weeks.length+' week'+(weeks.length===1?'':'s')+' · regular season',
+    methods:'Each row is a manager’s actual weekly scores; each column is whose schedule '
+      +'they are played against. The cell is the record that would have resulted. The diagonal '
+      +'is the real record. Blue is better than what actually happened, orange worse. When the '
+      +'borrowed schedule would have them playing themselves, they play the schedule’s owner '
+      +'instead. '
+      +(gain&&gain.d>0?(gain.r+' would be '+gain.w+'-'+gain.l+' on '+gain.c+'’s slate. '):'')
+      +(lose&&lose.d<0?(lose.r+' would be '+lose.w+'-'+lose.l+' on '+lose.c+'’s.'):'')});
+  const w=el('div','hmw'), t=el('table','hm');
+  const th=el('thead'), hr=el('tr'); const c0=el('th',null,'scores ↓ / schedule →'); hr.append(c0);
+  mgrs.forEach(c=>{const h=el('th'); h.append(crest(c)); h.append(document.createTextNode(' '+c)); hr.append(h);});
+  th.append(hr); t.append(th);
+  const tb=el('tbody');
+  shown.forEach(r=>{
+    const tr=el('tr'); const td0=el('td'); td0.append(who(r)); tr.append(td0);
+    mgrs.forEach(c=>{const x=cell[r+'|'+c]; const td=el('td',r===c?'self':(Math.abs(x.d)/(max||1)>.5?'hi':''));
+      if(r!==c) td.style.background=tint(x.d,max);
+      td.textContent=x.w+'-'+x.l; td.title=r+' on '+c+'’s schedule: '+x.w+'-'+x.l+(x.d?(' ('+(x.d>0?'+':'')+x.d+')'):''); tr.append(td);});
+    tb.append(tr);
+  });
+  t.append(tb); w.append(t); b.append(w);
+}
+
+/* ---- trophy case: the weekly awards, tallied ---- */
+function renderTrophy(){
+  const host=$('#trophy'); host.textContent='';
+  const keys=Object.keys(D.awards||{}).filter(k=>k.startsWith(M.season+'|'));
+  if(!keys.length) return;
+  const KINDS=[['mvp','MVP',1],['high','High score',1],['blowout','Beating',1],['sleeper','Overachiever',1],
+    ['nail','Nail-biter',1],['lucky','Lucky',0],['robbed','Robbed',0],['benchhero','Bench hero',0],
+    ['facepalm','Facepalm',-1],['bust','Bust',-1],['low','Low score',-1]];
+  const tally={};
+  keys.forEach(k=>D.awards[k].forEach(a=>{if(!a.mgr) return; const t=tally[a.mgr]=tally[a.mgr]||{};
+    t[a.k]=(t[a.k]||0)+1;}));
+  const rows=NAMES.filter(perOK).map(p=>{const t=tally[p]||{};
+    const good=KINDS.filter(k=>k[2]>0).reduce((a,k)=>a+(t[k[0]]||0),0);
+    const bad=KINDS.filter(k=>k[2]<0).reduce((a,k)=>a+(t[k[0]]||0),0);
+    return {p,t,good,bad,net:good-bad};});
+  const b=card(host,{title:'Trophy case',scope:keys.length+' week'+(keys.length===1?'':'s')+' of awards',
+    methods:'Every weekly award, counted per manager across the season. Cups are the ones you '
+      +'want; the orange marks are the ones you do not. Lucky, Robbed and Bench hero are '
+      +'neither - they happen to you. Sorted by cups minus marks.'});
+  const cups=(n,cls)=>{const s=el('span'); for(let i=0;i<n;i++) s.append(el('span','cup'+(cls?' '+cls:''),cls==='bad'?'●':'★'));
+    if(!n) s.append(el('span','cup dim','·')); return s;};
+  const cols=[{h:'Manager',n:false,v:r=>r.p,f:r=>who(r.p)}];
+  KINDS.forEach(([k,l,sgn])=>cols.push({h:l,n:false,v:r=>r.t[k]||0,
+    f:r=>cups(r.t[k]||0,sgn<0?'bad':(sgn===0?'dim':''))}));
+  cols.push({h:'Net',v:r=>r.net,f:r=>(r.net>0?'+':'')+r.net,cls:r=>r.net>0?'pos':(r.net<0?'neg':'')});
+  b.classList.add('trophy');
+  table(b,cols,rows,{sort:cols.length-1});
+}
+
 /* ---- power rankings ---- */
 function renderPower(){
   const host=$('#power'); host.textContent='';
@@ -330,7 +616,7 @@ function renderPower(){
     (byMgr[r.p]=byMgr[r.p]||[]).push({x:r.week,y:r.rank,row:r});
   }));
   const series=Object.keys(byMgr)
-    .map(p=>({label:p,points:byMgr[p]}))
+    .map(p=>({label:p,points:byMgr[p],color:kit(p).c1}))
     .sort((a,b)=>a.points[a.points.length-1].y-b.points[b.points.length-1].y);
 
   const read=el('div','pick');
@@ -395,7 +681,7 @@ function renderCharts(){
   if(scored.length){
     const avg=scored.reduce((a,b)=>a+b.value,0)/scored.length;
     const top=scored[0], bot=scored[scored.length-1];
-    scored.forEach(r=>{r.hot = r.value===top.value || r.value===bot.value;
+    scored.forEach(r=>{r.hot=true; r.color=kit(r.label).c1;
       r.tip = r.label+' '+r.value.toFixed(1);});
     const c1=el('div'); cols.append(c1);
     const b1=cardPad(c1,{
@@ -410,24 +696,44 @@ function renderCharts(){
       vfmt:v=>v.toFixed(1),xl:'Points scored'},BAR));
   }
 
-  /* -- 2. what sat on the bench -- */
-  const bench=D.standings.filter(s=>s.bn!=null)
-    .map(s=>({label:s.p,value:Math.round(s.bn*10)/10}))
+  /* -- 2. regret: what lineup decisions cost, legal swaps only -- */
+  const decs=(D.decisions||[]).filter(d=>wk===null||d.wk===wk);
+  const agg={};
+  decs.forEach(d=>{const a=agg[d.p]=agg[d.p]||{regret:0,chalk:0,worst:null};
+    a.regret+=d.regret; if(d.chalk!=null&&d.chalk>0) a.chalk+=d.chalk;
+    if(d.swap&&(!a.worst||d.swap.d>a.worst.d)) a.worst={...d.swap,wk:d.wk};});
+  const reg=Object.entries(agg).map(([p,a])=>({label:p,value:Math.round(a.regret*10)/10,
+      value2:Math.round(a.chalk*10)/10,color:kit(p).c1,color2:'var(--loss)',hot:true,
+      tip:p+': '+a.regret.toFixed(1)+' available through legal swaps',
+      tip2:p+': '+a.chalk.toFixed(1)+' of it by just starting the projected lineup',
+      worst:a.worst}))
     .sort((a,b)=>b.value-a.value);
-  if(bench.length){
-    const worst=bench[0];
-    bench.forEach((r,i)=>{r.hot=i===0; r.tip=r.label+' left '+r.value.toFixed(1)+' on the bench';});
-    const bavg=bench.reduce((a,b)=>a+b.value,0)/bench.length;
+  if(reg.length){
+    const worst=reg[0]; const ravg=reg.reduce((a,b)=>a+b.value,0)/reg.length;
+    const chalky=[...reg].sort((a,b)=>b.value2-a.value2)[0];
     const c2=el('div'); cols.append(c2);
+    const sw=worst.worst;
     const b2=cardPad(c2,{
-      title:'Points left on the bench',
-      scope:'season to date',
-      methods:'Points scored by players who were sitting on the bench, added up per manager. '
-        +worst.label+' has the worst of it at '+worst.value.toFixed(1)+', against a league '
-        +'average of '+bavg.toFixed(1)+'. High bench totals are not automatically bad - a deep '
-        +'roster scores points it cannot start - but they are where the Facepalm comes from.'});
-    barsH(b2,bench,Object.assign({ref:bavg,refLabel:'avg '+bavg.toFixed(0),
-      vfmt:v=>v.toFixed(1),xl:'Bench points'},BAR));
+      title:'Regret tracker',
+      scope:wk===null?'season to date':('week '+wk),
+      methods:'Points a LEGAL swap would have captured: a benched player who could have filled '
+        +'a starter’s slot and outscored him, summed per manager against the best lineup '
+        +'hindsight allows. Bench points that could not have been started are not counted, '
+        +'so a deep roster is not a mistake. The orange inner bar is the inexcusable part - '
+        +'what simply starting ESPN’s projected lineup would have gained. '
+        +worst.label+' leads with '+worst.value.toFixed(1)
+        +(sw?(' (worst call: '+sw.in+' sat for '+sw.inPts.toFixed(1)+' while '+sw.out+' started at '
+          +sw.slot+' for '+sw.outPts.toFixed(1)+(sw.chalk?', and ESPN had him higher':'')+')'):'')
+        +'; league average '+ravg.toFixed(1)+'.'
+        +(chalky&&chalky.value2>0?' '+chalky.label+' ignored the projection to the tune of '
+          +chalky.value2.toFixed(1)+'.':'')});
+    barsH(b2,reg,Object.assign({ref:ravg,refLabel:'avg '+ravg.toFixed(0),
+      vfmt:v=>v.toFixed(1),xl:'Points left by legal swaps'},BAR));
+    const lg=el('div','legend'); lg.style.padding='8px 0 0';
+    const i1=el('i'); i1.style.background='var(--muted)'; i1.style.opacity='.55';
+    const i2=el('i'); i2.style.background='var(--loss)';
+    lg.append(i1,el('span',null,'hindsight'),i2,el('span',null,'projection said so'));
+    b2.append(lg);
   }
 
   /* -- 3. every starter against their projection -- */
@@ -511,8 +817,9 @@ function renderCharts(){
 
 function render(){
   PLATE=0;
-  renderAwards(); renderCharts(); renderStandings(); renderSchedule();
-  renderPower(); renderRosters(); renderDraft(); renderForm();
+  renderScoreboard(); renderAwards(); renderCharts(); renderHeat(); renderStandings();
+  renderSwap(); renderPower(); renderTrophy(); renderSchedule(); renderRosters();
+  renderDraft(); renderForm();
 }
 render();
 </script>

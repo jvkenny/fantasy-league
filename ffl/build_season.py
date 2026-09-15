@@ -41,6 +41,9 @@ def norm_cdf(z: float) -> float:
 
 
 BENCH_SLOTS = {20, 21, 24}
+SLOT_NAMES = {0: "QB", 2: "RB", 4: "WR", 6: "TE", 23: "FLEX", 16: "D/ST", 17: "K",
+              3: "RB/WR", 5: "WR/TE", 7: "OP"}
+SLOT_ORDER = {0: 0, 2: 1, 4: 2, 6: 3, 23: 4, 3: 4, 5: 4, 7: 4, 16: 5, 17: 6}
 PR_K = 4.0          # weeks at which results and outlook would weigh equally
 PR_FLOOR = 0.60     # results never count for less than this
 PR_HALFLIFE = 4.0   # recency half-life, in weeks
@@ -162,7 +165,95 @@ def power_rankings(season, weeks, pw, outlook, slot_counts, owner, tname):
     return out
 
 
-def weekly_awards(season, week, pw, matchups, owner, tname, pname, ppos):
+
+def decisions(ents, start_slots):
+    """What one team-week's lineup decisions cost, measured against LEGAL swaps only.
+
+    Bench points on their own are not a mistake - you cannot start everyone.
+    A mistake is a benched player who could have filled a starter's slot and
+    outscored him. Three lineups are compared on ACTUAL points:
+
+      started  what the manager ran out
+      best     the best lineup hindsight allows (optimal_lineup on actuals)
+      chalk    the lineup ESPN's projections said to start, scored on actuals
+
+    regret = best - started            what hindsight says was left on the table
+    chalk  = chalk - started           what simply following the projection would
+                                       have gained (+) or cost (-)
+
+    The chalk gap is the inexcusable part: you had the information and went the
+    other way. Also names the single worst swap so the Facepalm can say who.
+    """
+    pool = [e for e in ents if e.get("actual") is not None]
+    if not pool:
+        return None
+    started = sum(e["actual"] for e in pool if e["started"])
+    best, _ = optimal_lineup(pool, start_slots)
+    chalk = None
+    if all(e.get("projected") is not None for e in pool):
+        by_proj = [dict(e, actual=e["projected"], _act=e["actual"]) for e in pool]
+        _, lineup = optimal_lineup(by_proj, start_slots)
+        picked = {pid for _, pid, _ in lineup}
+        chalk = sum(e["actual"] for e in pool if e["playerId"] in picked)
+    # worst single legal swap: benched b for starter s, same slot eligibility
+    swap = None
+    for s_ in (e for e in pool if e["started"]):
+        for b in (e for e in pool if not e["started"] and e["slotId"] == 20):
+            if s_["slotId"] in (b.get("eligible") or []) and b["actual"] > s_["actual"]:
+                d = b["actual"] - s_["actual"]
+                if swap is None or d > swap["d"]:
+                    proj_said = (b.get("projected") is not None and s_.get("projected") is not None
+                                 and b["projected"] > s_["projected"])
+                    swap = {"d": round(d, 1), "slot": s_["slot"],
+                            "in": b["playerId"], "inPts": b["actual"],
+                            "out": s_["playerId"], "outPts": s_["actual"],
+                            "chalk": proj_said}
+    return {"started": round(started, 1), "best": best,
+            "regret": round(max(0.0, best - started), 1),
+            "chalk": round(chalk - started, 1) if chalk is not None else None,
+            "swap": swap}
+
+
+def rows_for_kits(teams, season):
+    return [t for t in teams if t["season"] == season]
+
+
+def head_to_head(matchups, owner):
+    """All-time record for every pair of managers, playoffs included.
+
+    Keyed "A|B" with A < B alphabetically; w/l are from A's side. Carries the
+    last meeting and who holds the current run, for the rivalry line on each
+    scoreboard tile.
+    """
+    out = {}
+    for m in sorted(matchups, key=lambda m: (m["season"], m["week"])):
+        if not m["winner"] or m["winner"] in ("UNDECIDED", "TIE"):
+            continue
+        h = owner.get((m["season"], m["homeTeamId"]))
+        a = owner.get((m["season"], m["awayTeamId"]))
+        if not h or not a or h == a:
+            continue
+        hw = m["winner"] == "HOME"
+        A, B = sorted([h, a])
+        r = out.setdefault(f"{A}|{B}", {"w": 0, "l": 0, "po": 0, "run": None, "runN": 0, "last": None})
+        winner = h if hw else a
+        if winner == A:
+            r["w"] += 1
+        else:
+            r["l"] += 1
+        if m["isPlayoff"]:
+            r["po"] += 1
+        r["runN"] = r["runN"] + 1 if r["run"] == winner else 1
+        r["run"] = winner
+        ws = m["homeScore"] if hw else m["awayScore"]
+        ls = m["awayScore"] if hw else m["homeScore"]
+        r["last"] = {"s": m["season"], "wk": m["week"], "winner": winner,
+                     "ws": round(ws, 1), "ls": round(ls, 1), "po": bool(m["isPlayoff"])}
+    return out
+
+
+def weekly_awards(season, week, pw, matchups, owner, tname, pname, ppos,
+                  ppro=None, start_slots=None):
     """Post-game awards for one completed week.
 
     Returns [] when the week has no result yet, so the page can render an
@@ -186,8 +277,15 @@ def weekly_awards(season, week, pw, matchups, owner, tname, pname, ppos):
     n_others = len(score) - 1
 
     A = []
-    def add(key, label, value, detail):
-        A.append({"k": key, "l": label, "v": value, "d": detail})
+    ppro = ppro or {}
+    def add(key, label, value, detail, pid=None, mgr=None):
+        a = {"k": key, "l": label, "v": value, "d": detail}
+        if pid is not None:
+            a["pid"] = pid; a["pro"] = ppro.get(pid); a["pn"] = pname.get(pid)
+            a["pos"] = ppos.get(pid)
+        if mgr:
+            a["mgr"] = mgr
+        A.append(a)
 
     started = [r for r in rows if r["started"] and r["actual"] is not None]
     benched = [r for r in rows if not r["started"] and r["slotId"] == 20
@@ -197,30 +295,48 @@ def weekly_awards(season, week, pw, matchups, owner, tname, pname, ppos):
         m0 = max(started, key=lambda r: r["actual"])
         add("mvp", "MVP", f"{m0['actual']:.1f}",
             f"{pname.get(m0['playerId'])} ({ppos.get(m0['playerId'])}) was the "
-            f"highest-scoring started player of the week, for {who(m0['teamId'])}.")
+            f"highest-scoring started player of the week, for {who(m0['teamId'])}.",
+            pid=m0["playerId"], mgr=who(m0["teamId"]))
 
-    # facepalm: losing with the win on the bench beats merely benching a lot
-    bench_by = {}
-    for r in benched:
-        bench_by[r["teamId"]] = bench_by.get(r["teamId"], 0) + r["actual"]
-    cand = []
-    for t, v in bench_by.items():
-        if t not in score:
-            continue
-        margin = score[opp[t]] - score[t]
-        cand.append((not won.get(t) and v > margin, v - max(margin, 0), t, v, margin))
-    if cand:
-        cand.sort(key=lambda c: (-c[0], -c[1]))
-        fatal, surplus, t, v, margin = cand[0]
-        if fatal:
-            add("facepalm", "Facepalm of the week", f"{v:.1f} benched",
-                f"{who(t)} lost to {who(opp[t])} by {margin:.2f} with {v:.1f} points sitting "
-                f"on the bench - {surplus:.1f} more than the game needed.")
-        else:
-            add("facepalm", "Facepalm of the week", f"{v:.1f} benched",
-                f"{who(t)} left {v:.1f} points in bench slots"
-                + (f" and got away with it." if won.get(t)
-                   else f" and lost by {margin:.2f} - though the bench would not have saved it."))
+    # facepalm: a lineup DECISION that cost a game, not a big bench. Ranked:
+    # lost and the chalk lineup wins (ignored the projection, paid for it) >
+    # lost and only hindsight wins > largest legal regret anywhere.
+    if start_slots:
+        cand = []
+        for t in score:
+            ents = [r for r in rows if r["teamId"] == t]
+            d = decisions(ents, start_slots)
+            if not d or not d["swap"]:
+                continue
+            margin = score[opp[t]] - score[t]
+            lost = not won.get(t)
+            chalk_wins = lost and d["chalk"] is not None and d["chalk"] > margin
+            best_wins = lost and d["regret"] > margin
+            cand.append(((2 if chalk_wins else 0) + (1 if best_wins else 0), d["regret"], t, d, margin))
+        if cand:
+            cand.sort(key=lambda c: (-c[0], -c[1]))
+            tier, regret, t, d, margin = cand[0]
+            sw = d["swap"]
+            swap_txt = (f"{pname.get(sw['in'])} sat with {sw['inPts']:.1f} while "
+                        f"{pname.get(sw['out'])} started at {sw['slot']} for {sw['outPts']:.1f}")
+            if tier >= 2:
+                add("facepalm", "Facepalm of the week", f"{regret:.1f} left",
+                    f"{who(t)} lost to {who(opp[t])} by {margin:.2f}. {swap_txt}"
+                    f"{' - and ESPN had him projected higher' if sw['chalk'] else ''}. "
+                    f"Starting the projected lineup alone would have won it.",
+                    pid=sw["in"], mgr=who(t))
+            elif tier == 1:
+                add("facepalm", "Facepalm of the week", f"{regret:.1f} left",
+                    f"{who(t)} lost to {who(opp[t])} by {margin:.2f} with {regret:.1f} points "
+                    f"available through legal swaps. {swap_txt}"
+                    f"{' - ESPN had him higher, too' if sw['chalk'] else ', though nobody saw it coming'}.",
+                    pid=sw["in"], mgr=who(t))
+            else:
+                add("facepalm", "Facepalm of the week", f"{regret:.1f} left",
+                    f"{who(t)} left {regret:.1f} points in legal swaps: {swap_txt}"
+                    + (" - and got away with it." if won.get(t)
+                       else f" - though it would not have covered a {margin:.2f} loss."),
+                    pid=sw["in"], mgr=who(t))
 
     winners = [t for t in score if won.get(t)]
     losers = [t for t in score if not won.get(t)]
@@ -231,45 +347,48 @@ def weekly_awards(season, week, pw, matchups, owner, tname, pname, ppos):
             # "Drew X" read as a first name on a page that is otherwise all
             # first names. Say what the sentence actually means instead.
             f"teams. The schedule handed them {who(opp[lucky])}, "
-            f"who managed {score[opp[lucky]]:.1f}.")
+            f"who managed {score[opp[lucky]]:.1f}.", mgr=who(lucky))
     if losers:
         robbed = max(losers, key=lambda t: beat[t])
         add("robbed", "Robbed", f"{score[robbed]:.1f}",
             f"{who(robbed)} lost despite a score that would have beaten "
             f"{beat[robbed]} of the other {n_others} teams. {who(opp[robbed])} happened to "
-            f"put up {score[opp[robbed]]:.1f}.")
+            f"put up {score[opp[robbed]]:.1f}.", mgr=who(robbed))
 
     proj = [r for r in started if r["projected"] is not None]
     if proj:
         b = min(proj, key=lambda r: r["actual"] - r["projected"])
         add("bust", "Bust of the week", f"{b['actual'] - b['projected']:+.1f}",
             f"{pname.get(b['playerId'])} scored {b['actual']:.1f} against a "
-            f"{b['projected']:.1f} projection, in {who(b['teamId'])}'s starting lineup.")
+            f"{b['projected']:.1f} projection, in {who(b['teamId'])}'s starting lineup.",
+            pid=b["playerId"], mgr=who(b["teamId"]))
         g = max(proj, key=lambda r: r["actual"] - r["projected"])
         add("sleeper", "Overachiever", f"{g['actual'] - g['projected']:+.1f}",
             f"{pname.get(g['playerId'])} put up {g['actual']:.1f} on a "
-            f"{g['projected']:.1f} projection for {who(g['teamId'])}.")
+            f"{g['projected']:.1f} projection for {who(g['teamId'])}.",
+            pid=g["playerId"], mgr=who(g["teamId"]))
 
     if benched:
         bh = max(benched, key=lambda r: r["actual"])
         add("benchhero", "Best player nobody started", f"{bh['actual']:.1f}",
             f"{pname.get(bh['playerId'])} ({ppos.get(bh['playerId'])}) scored "
-            f"{bh['actual']:.1f} on {who(bh['teamId'])}'s bench.")
+            f"{bh['actual']:.1f} on {who(bh['teamId'])}'s bench.",
+            pid=bh["playerId"], mgr=who(bh["teamId"]))
 
     hi = max(score, key=score.get); lo = min(score, key=score.get)
-    add("high", "Highest score", f"{score[hi]:.1f}", f"{who(hi)}.")
-    add("low", "Lowest score", f"{score[lo]:.1f}", f"{who(lo)}.")
+    add("high", "Highest score", f"{score[hi]:.1f}", f"{who(hi)}.", mgr=who(hi))
+    add("low", "Lowest score", f"{score[lo]:.1f}", f"{who(lo)}.", mgr=who(lo))
 
     blow = max(games, key=lambda m: abs(m["homeScore"] - m["awayScore"]))
     bw = blow["homeTeamId"] if blow["winner"] == "HOME" else blow["awayTeamId"]
     add("blowout", "Biggest beating", f"{abs(blow['homeScore'] - blow['awayScore']):.1f}",
         f"{who(bw)} over {who(opp[bw])}, "
         f"{max(blow['homeScore'], blow['awayScore']):.1f} to "
-        f"{min(blow['homeScore'], blow['awayScore']):.1f}.")
+        f"{min(blow['homeScore'], blow['awayScore']):.1f}.", mgr=who(bw))
     nail = min(games, key=lambda m: abs(m["homeScore"] - m["awayScore"]))
     nw = nail["homeTeamId"] if nail["winner"] == "HOME" else nail["awayTeamId"]
     add("nail", "Closest game", f"{abs(nail['homeScore'] - nail['awayScore']):.2f}",
-        f"{who(nw)} edged {who(opp[nw])}.")
+        f"{who(nw)} edged {who(opp[nw])}.", mgr=who(nw))
 
     avg = sum(score.values()) / len(score)
     add("avg", "League average", f"{avg:.1f}",
@@ -298,10 +417,31 @@ def main(season: int | None = None):
 
     SEASON = season or max(s["season"] for s in seasons)
     meta_s = next(s for s in seasons if s["season"] == SEASON)
+    slotc = {int(k): v for k, v in (meta_s.get("slotCounts") or {}).items()}
+    start_slots = {k: v for k, v in slotc.items() if k not in BENCH_SLOTS}
     owner = {(t["season"], t["teamId"]): short.get(t["owner"]) for t in teams}
     tname = {(t["season"], t["teamId"]): (t["name"] or t["abbrev"]) for t in teams}
     pname = {p["playerId"]: p["name"] for p in players}
     ppos = {p["playerId"]: p["position"] for p in players}
+    ppro = {p["playerId"]: p.get("proTeam") for p in players}
+    kits = json.loads((REPO / "data" / "kits.json").read_text())["kits"] \
+        if (REPO / "data" / "kits.json").exists() else {}
+    logos = json.loads((DER / "logos.json").read_text()) if (DER / "logos.json").exists() else {}
+
+    # kit per manager for THIS season: their ESPN logo and a colour derived
+    # from it; kits.json only fills in for managers without a logo, or pins
+    for t in rows_for_kits(teams, SEASON):
+        p = owner.get((SEASON, t["teamId"]))
+        rec = logos.get(str(SEASON), {}).get(str(t["teamId"]))
+        if not p or not rec:
+            continue
+        k = dict(kits.get(p) or {})
+        k["logo"] = rec["file"]
+        if rec.get("color") and not k.get("pin"):
+            k["c1"] = rec["color"]
+        k.setdefault("c2", "#F2EFE9")
+        k.setdefault("mono", p[:2].upper())
+        kits[p] = k
 
     # ---- calibration from every completed season -------------------------
     proj_tot = defaultdict(float)
@@ -387,15 +527,29 @@ def main(season: int | None = None):
     for r in pw:
         if r["season"] == SEASON:
             ros[(r["week"], r["teamId"])].append(r)
-    bench_pts = defaultdict(float); start_pts = defaultdict(float)
-    for (wk, tid), ents in ros.items():
+    # lineup decisions per team-week (legal swaps only) and points by slot
+    dec = []          # {wk, tid, p, started, best, regret, chalk, swap}
+    slot_pts = []     # {wk, tid, slot, pts}
+    regret_tot = defaultdict(float)
+    for (wk, tid), ents in sorted(ros.items()):
+        d = decisions(ents, start_slots) if start_slots else None
+        if d:
+            sw = d["swap"]
+            dec.append({"wk": wk, "tid": tid, "p": owner.get((SEASON, tid)),
+                        "started": d["started"], "best": d["best"],
+                        "regret": d["regret"], "chalk": d["chalk"],
+                        "swap": ({"d": sw["d"], "slot": sw["slot"], "chalk": sw["chalk"],
+                                  "in": pname.get(sw["in"]), "out": pname.get(sw["out"]),
+                                  "inPts": sw["inPts"], "outPts": sw["outPts"]}
+                                 if sw else None)})
+            regret_tot[tid] += d["regret"]
+        by_slot = defaultdict(float)
         for e in ents:
-            if e["actual"] is None:
-                continue
-            if e["started"]:
-                start_pts[tid] += e["actual"]
-            elif e["slotId"] == 20:
-                bench_pts[tid] += e["actual"]
+            if e["started"] and e["actual"] is not None:
+                by_slot[e["slot"]] += e["actual"]
+        for sl, v in by_slot.items():
+            slot_pts.append({"wk": wk, "tid": tid, "p": owner.get((SEASON, tid)),
+                             "slot": sl, "pts": round(v, 1)})
 
     standings = []
     for t in rows:
@@ -408,7 +562,7 @@ def main(season: int | None = None):
             "w": t["wins"] or 0, "l": t["losses"] or 0,
             "pf": round(t["pointsFor"] or 0, 2), "pa": round(t["pointsAgainst"] or 0, 2),
             "apw": a[0], "apl": a[1], "streak": streak(seq.get(p)),
-            "bn": round(bench_pts.get(t["teamId"], 0), 1) or None,
+            "rg": round(regret_tot[t["teamId"]], 1) if t["teamId"] in regret_tot else None,
             "seed": t["playoffSeed"], "rk": t["finalRank"],
         })
 
@@ -423,12 +577,23 @@ def main(season: int | None = None):
         pa = proj_tot.get((SEASON, m["week"], m["awayTeamId"]))
         sched.append({
             "wk": m["week"], "hp": hp, "ap": apn,
+            "hid": m["homeTeamId"], "aid": m["awayTeamId"],
             "htm": tname.get((SEASON, m["homeTeamId"])),
             "atm": tname.get((SEASON, m["awayTeamId"])),
             "hs": m["homeScore"] or None, "as": m["awayScore"] or None,
             "won": m["winner"] if m["winner"] != "UNDECIDED" else None,
             "po": m["isPlayoff"],
         })
+
+    # top started player on each side of every played game, for the scoreboard
+    game_top = {}
+    for (wk, tid), ents in ros.items():
+        st_ = [e for e in ents if e["started"] and e["actual"] is not None]
+        if st_:
+            m0 = max(st_, key=lambda e: e["actual"])
+            game_top[f"{wk}|{tid}"] = {"pid": m0["playerId"], "n": pname.get(m0["playerId"]),
+                                       "pos": ppos.get(m0["playerId"]),
+                                       "pro": ppro.get(m0["playerId"]), "pts": m0["actual"]}
 
     # ---- rosters (latest week we have) ------------------------------------
     latest = max((wk for (wk, _) in ros), default=None)
@@ -442,6 +607,7 @@ def main(season: int | None = None):
                 "wk": wk,
                 "players": sorted(({
                     "n": pname.get(e["playerId"]), "pos": ppos.get(e["playerId"]),
+                    "pid": e["playerId"], "pro": ppro.get(e["playerId"]),
                     "slot": e["slot"], "st": e["started"],
                     "proj": round(e["projected"], 1) if e["projected"] is not None else None,
                     "act": e["actual"],
@@ -477,7 +643,8 @@ def main(season: int | None = None):
                          and m["winner"] and m["winner"] != "UNDECIDED"})
     awards = {}
     for wk in done_weeks:
-        a = weekly_awards(SEASON, wk, pw, matchups, owner, tname, pname, ppos)
+        a = weekly_awards(SEASON, wk, pw, matchups, owner, tname, pname, ppos,
+                          ppro, start_slots)
         if a:
             awards[f"{SEASON}|{wk}"] = a
     sample = None
@@ -491,14 +658,12 @@ def main(season: int | None = None):
         if prev:
             ps, pwk = max(prev)
             own_prev = {(t["season"], t["teamId"]): short.get(t["owner"]) for t in teams}
-            a = weekly_awards(ps, pwk, pw, matchups, own_prev, tname, pname, ppos)
+            a = weekly_awards(ps, pwk, pw, matchups, own_prev, tname, pname, ppos,
+                              ppro, start_slots)
             if a:
                 sample = {"season": ps, "week": pwk}
                 awards[f"{ps}|{pwk}"] = a
 
-    slotc = next((sn.get("slotCounts") or {} for sn in seasons
-                  if sn["season"] == SEASON), {})
-    slotc = {int(k): v for k, v in slotc.items()}
     power = power_rankings(SEASON, weeks_done, pw, outlook, slotc, owner, tname)
 
     payload = {
@@ -520,6 +685,9 @@ def main(season: int | None = None):
         "awards": awards, "sample": sample, "power": power,
         "standings": standings, "schedule": sched, "rosters": rosters,
         "draft": draft, "form": form,
+        "kits": kits, "h2h": head_to_head(matchups, owner),
+        "gameTop": game_top, "decisions": dec, "slotPts": slot_pts,
+        "slots": [SLOT_NAMES.get(k, str(k)) for k in sorted(start_slots, key=SLOT_ORDER.get)],
     }
     OUT.write_text(json.dumps(payload, separators=(",", ":")))
     print(f"wrote {OUT} ({OUT.stat().st_size/1024:.0f} KB) "

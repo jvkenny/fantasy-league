@@ -1,0 +1,114 @@
+{
+ "_comment": "Team identity per manager (display first name, matching the record book). Keyed by manager because team names change every year. The logo is the manager's own ESPN team logo, copied into docs/logos/ by ffl/logos.py, and the colour is DERIVED from that logo - nobody decides anyone's colours. c1/c2 here are only the fallback for a manager with no logo this season (past managers), unless \"pin\": true, which keeps the listed colour over the derived one. mono is the shield monogram used when there is no logo. Colours are identity only: beside a name, never a meaning.",
+ "kits": {
+  "John": {
+   "c1": "#0B162A",
+   "c2": "#C83803",
+   "mono": "DD",
+   "why": "Chicago Double-Doink: the logo is a photo of Parkey, so the derived colour is grass; pinned to Bears navy",
+   "pin": true
+  },
+  "Jeffrey": {
+   "c1": "#2A1B3D",
+   "c2": "#D9CFC1",
+   "mono": "TR",
+   "why": "The Reaper: shroud purple-black, bone"
+  },
+  "Maddie": {
+   "c1": "#008E97",
+   "c2": "#FC4C02",
+   "mono": "LT",
+   "why": "Losing Tua Girl: Dolphins aqua and coral"
+  },
+  "Jared": {
+   "c1": "#1F5F3A",
+   "c2": "#E0B428",
+   "mono": "GL",
+   "why": "GoodLadds: club green and gold"
+  },
+  "Richard": {
+   "c1": "#E8A200",
+   "c2": "#1A1A1A",
+   "mono": "RR",
+   "why": "Rich's Rowdy Team: rowdy gold on black"
+  },
+  "Chris": {
+   "c1": "#6A3FA0",
+   "c2": "#C6E04A",
+   "mono": "GB",
+   "why": "The Goofballs: violet and lime"
+  },
+  "Gabriel": {
+   "c1": "#D62839",
+   "c2": "#FFFFFF",
+   "mono": "IR",
+   "why": "The Injured Reserves: medical red and white"
+  },
+  "Mark": {
+   "c1": "#D81E79",
+   "c2": "#38C6E5",
+   "mono": "FB",
+   "why": "Marky Mark's Funky Bunch: 90s magenta and cyan"
+  },
+  "Conor": {
+   "c1": "#1E88E5",
+   "c2": "#F5F5F5",
+   "mono": "XI",
+   "why": "Winning Eleven Seven: sky blue, eleven in Roman"
+  },
+  "Andy": {
+   "c1": "#8B5A2B",
+   "c2": "#E9D8B4",
+   "mono": "BB",
+   "why": "Bootball Baddies: boot leather and khaki"
+  },
+  "Demetri": {
+   "c1": "#4A5D73",
+   "c2": "#C9D3DF",
+   "mono": "DM",
+   "why": "slate"
+  },
+  "Tim": {
+   "c1": "#0F766E",
+   "c2": "#CCFBF1",
+   "mono": "TM",
+   "why": "teal"
+  },
+  "Nico": {
+   "c1": "#B45309",
+   "c2": "#FDE68A",
+   "mono": "NC",
+   "why": "terracotta"
+  },
+  "Brian": {
+   "c1": "#374151",
+   "c2": "#F59E0B",
+   "mono": "BR",
+   "why": "graphite and amber"
+  },
+  "Sean": {
+   "c1": "#155E75",
+   "c2": "#A5F3FC",
+   "mono": "SN",
+   "why": "deep cyan"
+  },
+  "Charlie": {
+   "c1": "#7C2D12",
+   "c2": "#FED7AA",
+   "mono": "CH",
+   "why": "rust"
+  },
+  "Sugatri": {
+   "c1": "#4C1D95",
+   "c2": "#DDD6FE",
+   "mono": "SG",
+   "why": "indigo"
+  },
+  "Andrew": {
+   "c1": "#3F6212",
+   "c2": "#D9F99D",
+   "mono": "AG",
+   "why": "moss"
+  }
+ }
+}

@@ -185,6 +185,127 @@ svg[tabindex]{cursor:pointer;-webkit-tap-highlight-color:transparent;touch-actio
 svg[tabindex]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
+/* ======================================================================
+   SEASON TRACKER - the broadcast register. The record book is an almanac
+   and stays exactly as above; the tracker is a screen. Same tokens, same
+   charts, one more typeface (Barlow Condensed for display only) and the
+   team identity kit. Kit colours are IDENTITY: they always sit beside a
+   name and a crest and never carry a meaning on their own. Anything the
+   reader has to decode stays on the blue/orange pair.
+   Scoped to [data-page=season], stamped by the page's own head script.
+   ====================================================================== */
+[data-page=season] .disp,[data-page=season] h2,[data-page=season] .brand,
+[data-page=season] .ac .t,[data-page=season] .fi .t{
+  font-family:"Barlow Condensed","Source Sans 3",system-ui,sans-serif}
+[data-page=season] h2{font-size:21px;letter-spacing:.06em;font-weight:700}
+[data-page=season] .brand{font-size:26px;letter-spacing:.08em}
+[data-page=season] .ac .t{font-size:15px;letter-spacing:.06em}
+[data-page=season] .catline h3{font-family:"Barlow Condensed","Source Sans 3",sans-serif;
+  font-size:16px;letter-spacing:.08em}
+/* yard-line rule: a section break drawn as a field, hash marks every ten */
+.yard{position:relative;height:20px;margin:2px 0 22px}
+.yard:before{content:"";position:absolute;left:0;right:0;top:50%;height:1px;background:var(--line)}
+.yard:after{content:"";position:absolute;left:0;right:0;top:5px;bottom:5px;
+  background:repeating-linear-gradient(90deg,var(--line) 0 1px,transparent 1px 10%)}
+.yard i{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  background:var(--ground);padding:0 6px;font-family:"IBM Plex Mono",monospace;
+  font-size:9.5px;color:var(--muted);letter-spacing:.1em;font-style:normal}
+/* crest: shield with a sash, monogram on top */
+.crest{display:inline-block;vertical-align:middle;flex:none}
+img.crest{object-fit:contain;border-radius:3px;background:#FBFAF7;padding:1px;
+  box-shadow:0 0 0 1.5px var(--k1,var(--line))}
+.crest text{font-family:"Barlow Condensed","Source Sans 3",sans-serif;font-weight:700;
+  letter-spacing:.02em}
+.who{display:inline-flex;align-items:center;gap:8px}
+.who .crest{width:20px;height:23px}
+/* headshots + NFL marks */
+.hs{width:56px;height:56px;border-radius:50%;object-fit:cover;object-position:top;
+  background:var(--raised);border:2px solid var(--k1,var(--line));flex:none}
+.hs.sm{width:28px;height:28px;border-width:1.5px}
+.mark{width:16px;height:16px;object-fit:contain;vertical-align:-3px;margin-right:5px}
+/* ---- scoreboard ---- */
+.sbg{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(min(196px,100%),1fr));
+  padding:16px 20px 18px}
+.sb{background:var(--surface);border:1px solid var(--line);border-radius:2px;
+  display:flex;flex-direction:column}
+.sb-row{display:flex;align-items:center;gap:10px;padding:10px 12px 10px 10px;
+  border-left:4px solid transparent}
+.sb-row+.sb-row{border-top:1px solid var(--line)}
+.sb-row.win{border-left-color:var(--k1)}
+.sb-row .crest{width:30px;height:34px}
+.sb-who{flex:1;min-width:0;line-height:1.15}
+.sb-who b{display:block;font-family:"Barlow Condensed","Source Sans 3",sans-serif;
+  font-size:18px;font-weight:700;letter-spacing:.03em}
+.sb-who span{display:block;font-size:11.5px;color:var(--muted);white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis}
+.sb-sc{font-family:"Barlow Condensed","Source Sans 3",sans-serif;font-weight:700;
+  font-size:30px;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:.01em}
+.sb-row:not(.win) .sb-sc,.sb-row:not(.win) .sb-who b{color:var(--muted);font-weight:600}
+.sb-row.tbd .sb-sc{font-size:14px;color:var(--muted);font-family:"IBM Plex Mono",monospace}
+.sb-ft{display:flex;align-items:center;gap:8px;padding:9px 12px;border-top:1px solid var(--line);
+  font-size:12px;color:var(--muted);background:var(--raised)}
+.sb-ft .hs{width:26px;height:26px;border-width:1.5px}
+.sb-ft b{color:var(--text);font-weight:600}
+.sb-ft .mono{font-size:11.5px}
+.sb-riv{padding:8px 12px 10px;font-size:11.5px;line-height:1.45;color:var(--muted);
+  border-top:1px dashed var(--line)}
+.sb-riv b{color:var(--text);font-weight:600}
+.sb-riv .lead{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--accent)}
+.sb-wk{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--muted);padding:8px 12px 0}
+/* ---- award hierarchy: three heroes, then the strip ---- */
+.aw-hero{display:grid;gap:16px;padding:18px 20px 4px;
+  grid-template-columns:repeat(auto-fit,minmax(min(280px,100%),1fr))}
+.ac.hero{padding:18px 20px 16px;gap:10px;border-bottom-width:3px}
+.ac.hero .top{display:flex;align-items:center;gap:14px}
+.ac.hero .v{font-family:"Barlow Condensed","Source Sans 3",sans-serif;font-size:46px;
+  font-weight:700;letter-spacing:.01em;line-height:.95}
+.ac.hero .t{font-size:17px}
+.ac.hero .d{font-size:13.5px}
+.ac.hero .hs{width:64px;height:64px}
+.ac .by{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--muted);
+  margin-top:auto}
+.ac .by .crest{width:16px;height:18px}
+.ac .by .hs.sm{margin-right:2px}
+/* ---- heat grids: position strength + schedule swap ---- */
+.hmw{overflow-x:auto;padding:14px 20px 18px}
+.hm{border-collapse:separate;border-spacing:3px;font-family:"IBM Plex Mono",monospace;
+  font-size:12.5px;font-variant-numeric:tabular-nums;min-width:100%}
+.hm th{font-family:"Barlow Condensed","Source Sans 3",sans-serif;font-size:13px;
+  letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:700;
+  padding:4px 6px;text-align:center;position:static;background:none;cursor:default;
+  border:none;white-space:nowrap}
+.hm th:first-child,.hm td:first-child{text-align:left;position:static;background:none;
+  font-family:"Source Sans 3",system-ui,sans-serif;font-size:13.5px;padding-right:10px;
+  white-space:nowrap}
+.hm th .crest{width:18px;height:21px;margin-right:4px;vertical-align:-5px}
+.hm td{text-align:center;padding:7px 6px;border:none;border-radius:2px;
+  background:var(--raised);color:var(--text);min-width:52px}
+.hm td.self{outline:1px solid var(--line);outline-offset:-1px;background:var(--surface);
+  color:var(--muted)}
+.hm td.hi{color:var(--text);font-weight:600}
+.hm tfoot td{background:none;color:var(--muted);font-size:11px;padding-top:2px}
+.hm .cap{font-size:10.5px;color:var(--muted);letter-spacing:.06em;font-family:"IBM Plex Mono",monospace}
+.legend{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--muted);
+  padding:0 20px 14px;flex-wrap:wrap}
+.legend i{display:inline-block;width:38px;height:10px;border-radius:2px;font-style:normal}
+/* ---- trophy case ---- */
+.trophy td.n{font-size:13px}
+.trophy .cup{display:inline-block;font-family:"Barlow Condensed","Source Sans 3",sans-serif;
+  font-weight:700;font-size:14px;color:var(--accent)}
+.trophy .cup.bad{color:var(--loss)}
+.trophy .cup.dim{color:var(--line)}
+@media (max-width:640px){
+  [data-page=season] h2{font-size:19px}
+  [data-page=season] .brand{font-size:22px}
+  .sbg{padding:12px;gap:10px}
+  .sb-sc{font-size:26px}
+  .aw-hero{padding:12px 12px 2px;gap:10px}
+  .ac.hero .v{font-size:40px}
+  .hmw{padding:10px 12px 14px}
+  .hm td{min-width:44px;padding:6px 4px;font-size:12px}
+}
+
 </style>
 <script>
 /* Apply the stored choice before anything paints, so switching to dark and
@@ -511,6 +632,14 @@ function barsH(host,rows,o){
       'fill-opacity':r.hot?.92:.55});
     if(r.tip){const t=mkS('title');t.textContent=r.tip;bar.append(t)}
     svg.append(bar);
+    // an inner segment from zero: the part of the bar that is a different thing
+    if(r.value2!==undefined&&r.value2!==null&&r.value2>0){
+      const w2=Math.max(1,sx(Math.min(r.value2,r.value))-zero);
+      const b2=mkS('rect',{x:zero,y:y+2,width:w2,height:rh-13,rx:1,
+        fill:r.color2||'var(--loss)','fill-opacity':.95});
+      if(r.tip2){const t=mkS('title');t.textContent=r.tip2;b2.append(t)}
+      svg.append(b2);
+    }
     axisLabel(svg,gut-8,y+rh/2-1,r.label,'end');
     const vt=mkS('text',{x:x+w+6,y:y+rh/2-1,class:'dlbl'});
     vt.textContent=o.vfmt?o.vfmt(r.value):r.value;
@@ -558,31 +687,33 @@ function bump(host,series,o){
     const pts=s.points.slice().sort((a,b)=>a.x-b.x);
     if(pts.length>1){
       const ln=mkS('polyline',{points:pts.map(p=>`${sx(p.x)},${sy(p.y)}`).join(' '),
-        fill:'none',stroke:'var(--muted)','stroke-width':1.6,'stroke-opacity':.5,
+        fill:'none',stroke:s.color||'var(--muted)','stroke-width':1.6,
+        'stroke-opacity':s.color?.45:.5,
         'stroke-linejoin':'round','pointer-events':'none'});
       svg.append(ln); lines.push(ln);
     } else lines.push(null);
     const g=[];
     pts.forEach(p=>{
-      const c=mkS('circle',{cx:sx(p.x),cy:sy(p.y),r:3,fill:'var(--muted)',
-        'fill-opacity':.55,'pointer-events':'none'});
+      const c=mkS('circle',{cx:sx(p.x),cy:sy(p.y),r:3,fill:s.color||'var(--muted)',
+        'fill-opacity':s.color?.6:.55,'pointer-events':'none'});
       svg.append(c); g.push(c);
     });
     dots.push(g);
     const last=pts[pts.length-1];
     const t=mkS('text',{x:sx(last.x)+8,y:sy(last.y)+3.5,class:'dlbl',
       'fill-opacity':.65,'pointer-events':'none'});
+    if(s.color) t.setAttribute('fill',s.color);
     t.textContent=s.label; svg.append(t); labels.push(t);
   });
 
   let cur=-1;
   const paint=i=>{
     series.forEach((s,k)=>{
-      const on=k===i;
-      if(lines[k]){lines[k].setAttribute('stroke',on?'var(--accent)':'var(--muted)');
-        lines[k].setAttribute('stroke-opacity',on?1:.35);
-        lines[k].setAttribute('stroke-width',on?2.8:1.6);}
-      dots[k].forEach(c=>{c.setAttribute('fill',on?'var(--accent)':'var(--muted)');
+      const on=k===i, col=s.color||'var(--accent)', off=s.color||'var(--muted)';
+      if(lines[k]){lines[k].setAttribute('stroke',on?col:off);
+        lines[k].setAttribute('stroke-opacity',on?1:(s.color?.3:.35));
+        lines[k].setAttribute('stroke-width',on?3.2:1.6);}
+      dots[k].forEach(c=>{c.setAttribute('fill',on?col:off);
         c.setAttribute('fill-opacity',on?1:.4);
         c.setAttribute('r',on?4.2:3);});
       labels[k].setAttribute('fill-opacity',on?1:.5);

@@ -101,3 +101,23 @@ Then, as normal:
 
     python3 -m ffl.normalize && python3 -m ffl.build_site && \
       python3 -m ffl.build_season && python3 -m ffl.render
+
+## Season tracker (`site/_season.html`)
+
+The record book is an almanac; the tracker is a broadcast. Same tokens and
+chart primitives, one extra typeface (Barlow Condensed, display only), and a
+**team identity kit** per manager in `data/kits.json` - colour pair and a
+monogram, keyed by manager rather than team because team names change every
+year. Kit colours are identity only: they always sit beside the name and crest
+and never carry a meaning on their own. Anything the reader has to decode stays
+on the blue/orange pair. Player headshots and club marks come straight off
+ESPN's CDN by `playerId` / `proTeam`, so they cost nothing at pull time.
+
+Lineup mistakes are measured against **legal swaps only**, never raw bench
+points: a benched player who could have filled a starter's slot and outscored
+him. `decisions()` in `build_season.py` compares three lineups on actual
+points - what was started, the best hindsight allows, and the one ESPN's
+projections said to start. `regret` is the first gap; `chalk` is the second,
+the inexcusable part. The Facepalm, the Regret tracker and the standings'
+Regret column all come from it.
+

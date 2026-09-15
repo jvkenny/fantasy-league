@@ -264,6 +264,14 @@ function barsH(host,rows,o){
       'fill-opacity':r.hot?.92:.55});
     if(r.tip){const t=mkS('title');t.textContent=r.tip;bar.append(t)}
     svg.append(bar);
+    // an inner segment from zero: the part of the bar that is a different thing
+    if(r.value2!==undefined&&r.value2!==null&&r.value2>0){
+      const w2=Math.max(1,sx(Math.min(r.value2,r.value))-zero);
+      const b2=mkS('rect',{x:zero,y:y+2,width:w2,height:rh-13,rx:1,
+        fill:r.color2||'var(--loss)','fill-opacity':.95});
+      if(r.tip2){const t=mkS('title');t.textContent=r.tip2;b2.append(t)}
+      svg.append(b2);
+    }
     axisLabel(svg,gut-8,y+rh/2-1,r.label,'end');
     const vt=mkS('text',{x:x+w+6,y:y+rh/2-1,class:'dlbl'});
     vt.textContent=o.vfmt?o.vfmt(r.value):r.value;
@@ -311,31 +319,33 @@ function bump(host,series,o){
     const pts=s.points.slice().sort((a,b)=>a.x-b.x);
     if(pts.length>1){
       const ln=mkS('polyline',{points:pts.map(p=>`${sx(p.x)},${sy(p.y)}`).join(' '),
-        fill:'none',stroke:'var(--muted)','stroke-width':1.6,'stroke-opacity':.5,
+        fill:'none',stroke:s.color||'var(--muted)','stroke-width':1.6,
+        'stroke-opacity':s.color?.45:.5,
         'stroke-linejoin':'round','pointer-events':'none'});
       svg.append(ln); lines.push(ln);
     } else lines.push(null);
     const g=[];
     pts.forEach(p=>{
-      const c=mkS('circle',{cx:sx(p.x),cy:sy(p.y),r:3,fill:'var(--muted)',
-        'fill-opacity':.55,'pointer-events':'none'});
+      const c=mkS('circle',{cx:sx(p.x),cy:sy(p.y),r:3,fill:s.color||'var(--muted)',
+        'fill-opacity':s.color?.6:.55,'pointer-events':'none'});
       svg.append(c); g.push(c);
     });
     dots.push(g);
     const last=pts[pts.length-1];
     const t=mkS('text',{x:sx(last.x)+8,y:sy(last.y)+3.5,class:'dlbl',
       'fill-opacity':.65,'pointer-events':'none'});
+    if(s.color) t.setAttribute('fill',s.color);
     t.textContent=s.label; svg.append(t); labels.push(t);
   });
 
   let cur=-1;
   const paint=i=>{
     series.forEach((s,k)=>{
-      const on=k===i;
-      if(lines[k]){lines[k].setAttribute('stroke',on?'var(--accent)':'var(--muted)');
-        lines[k].setAttribute('stroke-opacity',on?1:.35);
-        lines[k].setAttribute('stroke-width',on?2.8:1.6);}
-      dots[k].forEach(c=>{c.setAttribute('fill',on?'var(--accent)':'var(--muted)');
+      const on=k===i, col=s.color||'var(--accent)', off=s.color||'var(--muted)';
+      if(lines[k]){lines[k].setAttribute('stroke',on?col:off);
+        lines[k].setAttribute('stroke-opacity',on?1:(s.color?.3:.35));
+        lines[k].setAttribute('stroke-width',on?3.2:1.6);}
+      dots[k].forEach(c=>{c.setAttribute('fill',on?col:off);
         c.setAttribute('fill-opacity',on?1:.4);
         c.setAttribute('r',on?4.2:3);});
       labels[k].setAttribute('fill-opacity',on?1:.5);
