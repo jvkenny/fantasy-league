@@ -71,6 +71,7 @@ def stat(entry_player: dict, week: int, source: int) -> float | None:
 def main() -> int:
     OUT.mkdir(parents=True, exist_ok=True)
     seasons, teams, matchups, player_weeks, picks, txns = [], [], [], [], [], []
+    outlook = []
 
     years = sorted(int(p.name) for p in RAW.iterdir() if p.is_dir() and p.name.isdigit())
 
@@ -178,6 +179,21 @@ def main() -> int:
                         "status": t.get("status"),
                     })
 
+        # --- rest-of-season outlook snapshots -----------------------------
+        # One file per completed week, holding each rostered player's remaining
+        # projected points AS OF that week. Kept per week rather than as a
+        # single latest snapshot so a past week's ranking can be recomputed
+        # (that is what makes the movement column honest).
+        for ofile in sorted((RAW / str(yr)).glob("outlook-wk*.json")):
+            snap = json.loads(ofile.read_text())
+            wk = snap.get("week") or int(ofile.stem.split("wk")[1])
+            for tid, pid, ros, slot, elig in snap.get("players") or []:
+                outlook.append({
+                    "season": yr, "week": wk, "teamId": tid, "playerId": pid,
+                    "ros": ros, "slotId": slot,
+                    "eligible": [int(x) for x in str(elig).split("|") if x != ""],
+                })
+
         # player names for anyone only seen in transactions/draft
         pfile = RAW / str(yr) / "players.json"
         if pfile.exists():
@@ -204,7 +220,8 @@ def main() -> int:
 
     tables = {"seasons": seasons, "teams": teams, "matchups": matchups,
               "player_weeks": player_weeks, "draft_picks": picks,
-              "transactions": txns, "players": list(players.values())}
+              "transactions": txns, "players": list(players.values()),
+              "outlook": outlook}
     for name, rows in tables.items():
         (OUT / f"{name}.json").write_text(json.dumps(rows, separators=(",", ":")))
         print(f"  {name:<14} {len(rows):>7,} rows")

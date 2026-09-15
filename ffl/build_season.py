@@ -22,6 +22,8 @@ import time
 from collections import defaultdict
 from pathlib import Path
 
+from .build_site import optimal_lineup
+
 REPO = Path(__file__).resolve().parent.parent
 DER = REPO / "data" / "derived"
 OUT = REPO / "site" / "season.json"
@@ -36,6 +38,119 @@ def load(n):
 def norm_cdf(z: float) -> float:
     return 0.5 * (1.0 + math.erf(z / math.sqrt(2.0)))
 
+
+
+BENCH_SLOTS = {20, 21, 24}
+PR_K = 4.0          # weeks at which results and outlook would weigh equally
+PR_FLOOR = 0.60     # results never count for less than this
+PR_HALFLIFE = 4.0   # recency half-life, in weeks
+
+
+def _z(vals):
+    """Z-scores. Zero spread means nobody is distinguishable - return zeros
+    rather than dividing by it."""
+    n = len(vals)
+    mu = sum(vals) / n
+    sd = (sum((v - mu) ** 2 for v in vals) / n) ** 0.5
+    return [0.0] * n if sd < 1e-9 else [(v - mu) / sd for v in vals]
+
+
+def power_rankings(season, weeks, pw, outlook, slot_counts, owner, tname):
+    """Rank teams by what their roster can do, how much of it they capture, and
+    what it projects to do from here.
+
+    Points scored is deliberately NOT a separate term: scored = strength x
+    efficiency, so adding it would count the same thing twice. Likewise the
+    penalty for benching points is measured against the best LEGAL lineup, not
+    against total bench points - you cannot start everyone, and depth is not a
+    mistake.
+
+    Returns one row per completed week, so the movement column is recomputed
+    from data rather than depending on stored state.
+    """
+    start_slots = {k: v for k, v in slot_counts.items() if k not in BENCH_SLOTS}
+    if not start_slots:
+        return []
+    teams = sorted({r["teamId"] for r in pw if r["season"] == season})
+    if len(teams) < 2:
+        return []
+
+    out = []
+    for upto in weeks:
+        wks = [w for w in weeks if w <= upto]
+        # recency: a week 10 roster should not be judged on week 1
+        decay = {w: 0.5 ** ((upto - w) / PR_HALFLIFE) for w in wks}
+
+        strength, efficiency, scored = {}, {}, {}
+        for t in teams:
+            num = den = sc = 0.0
+            for w in wks:
+                ents = [r for r in pw if r["season"] == season and r["week"] == w
+                        and r["teamId"] == t and r["actual"] is not None]
+                if not ents:
+                    continue
+                opt, _ = optimal_lineup(ents, start_slots)
+                act = sum(r["actual"] for r in ents if r["started"])
+                if opt <= 0:
+                    continue
+                d = decay[w]
+                num += act * d
+                den += opt * d
+                sc += opt * d
+            if den <= 0:
+                continue
+            strength[t] = sc / sum(decay[w] for w in wks)
+            efficiency[t] = num / den
+            scored[t] = num / sum(decay[w] for w in wks)
+
+        snap = [r for r in outlook if r["season"] == season and r["week"] == upto]
+        look = {}
+        for t in teams:
+            ents = [{"eligible": r["eligible"], "actual": r["ros"],
+                     "playerId": r["playerId"], "slotId": r["slotId"]}
+                    for r in snap if r["teamId"] == t and r["slotId"] != 21]
+            if ents:
+                best, _ = optimal_lineup(ents, start_slots)
+                look[t] = best
+
+        have = [t for t in teams if t in strength]
+        if not have:
+            continue
+        zs = dict(zip(have, _z([strength[t] for t in have])))
+        ze = dict(zip(have, _z([efficiency[t] for t in have])))
+        zf = (dict(zip(have, _z([look[t] for t in have])))
+              if all(t in look for t in have) else {t: 0.0 for t in have})
+
+        n = len(wks)
+        wp = max(n / (n + PR_K), PR_FLOOR)
+        wo = 1.0 - wp
+        rows = []
+        for t in have:
+            val = wp * (0.60 * zs[t] + 0.40 * ze[t]) + wo * zf[t]
+            rows.append({
+                "week": upto, "tid": t, "p": owner.get((season, t)),
+                "tm": tname.get((season, t)),
+                "rating": round(50 + val * 15, 1),
+                "zStrength": round(zs[t], 2), "zEff": round(ze[t], 2),
+                "zLook": round(zf[t], 2),
+                "strength": round(strength[t], 1),
+                "eff": round(efficiency[t] * 100, 1),
+                "look": round(look[t], 1) if t in look else None,
+                "scored": round(scored[t], 1),
+                "wResults": round(wp, 3),
+            })
+        rows.sort(key=lambda r: -r["rating"])
+        for i, r in enumerate(rows, 1):
+            r["rank"] = i
+        out.append(rows)
+
+    # movement against the previous week's ranking
+    for i, rows in enumerate(out):
+        prev = {r["tid"]: r["rank"] for r in out[i - 1]} if i else {}
+        for r in rows:
+            r["prev"] = prev.get(r["tid"])
+            r["move"] = (prev[r["tid"]] - r["rank"]) if r["tid"] in prev else None
+    return out
 
 
 def weekly_awards(season, week, pw, matchups, owner, tname, pname, ppos):
@@ -156,6 +271,10 @@ def weekly_awards(season, week, pw, matchups, owner, tname, pname, ppos):
 def main(season: int | None = None):
     seasons = load("seasons"); teams = load("teams"); matchups = load("matchups")
     pw = load("player_weeks"); picks = load("draft_picks"); players = load("players")
+    try:
+        outlook = load("outlook")
+    except FileNotFoundError:
+        outlook = []
     ident = json.loads((REPO / "data" / "identities.json").read_text())["people"] \
         if (REPO / "data" / "identities.json").exists() else {}
 
@@ -368,6 +487,11 @@ def main(season: int | None = None):
                 sample = {"season": ps, "week": pwk}
                 awards[f"{ps}|{pwk}"] = a
 
+    slotc = next((sn.get("slotCounts") or {} for sn in seasons
+                  if sn["season"] == SEASON), {})
+    slotc = {int(k): v for k, v in slotc.items()}
+    power = power_rankings(SEASON, weeks_done, pw, outlook, slotc, owner, tname)
+
     payload = {
         "meta": {
             "season": SEASON, "league": meta_s.get("name"),
@@ -384,7 +508,7 @@ def main(season: int | None = None):
         # record book.)
         "calib": {"sd": round(sd, 2), "hit": round(hit / tot, 3) if tot else None,
                   "n": tot, "residN": len(resid)},
-        "awards": awards, "sample": sample,
+        "awards": awards, "sample": sample, "power": power,
         "standings": standings, "schedule": sched, "rosters": rosters,
         "draft": draft, "form": form,
     }

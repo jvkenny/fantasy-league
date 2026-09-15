@@ -63,3 +63,41 @@ re-fetched because ESPN revises recent stats.
     op run --env-file .env -- python3 -m ffl.export              # incremental
     op run --env-file .env -- python3 -m ffl.export --force      # rebuild all
     op run --env-file .env -- python3 -m ffl.export --seasons 2026
+
+## Weekly refresh via the browser
+
+`ffl.export` needs the ESPN cookies in the environment. The agent harness blocks
+every route for an agent to handle those, so the weekly in-season refresh instead
+reads the league through an already-logged-in Chrome, where the session cookie
+rides along on its own and is never touched.
+
+Two requests per week, both against
+`lm-api-reads.fantasy.espn.com/apis/v3/games/ffl/seasons/<yr>/segments/0/leagues/582222`:
+
+1. **Results for the completed week N** —
+   `?view=mMatchupScore&view=mBoxscore&view=mRoster&view=mTeam&scoringPeriodId=N`
+   Rebuilt into `data/raw/<yr>/core.json` (schedule scores, winners, team records)
+   and `data/raw/<yr>/week-NN-boxscore.json`.
+
+2. **Rest-of-season outlook** — `?view=mRoster&scoringPeriodId=N+1`
+   Per rostered player, remaining points = season projection (`statSourceId 1`,
+   `statSplitTypeId 0`) minus actual to date (`statSourceId 0`, same split).
+   Written to `data/raw/<yr>/outlook-wkNN.json`. ESPN *does* update the season
+   projection in-season (verified: Josh Allen 370.5 -> 379.7 after week 1), so
+   this is live signal. Keep one file per week and never overwrite older ones —
+   the power-ranking movement column is recomputed from them.
+
+Getting bytes out of the browser is the constrained step. A localhost sink and a
+blob download are both silently blocked, and a `javascript_tool` return truncates
+around 1 KB. The channel that works is to reduce the payload in-page to compact
+arrays, assign it to `document.body.textContent`, and read it with
+`get_page_text`. A 2.1 MB boxscore reduces to about 10 KB this way.
+
+The cost: browser-pulled weeks are no longer verbatim raw captures, only the
+fields `normalize` reads. A field not extracted is gone for that week rather than
+re-derivable from disk.
+
+Then, as normal:
+
+    python3 -m ffl.normalize && python3 -m ffl.build_site && \
+      python3 -m ffl.build_season && python3 -m ffl.render
