@@ -158,11 +158,12 @@ function scatterTrend(host,pts,o){
     svg.append(mkS('line',{x1:M.l,x2:W-M.r,y1:sy(v),y2:sy(v),class:'ax'}));
     axisLabel(svg,M.l-6,sy(v)+3,Math.round(v),'end');}
   for(let i=0;i<=6;i++){const v=x0+(x1-x0)*i/6; axisLabel(svg,sx(v),H-M.b+14,Math.round(v));}
+  const dots=[];
   pts.forEach(p=>{
     const c=mkS('circle',{cx:sx(p.x),cy:sy(p.y),r:p.r||2.6,
       fill:p.hot?'var(--accent)':'var(--muted)','fill-opacity':p.hot?.95:.4});
-    if(p.tip){const t=mkS('title');t.textContent=p.tip;c.append(t)}
-    svg.append(c);
+    if(p.tip&&!o.onPick){const t=mkS('title');t.textContent=p.tip;c.append(t)}
+    svg.append(c); dots.push(c);
   });
   if(o.trendBins){
     const nb=o.trendBins, step=(x1-x0)/nb, acc=[];
@@ -188,6 +189,57 @@ function scatterTrend(host,pts,o){
   });
   if(o.xl)axisLabel(svg,W/2,H-4,o.xl);
   if(o.yl)axisLabel(svg,13,H/2,o.yl,'middle',-90);
+
+  /* Picking. A 3px dot is not a tap target and <title> does nothing at all on
+     a touch screen, so instead of per-dot hit areas the whole plot listens and
+     resolves to the NEAREST point. That also settles the overlap: 90 starters
+     in one box means dots sit on top of each other, and "closest to my finger"
+     is the only rule that behaves the way people expect. */
+  if(o.onPick){
+    const ring=mkS('circle',{r:8,fill:'none',stroke:'var(--text)',
+      'stroke-width':2,opacity:0,'pointer-events':'none'});
+    svg.append(ring);
+    let cur=-1;
+    const select=i=>{
+      if(i<0||i>=pts.length||i===cur) return;
+      if(cur>=0&&dots[cur]) dots[cur].setAttribute('fill-opacity',pts[cur].hot?.95:.4);
+      cur=i; const p=pts[i];
+      dots[i].setAttribute('fill-opacity',1);
+      ring.setAttribute('cx',sx(p.x)); ring.setAttribute('cy',sy(p.y));
+      ring.setAttribute('opacity',1);
+      o.onPick(p,i);
+    };
+    const nearest=ev=>{
+      const r=svg.getBoundingClientRect();
+      if(!r.width) return -1;
+      const vx=(ev.clientX-r.left)/r.width*W, vy=(ev.clientY-r.top)/r.height*H;
+      let best=-1,bd=Infinity;
+      pts.forEach((p,i)=>{const dx=sx(p.x)-vx,dy=sy(p.y)-vy,d=dx*dx+dy*dy;
+        if(d<bd){bd=d;best=i}});
+      return best;
+    };
+    const hit=mkS('rect',{x:0,y:0,width:W,height:H,fill:'transparent'});
+    hit.style.cursor='pointer';
+    svg.append(hit);
+    hit.addEventListener('click',ev=>select(nearest(ev)));
+    hit.addEventListener('pointermove',ev=>{
+      if(ev.pointerType==='mouse') select(nearest(ev));
+    });
+    // keyboard: walk the points left to right
+    svg.setAttribute('tabindex','0');
+    svg.setAttribute('role','application');
+    if(o.ariaLabel) svg.setAttribute('aria-label',o.ariaLabel);
+    const order=pts.map((p,i)=>i).sort((a,b)=>pts[a].x-pts[b].x);
+    svg.addEventListener('keydown',ev=>{
+      const at=Math.max(0,order.indexOf(cur));
+      if(ev.key==='ArrowRight'||ev.key==='ArrowDown'){
+        select(order[Math.min(order.length-1,at+1)]); ev.preventDefault();
+      }else if(ev.key==='ArrowLeft'||ev.key==='ArrowUp'){
+        select(order[Math.max(0,at-1)]); ev.preventDefault();
+      }
+    });
+    if(o.pickFirst!==false) select(o.pickIndex!==undefined?o.pickIndex:order[order.length-1]);
+  }
 }
 
 /* Horizontal bars keyed by name. The league has ten managers and names of very

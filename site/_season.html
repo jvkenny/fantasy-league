@@ -365,7 +365,7 @@ function renderCharts(){
       if(!pl.st||pl.act==null||pl.proj==null) return;
       const d=pl.act-pl.proj;
       pts.push({x:pl.proj,y:pl.act,r:3,hot:Math.abs(d)>=14,
-        tip:pl.n+' ('+pl.pos+', '+r.p+') '+pl.act.toFixed(1)+' vs '+pl.proj.toFixed(1)+' proj'});
+        name:pl.n,pos:pl.pos,mgr:r.p});
       diffs.push({n:pl.n,p:r.p,d:d,x:pl.proj,y:pl.act});
     });
   });
@@ -383,9 +383,27 @@ function renderCharts(){
         +(beat/pts.length*100).toFixed(0)+'%) came in over. Best of the week was '+over.n
         +' for '+over.p+' at '+over.d.toFixed(1)+' over; worst was '+under.n+' for '+under.p
         +' at '+under.d.toFixed(1)+'.'});
+    const pick=el('div','pick');
+    const dflt=nar?'Tap any dot for the player.':'Hover or click any dot; arrow keys work too.';
+    const show=pl=>{
+      pick.textContent='';
+      if(!pl){pick.append(el('span','pick-hint',dflt));return}
+      const d=pl.y-pl.x, sign=d>=0?'+':'';
+      // "Steelers D/ST" already carries the position - do not print it twice
+      const pos = pl.name.indexOf(pl.pos)>=0 ? '' : pl.pos+' \u00b7 ';
+      pick.append(el('b',null,pl.name),
+        el('span','pick-meta',` ${pos}${pl.mgr}`),
+        el('span','pick-num'+(d>=0?' up':' dn'),` ${pl.y.toFixed(1)}`),
+        el('span','pick-meta',` actual vs ${pl.x.toFixed(1)} projected `),
+        el('span','pick-num'+(d>=0?' up':' dn'),`${sign}${d.toFixed(1)}`));
+    };
+    show(null);
     scatterTrend(b3,pts,Object.assign({x0:0,y0:0,diag:true,
       labels:[{x:over.x,y:over.y,text:over.n},{x:under.x,y:under.y,text:under.n}],
+      onPick:show, pickIndex:pts.indexOf(pts.find(q=>q.name===over.n)),
+      ariaLabel:'Started players, projected against actual points. Use arrow keys to step through players.',
       xl:'Projected points',yl:'Actual points'},SCT));
+    b3.append(pick);
   }
 
   /* -- 4. schedule luck -- */
