@@ -221,7 +221,7 @@ function scatterTrend(host,pts,o){
     const hit=mkS('rect',{x:0,y:0,width:W,height:H,fill:'transparent'});
     hit.style.cursor='pointer';
     svg.append(hit);
-    hit.addEventListener('click',ev=>select(nearest(ev)));
+    hit.addEventListener('click',ev=>{const [i,p]=nearest(ev);select(i,p)});
     hit.addEventListener('pointermove',ev=>{
       if(ev.pointerType==='mouse') select(nearest(ev));
     });
@@ -302,8 +302,9 @@ function bump(host,series,o){
     svg.append(mkS('line',{x1:M.l,x2:W-M.r,y1:sy(r),y2:sy(r),class:'ax'}));
     if(r===1||r===n||n<=10) axisLabel(svg,M.l-6,sy(r)+3,r,'end');
   }
-  if(!single) weeks.forEach(w=>axisLabel(svg,sx(w),H-M.b+15,'wk '+w));
-  else axisLabel(svg,sx(wlo),H-M.b+15,'week '+wlo);
+  const xf=o.xfmt||(w=>'wk '+w);
+  if(!single) weeks.forEach(w=>axisLabel(svg,sx(w),H-M.b+15,xf(w)));
+  else axisLabel(svg,sx(wlo),H-M.b+15,xf(wlo));
 
   const lines=[], labels=[], dots=[];
   series.forEach((s,i)=>{
@@ -341,24 +342,31 @@ function bump(host,series,o){
       labels[k].setAttribute('font-weight',on?'700':'400');
     });
   };
-  const select=i=>{
-    if(i<0||i>=series.length||i===cur) return;
-    cur=i; paint(i); if(o.onPick) o.onPick(series[i],i);
+  // report the POINT that was picked, not just the series: clicking the draft
+  // column should tell you about the draft, not about the latest week
+  const select=(i,pt)=>{
+    if(i<0||i>=series.length) return;
+    const same=i===cur;
+    cur=i; if(!same) paint(i);
+    if(o.onPick){
+      const pts=series[i].points;
+      o.onPick(series[i], i, pt||pts[pts.length-1]);
+    }
   };
   if(o.onPick){
     const nearest=ev=>{
-      const r=svg.getBoundingClientRect(); if(!r.width) return -1;
+      const r=svg.getBoundingClientRect(); if(!r.width) return [-1,null];
       const vx=(ev.clientX-r.left)/r.width*W, vy=(ev.clientY-r.top)/r.height*H;
-      let best=-1,bd=Infinity;
+      let best=-1,bp=null,bd=Infinity;
       series.forEach((s,i)=>s.points.forEach(p=>{
         const dx=sx(p.x)-vx, dy=sy(p.y)-vy, d=dx*dx+dy*dy;
-        if(d<bd){bd=d;best=i}}));
-      return best;
+        if(d<bd){bd=d;best=i;bp=p}}));
+      return [best,bp];
     };
     const hit=mkS('rect',{x:0,y:0,width:W,height:H,fill:'transparent'});
     hit.style.cursor='pointer'; svg.append(hit);
-    hit.addEventListener('click',ev=>select(nearest(ev)));
-    hit.addEventListener('pointermove',ev=>{if(ev.pointerType==='mouse')select(nearest(ev))});
+    hit.addEventListener('click',ev=>{const [i,p]=nearest(ev);select(i,p)});
+    hit.addEventListener('pointermove',ev=>{if(ev.pointerType==='mouse'){const [i,p]=nearest(ev);select(i,p)}});
     svg.setAttribute('tabindex','0'); svg.setAttribute('role','application');
     if(o.ariaLabel) svg.setAttribute('aria-label',o.ariaLabel);
     svg.addEventListener('keydown',ev=>{

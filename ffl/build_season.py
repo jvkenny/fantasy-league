@@ -75,14 +75,20 @@ def power_rankings(season, weeks, pw, outlook, slot_counts, owner, tname):
     if len(teams) < 2:
         return []
 
+    # Week 0 is the season-start ranking: the roster the manager drafted, with no
+    # results component because nothing has been played. It also gives week 1
+    # something to move against.
+    has_zero = any(r["season"] == season and r["week"] == 0 for r in outlook)
+    stops = ([0] if has_zero else []) + list(weeks)
+
     out = []
-    for upto in weeks:
-        wks = [w for w in weeks if w <= upto]
+    for upto in stops:
+        wks = [w for w in weeks if 1 <= w <= upto]
         # recency: a week 10 roster should not be judged on week 1
         decay = {w: 0.5 ** ((upto - w) / PR_HALFLIFE) for w in wks}
 
         strength, efficiency, scored = {}, {}, {}
-        for t in teams:
+        for t in (teams if wks else []):
             num = den = sc = 0.0
             for w in wks:
                 ents = [r for r in pw if r["season"] == season and r["week"] == w
@@ -113,16 +119,19 @@ def power_rankings(season, weeks, pw, outlook, slot_counts, owner, tname):
                 best, _ = optimal_lineup(ents, start_slots)
                 look[t] = best
 
-        have = [t for t in teams if t in strength]
+        have = ([t for t in teams if t in strength] if wks
+                else [t for t in teams if t in look])
         if not have:
             continue
-        zs = dict(zip(have, _z([strength[t] for t in have])))
-        ze = dict(zip(have, _z([efficiency[t] for t in have])))
+        zs = (dict(zip(have, _z([strength[t] for t in have]))) if wks
+              else {t: 0.0 for t in have})
+        ze = (dict(zip(have, _z([efficiency[t] for t in have]))) if wks
+              else {t: 0.0 for t in have})
         zf = (dict(zip(have, _z([look[t] for t in have])))
               if all(t in look for t in have) else {t: 0.0 for t in have})
 
         n = len(wks)
-        wp = max(n / (n + PR_K), PR_FLOOR)
+        wp = 0.0 if n == 0 else max(n / (n + PR_K), PR_FLOOR)
         wo = 1.0 - wp
         rows = []
         for t in have:
@@ -133,10 +142,10 @@ def power_rankings(season, weeks, pw, outlook, slot_counts, owner, tname):
                 "rating": round(50 + val * 15, 1),
                 "zStrength": round(zs[t], 2), "zEff": round(ze[t], 2),
                 "zLook": round(zf[t], 2),
-                "strength": round(strength[t], 1),
-                "eff": round(efficiency[t] * 100, 1),
+                "strength": round(strength[t], 1) if t in strength else None,
+                "eff": round(efficiency[t] * 100, 1) if t in efficiency else None,
                 "look": round(look[t], 1) if t in look else None,
-                "scored": round(scored[t], 1),
+                "scored": round(scored[t], 1) if t in scored else None,
                 "wResults": round(wp, 3),
             })
         rows.sort(key=lambda r: -r["rating"])

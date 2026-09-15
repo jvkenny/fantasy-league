@@ -319,7 +319,10 @@ function renderPower(){
       +`ESPN's remaining-season projection - the same source this page distrusts for picking a `
       +`single winner, which is why it is labelled and capped rather than hidden. Results `
       +`count ${wres}% this week and climb as the season gives them more to stand on, with a `
-      +`four-week recency half-life.`});
+      +`four-week recency half-life. The draft column is the season-start ranking: the `
+      +`roster each manager walked out of the draft with, scored on preseason `
+      +`projections alone, since nothing had been played yet. It is what week 1 moves `
+      +`against.`});
 
   // one series per manager, rank by week
   const byMgr={};
@@ -331,26 +334,26 @@ function renderPower(){
     .sort((a,b)=>a.points[a.points.length-1].y-b.points[b.points.length-1].y);
 
   const read=el('div','pick');
-  const dflt=(all.length<2)
-    ? `Week ${shown} only so far - the lines appear as more weeks are played. `
-      +(nar?'Tap a name for the detail.':'Hover or click a name for the detail.')
-    : (nar?'Tap any line for the detail.':'Hover or click any line; arrow keys work too.');
-  const show=sv=>{
+  const dflt = nar ? 'Tap any line for the detail.'
+                   : 'Hover or click any line; arrow keys work too.';
+  const show=(sv,i,pt)=>{
     read.textContent='';
     if(!sv){read.append(el('span','pick-hint',dflt));return}
-    const r=sv.points[sv.points.length-1].row;
+    const r=(pt||sv.points[sv.points.length-1]).row;
     const mvTxt = r.move===null||r.move===undefined ? 'new'
       : (r.move===0?'held':(r.move>0?`up ${r.move}`:`down ${-r.move}`));
-    read.append(
-      el('b',null,`${r.rank}. ${r.p}`),
-      el('span','pick-meta',` rating `),
+    read.append(el('b',null,`${r.rank}. ${r.p}`),
+      el('span','pick-meta',` ${r.week===0?'at the draft':'week '+r.week} \u00b7 rating `),
       el('span','pick-num',`${r.rating}`),
-      el('span','pick-meta',` · ${mvTxt} · strength `),
-      el('span','pick-num',`${r.strength}`),
-      el('span','pick-meta',` · captured `),
-      el('span','pick-num'+(r.eff>=85?' up':' dn'),`${r.eff.toFixed(1)}%`),
-      el('span','pick-meta',` · outlook `),
-      el('span','pick-num',`${r.look!=null?r.look.toFixed(0):'-'}`));
+      el('span','pick-meta',` \u00b7 ${mvTxt}`));
+    // week 0 is the drafted roster - it has no results to report
+    if(r.strength!=null) read.append(
+      el('span','pick-meta',` \u00b7 strength `), el('span','pick-num',`${r.strength}`));
+    if(r.eff!=null) read.append(
+      el('span','pick-meta',` \u00b7 captured `),
+      el('span','pick-num'+(r.eff>=85?' up':' dn'),`${r.eff.toFixed(1)}%`));
+    if(r.look!=null) read.append(
+      el('span','pick-meta',` \u00b7 outlook `), el('span','pick-num',`${r.look.toFixed(0)}`));
   };
   show(null);
 
@@ -358,7 +361,7 @@ function renderPower(){
   const pre = F.person==='all' ? -1 : series.findIndex(sv=>sv.label===F.person);
   bump(b,series,{
     w: nar?360:560, rightPad: nar?66:78,
-    yl:'Rank', onPick:show, select:pre,
+    yl:'Rank', onPick:show, select:pre, xfmt:w=>w===0?'draft':'wk '+w,
     ariaLabel:'Power ranking position by week. Arrow keys step through managers.'});
   b.append(read);
 }
