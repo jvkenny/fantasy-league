@@ -221,10 +221,10 @@ try{if(localStorage.getItem('ffl-theme')==='dark')
 
 <main class="wrap">
   <div id="awards"></div>
-  <div id="power"></div>
   <div id="charts"></div>
   <div id="standings"></div>
   <div id="schedule"></div>
+  <div id="power"></div>
   <div id="rosters"></div>
   <div id="draft"></div>
   <div id="form"></div>
@@ -572,6 +572,100 @@ function barsH(host,rows,o){
   if(o.xl) axisLabel(svg,gut+(W-gut-pad)/2,H-2,o.xl);
 }
 
+/* Rank over time. Ten lines in one box cannot each get their own colour without
+   turning into a dog's breakfast, and this page's palette is deliberately small,
+   so every line is muted and the SELECTED one is drawn in accent on top. Names
+   sit at the right edge where the eye ends up, not in a legend. Rank 1 is at the
+   top, which is the only orientation anyone reads a power ranking in. */
+function bump(host,series,o){
+  o=o||{};
+  if(!series.length){host.append(el('div','empty','No data yet.'));return}
+  const rightPad=o.rightPad||78, W=o.w||560;
+  const M={t:16,r:rightPad,b:34,l:30};
+  const n=series.length;
+  const H=o.h||Math.max(190, n*20+M.t+M.b);
+  const weeks=[...new Set(series.flatMap(s=>s.points.map(p=>p.x)))].sort((a,b)=>a-b);
+  const wlo=weeks[0], whi=weeks[weeks.length-1];
+  const single=wlo===whi;
+  const sx=v=>single?M.l+(W-M.l-M.r)*0.82
+                    :M.l+((v-wlo)/((whi-wlo)||1))*(W-M.l-M.r);
+  const sy=r=>M.t+((r-1)/((n-1)||1))*(H-M.t-M.b);
+  const svg=svgBox(host,W,H);
+
+  // rank gridlines
+  for(let r=1;r<=n;r++){
+    svg.append(mkS('line',{x1:M.l,x2:W-M.r,y1:sy(r),y2:sy(r),class:'ax'}));
+    if(r===1||r===n||n<=10) axisLabel(svg,M.l-6,sy(r)+3,r,'end');
+  }
+  if(!single) weeks.forEach(w=>axisLabel(svg,sx(w),H-M.b+15,'wk '+w));
+  else axisLabel(svg,sx(wlo),H-M.b+15,'week '+wlo);
+
+  const lines=[], labels=[], dots=[];
+  series.forEach((s,i)=>{
+    const pts=s.points.slice().sort((a,b)=>a.x-b.x);
+    if(pts.length>1){
+      const ln=mkS('polyline',{points:pts.map(p=>`${sx(p.x)},${sy(p.y)}`).join(' '),
+        fill:'none',stroke:'var(--muted)','stroke-width':1.6,'stroke-opacity':.5,
+        'stroke-linejoin':'round','pointer-events':'none'});
+      svg.append(ln); lines.push(ln);
+    } else lines.push(null);
+    const g=[];
+    pts.forEach(p=>{
+      const c=mkS('circle',{cx:sx(p.x),cy:sy(p.y),r:3,fill:'var(--muted)',
+        'fill-opacity':.55,'pointer-events':'none'});
+      svg.append(c); g.push(c);
+    });
+    dots.push(g);
+    const last=pts[pts.length-1];
+    const t=mkS('text',{x:sx(last.x)+8,y:sy(last.y)+3.5,class:'dlbl',
+      'fill-opacity':.65,'pointer-events':'none'});
+    t.textContent=s.label; svg.append(t); labels.push(t);
+  });
+
+  let cur=-1;
+  const paint=i=>{
+    series.forEach((s,k)=>{
+      const on=k===i;
+      if(lines[k]){lines[k].setAttribute('stroke',on?'var(--accent)':'var(--muted)');
+        lines[k].setAttribute('stroke-opacity',on?1:.35);
+        lines[k].setAttribute('stroke-width',on?2.8:1.6);}
+      dots[k].forEach(c=>{c.setAttribute('fill',on?'var(--accent)':'var(--muted)');
+        c.setAttribute('fill-opacity',on?1:.4);
+        c.setAttribute('r',on?4.2:3);});
+      labels[k].setAttribute('fill-opacity',on?1:.5);
+      labels[k].setAttribute('font-weight',on?'700':'400');
+    });
+  };
+  const select=i=>{
+    if(i<0||i>=series.length||i===cur) return;
+    cur=i; paint(i); if(o.onPick) o.onPick(series[i],i);
+  };
+  if(o.onPick){
+    const nearest=ev=>{
+      const r=svg.getBoundingClientRect(); if(!r.width) return -1;
+      const vx=(ev.clientX-r.left)/r.width*W, vy=(ev.clientY-r.top)/r.height*H;
+      let best=-1,bd=Infinity;
+      series.forEach((s,i)=>s.points.forEach(p=>{
+        const dx=sx(p.x)-vx, dy=sy(p.y)-vy, d=dx*dx+dy*dy;
+        if(d<bd){bd=d;best=i}}));
+      return best;
+    };
+    const hit=mkS('rect',{x:0,y:0,width:W,height:H,fill:'transparent'});
+    hit.style.cursor='pointer'; svg.append(hit);
+    hit.addEventListener('click',ev=>select(nearest(ev)));
+    hit.addEventListener('pointermove',ev=>{if(ev.pointerType==='mouse')select(nearest(ev))});
+    svg.setAttribute('tabindex','0'); svg.setAttribute('role','application');
+    if(o.ariaLabel) svg.setAttribute('aria-label',o.ariaLabel);
+    svg.addEventListener('keydown',ev=>{
+      if(ev.key==='ArrowDown'||ev.key==='ArrowRight'){select(Math.min(series.length-1,cur+1));ev.preventDefault()}
+      else if(ev.key==='ArrowUp'||ev.key==='ArrowLeft'){select(Math.max(0,cur-1));ev.preventDefault()}
+    });
+  }
+  if(o.yl) axisLabel(svg,11,H/2,o.yl,'middle',-90);
+  if(o.select!==undefined&&o.select>=0) select(o.select);
+  return {select};
+}
+
 
 /* ---- header ---- */
 $('#brand').innerHTML='';
@@ -768,44 +862,67 @@ function renderPower(){
   const host=$('#power'); host.textContent='';
   const all=D.power||[];
   if(!all.length) return;
-  const wk = F.week==='all' ? null : +F.week;
-  let rows = wk!==null ? (all.find(g=>g.length&&g[0].week===wk)||null) : null;
-  if(!rows) rows = all[all.length-1];
-  const shown = rows[0].week;
-  const wres = Math.round(rows[0].wResults*100);
+  const latest=all[all.length-1];
+  const shown=latest[0].week;
+  const wres=Math.round(latest[0].wResults*100);
+  const nar=NARROW();
 
-  const b=card(host,{
+  const b=cardPad(host,{
     title:'Power rankings',
     scope:`through week ${shown}`,
-    methods:`What a roster can do, how much of it the manager actually captures, and what it `
-      +`projects to do from here. Points scored is not a separate ingredient because it is `
-      +`already the first two multiplied together - counting it again would count it twice. `
-      +`Strength is the best lineup the roster could legally have started, so depth counts `
-      +`without a deep bench being treated as a mistake. Captured is what was actually started `
-      +`over that best legal lineup, which is the only fair way to charge someone for a bad `
-      +`call: you cannot start everyone, so only points you could have started are held `
-      +`against you. Outlook is the best legal lineup by ESPN's remaining-season projection - `
-      +`the same source this page distrusts for picking a single winner, which is why it is `
-      +`labelled and capped rather than hidden. Results count ${wres}% this week and climb as `
-      +`the season gives them more to stand on. Recent weeks are weighted more heavily, on a `
-      +`four-week half-life.`});
+    methods:`Rank over the season, 1 at the top. What a roster can do, how much of it the `
+      +`manager actually captures, and what it projects to do from here. Points scored is not `
+      +`a separate ingredient because it is already the first two multiplied together - `
+      +`counting it again would count it twice. Strength is the best lineup the roster could `
+      +`legally have started, so depth counts without a deep bench being treated as a mistake. `
+      +`Captured is what was actually started over that best legal lineup, which is the only `
+      +`fair way to charge someone for a bad call: you cannot start everyone, so only points `
+      +`you could have started are held against you. Outlook is the best legal lineup by `
+      +`ESPN's remaining-season projection - the same source this page distrusts for picking a `
+      +`single winner, which is why it is labelled and capped rather than hidden. Results `
+      +`count ${wres}% this week and climb as the season gives them more to stand on, with a `
+      +`four-week recency half-life.`});
 
-  const mv=r=>{
-    if(r.move===null||r.move===undefined) return el('span','pick-meta','-');
-    if(r.move===0) return el('span','pick-meta','\u2014');
-    const up=r.move>0;
-    return el('span','pick-num'+(up?' up':' dn'),(up?'\u25b2':'\u25bc')+Math.abs(r.move));
+  // one series per manager, rank by week
+  const byMgr={};
+  all.forEach(wkRows=>wkRows.forEach(r=>{
+    (byMgr[r.p]=byMgr[r.p]||[]).push({x:r.week,y:r.rank,row:r});
+  }));
+  const series=Object.keys(byMgr)
+    .map(p=>({label:p,points:byMgr[p]}))
+    .sort((a,b)=>a.points[a.points.length-1].y-b.points[b.points.length-1].y);
+
+  const read=el('div','pick');
+  const dflt=(all.length<2)
+    ? `Week ${shown} only so far - the lines appear as more weeks are played. `
+      +(nar?'Tap a name for the detail.':'Hover or click a name for the detail.')
+    : (nar?'Tap any line for the detail.':'Hover or click any line; arrow keys work too.');
+  const show=sv=>{
+    read.textContent='';
+    if(!sv){read.append(el('span','pick-hint',dflt));return}
+    const r=sv.points[sv.points.length-1].row;
+    const mvTxt = r.move===null||r.move===undefined ? 'new'
+      : (r.move===0?'held':(r.move>0?`up ${r.move}`:`down ${-r.move}`));
+    read.append(
+      el('b',null,`${r.rank}. ${r.p}`),
+      el('span','pick-meta',` rating `),
+      el('span','pick-num',`${r.rating}`),
+      el('span','pick-meta',` \u00b7 ${mvTxt} \u00b7 strength `),
+      el('span','pick-num',`${r.strength}`),
+      el('span','pick-meta',` \u00b7 captured `),
+      el('span','pick-num'+(r.eff>=85?' up':' dn'),`${r.eff.toFixed(1)}%`),
+      el('span','pick-meta',` \u00b7 outlook `),
+      el('span','pick-num',`${r.look!=null?r.look.toFixed(0):'-'}`));
   };
-  table(b,[
-    {h:'#',v:r=>r.rank},
-    {h:'',n:false,f:mv,v:r=>r.move===null?-99:r.move,t:'Places moved since last week'},
-    {h:'Manager',n:false,v:r=>r.p},
-    {h:'Rating',v:r=>r.rating,t:'50 is league average; each 15 points is one standard deviation'},
-    {h:'Strength',v:r=>r.strength,t:'Best lineup the roster could legally have started, per week'},
-    {h:'Captured',v:r=>r.eff,f:r=>r.eff.toFixed(1)+'%',t:'Started points over that best legal lineup'},
-    {h:'Outlook',v:r=>r.look,t:'Best legal lineup by remaining-season projection'},
-    {h:'Scored',v:r=>r.scored,t:'Points actually put on the board, per week'},
-  ],rows,{sort:0,asc:true});
+  show(null);
+
+  // if a manager is filtered, open on them
+  const pre = F.person==='all' ? -1 : series.findIndex(sv=>sv.label===F.person);
+  bump(b,series,{
+    w: nar?360:560, rightPad: nar?66:78,
+    yl:'Rank', onPick:show, select:pre,
+    ariaLabel:'Power ranking position by week. Arrow keys step through managers.'});
+  b.append(read);
 }
 
 /* ---- charts ----
@@ -953,8 +1070,8 @@ function renderCharts(){
 
 function render(){
   PLATE=0;
-  renderAwards(); renderPower(); renderCharts(); renderStandings(); renderSchedule();
-  renderRosters(); renderDraft(); renderForm();
+  renderAwards(); renderCharts(); renderStandings(); renderSchedule();
+  renderPower(); renderRosters(); renderDraft(); renderForm();
 }
 render();
 </script>

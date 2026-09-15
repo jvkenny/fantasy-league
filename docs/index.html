@@ -533,6 +533,100 @@ function barsH(host,rows,o){
   if(o.xl) axisLabel(svg,gut+(W-gut-pad)/2,H-2,o.xl);
 }
 
+/* Rank over time. Ten lines in one box cannot each get their own colour without
+   turning into a dog's breakfast, and this page's palette is deliberately small,
+   so every line is muted and the SELECTED one is drawn in accent on top. Names
+   sit at the right edge where the eye ends up, not in a legend. Rank 1 is at the
+   top, which is the only orientation anyone reads a power ranking in. */
+function bump(host,series,o){
+  o=o||{};
+  if(!series.length){host.append(el('div','empty','No data yet.'));return}
+  const rightPad=o.rightPad||78, W=o.w||560;
+  const M={t:16,r:rightPad,b:34,l:30};
+  const n=series.length;
+  const H=o.h||Math.max(190, n*20+M.t+M.b);
+  const weeks=[...new Set(series.flatMap(s=>s.points.map(p=>p.x)))].sort((a,b)=>a-b);
+  const wlo=weeks[0], whi=weeks[weeks.length-1];
+  const single=wlo===whi;
+  const sx=v=>single?M.l+(W-M.l-M.r)*0.82
+                    :M.l+((v-wlo)/((whi-wlo)||1))*(W-M.l-M.r);
+  const sy=r=>M.t+((r-1)/((n-1)||1))*(H-M.t-M.b);
+  const svg=svgBox(host,W,H);
+
+  // rank gridlines
+  for(let r=1;r<=n;r++){
+    svg.append(mkS('line',{x1:M.l,x2:W-M.r,y1:sy(r),y2:sy(r),class:'ax'}));
+    if(r===1||r===n||n<=10) axisLabel(svg,M.l-6,sy(r)+3,r,'end');
+  }
+  if(!single) weeks.forEach(w=>axisLabel(svg,sx(w),H-M.b+15,'wk '+w));
+  else axisLabel(svg,sx(wlo),H-M.b+15,'week '+wlo);
+
+  const lines=[], labels=[], dots=[];
+  series.forEach((s,i)=>{
+    const pts=s.points.slice().sort((a,b)=>a.x-b.x);
+    if(pts.length>1){
+      const ln=mkS('polyline',{points:pts.map(p=>`${sx(p.x)},${sy(p.y)}`).join(' '),
+        fill:'none',stroke:'var(--muted)','stroke-width':1.6,'stroke-opacity':.5,
+        'stroke-linejoin':'round','pointer-events':'none'});
+      svg.append(ln); lines.push(ln);
+    } else lines.push(null);
+    const g=[];
+    pts.forEach(p=>{
+      const c=mkS('circle',{cx:sx(p.x),cy:sy(p.y),r:3,fill:'var(--muted)',
+        'fill-opacity':.55,'pointer-events':'none'});
+      svg.append(c); g.push(c);
+    });
+    dots.push(g);
+    const last=pts[pts.length-1];
+    const t=mkS('text',{x:sx(last.x)+8,y:sy(last.y)+3.5,class:'dlbl',
+      'fill-opacity':.65,'pointer-events':'none'});
+    t.textContent=s.label; svg.append(t); labels.push(t);
+  });
+
+  let cur=-1;
+  const paint=i=>{
+    series.forEach((s,k)=>{
+      const on=k===i;
+      if(lines[k]){lines[k].setAttribute('stroke',on?'var(--accent)':'var(--muted)');
+        lines[k].setAttribute('stroke-opacity',on?1:.35);
+        lines[k].setAttribute('stroke-width',on?2.8:1.6);}
+      dots[k].forEach(c=>{c.setAttribute('fill',on?'var(--accent)':'var(--muted)');
+        c.setAttribute('fill-opacity',on?1:.4);
+        c.setAttribute('r',on?4.2:3);});
+      labels[k].setAttribute('fill-opacity',on?1:.5);
+      labels[k].setAttribute('font-weight',on?'700':'400');
+    });
+  };
+  const select=i=>{
+    if(i<0||i>=series.length||i===cur) return;
+    cur=i; paint(i); if(o.onPick) o.onPick(series[i],i);
+  };
+  if(o.onPick){
+    const nearest=ev=>{
+      const r=svg.getBoundingClientRect(); if(!r.width) return -1;
+      const vx=(ev.clientX-r.left)/r.width*W, vy=(ev.clientY-r.top)/r.height*H;
+      let best=-1,bd=Infinity;
+      series.forEach((s,i)=>s.points.forEach(p=>{
+        const dx=sx(p.x)-vx, dy=sy(p.y)-vy, d=dx*dx+dy*dy;
+        if(d<bd){bd=d;best=i}}));
+      return best;
+    };
+    const hit=mkS('rect',{x:0,y:0,width:W,height:H,fill:'transparent'});
+    hit.style.cursor='pointer'; svg.append(hit);
+    hit.addEventListener('click',ev=>select(nearest(ev)));
+    hit.addEventListener('pointermove',ev=>{if(ev.pointerType==='mouse')select(nearest(ev))});
+    svg.setAttribute('tabindex','0'); svg.setAttribute('role','application');
+    if(o.ariaLabel) svg.setAttribute('aria-label',o.ariaLabel);
+    svg.addEventListener('keydown',ev=>{
+      if(ev.key==='ArrowDown'||ev.key==='ArrowRight'){select(Math.min(series.length-1,cur+1));ev.preventDefault()}
+      else if(ev.key==='ArrowUp'||ev.key==='ArrowLeft'){select(Math.max(0,cur-1));ev.preventDefault()}
+    });
+  }
+  if(o.yl) axisLabel(svg,11,H/2,o.yl,'middle',-90);
+  if(o.select!==undefined&&o.select>=0) select(o.select);
+  return {select};
+}
+
 
 /* ---------- filter state ---------- */
 const F = {season:'all', person:'all', q:''};
