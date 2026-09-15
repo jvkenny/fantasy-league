@@ -375,12 +375,12 @@ def main(season: int | None = None):
             "generated": time.strftime("%Y-%m-%d %H:%M UTC", time.gmtime()),
             "recordBook": "https://jvkenny.github.io/fantasy-league/",
         },
+        # The season page charts the league, not the method, so the raw
+        # distributions are no longer shipped - only the calibration figures
+        # the footnotes quote. (build_site still keeps the full arrays for the
+        # record book.)
         "calib": {"sd": round(sd, 2), "hit": round(hit / tot, 3) if tot else None,
-                  "n": tot, "residN": len(resid), "bins": calib_bins,
-                  "scores": [round(v, 1) for v in sorted(actual.values()) if v > 20],
-                  "margins": sorted(round(abs(m["homeScore"] - m["awayScore"]), 1)
-                                    for m in matchups
-                                    if m["winner"] and m["winner"] != "UNDECIDED")},
+                  "n": tot, "residN": len(resid)},
         "awards": awards, "sample": sample,
         "standings": standings, "schedule": sched, "rosters": rosters,
         "draft": draft, "form": form,

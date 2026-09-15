@@ -488,7 +488,6 @@ def main():
             "champs": {s["season"]: owner.get((s["season"], s["championTeamId"]))
                        for s in seasons if s["championTeamId"]},
             "teamNames": {f'{k[0]}|{k[1]}': v for k, v in tname.items()},
-            "me": short.get("John Kenny"),
         },
         "people": sorted({r["p"] for r in team_seasons}),
         "n": {

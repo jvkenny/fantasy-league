@@ -42,7 +42,6 @@ try{if(localStorage.getItem('ffl-theme')==='dark')
 <script id="payload" type="application/json">__DATA__</script>
 <script>
 const D = JSON.parse(document.getElementById('payload').textContent);
-const ME = D.meta.me;
 const $ = s => document.querySelector(s);
 const el = (t,c,x)=>{const n=document.createElement(t);if(c)n.className=c;
 
@@ -117,7 +116,7 @@ function table(host, cols, rows, opts={}){
       td.className='empty';td.textContent='No rows match the current filters.';
       tr.append(td);tb.append(tr);return; }
     sorted.forEach(r=>{
-      const tr = el('tr', opts.me && opts.me(r) ? 'me':'');
+      const tr = el('tr');
       cols.forEach(c=>{
         const td = el('td', c.n===false?'':'n');
         const out = c.f ? c.f(r) : c.v(r);
@@ -257,7 +256,7 @@ function renderManagers(){
     {h:'Playoffs',v:r=>r.po,t:bySeason?'Made the playoff field':'Seasons reaching the playoff field'},
     {h:'Titles',v:r=>r.titles,f:r=>r.titles?el('span','tag gold','★'.repeat(r.titles)):'–'},
     {h:bySeason?'Finish':'Best',v:r=>r.best===null?99:r.best,f:r=>r.best??'–'},
-  ],shown,{sort:4,me:r=>r.p===ME});
+  ],shown,{sort:4});
 
   const cols=el('div','cols'); host.append(cols);
   const c1=el('div'); cols.append(c1);
@@ -352,7 +351,7 @@ function renderSeasons(){
     {h:'σ',v:r=>r.sd,f:r=>num(r.sd,1),t:'Standard deviation of weekly scores'},
     {h:'Finish',v:r=>r.rk===null?99:r.rk,
      f:r=>r.rk===1?el('span','tag gold','CHAMP'):(r.rk??'–')},
-  ],rows,{sort:1,me:r=>r.p===ME});
+  ],rows,{sort:1});
 
   const sel = F.season!=='all';
   const b2=cardPad(host,{
@@ -465,7 +464,7 @@ function renderPlayers(){
     {h:'Best wk',v:r=>r.best},
     {h:'Benched',v:r=>r.bn,cls:r=>r.bn>50?'neg':'',
      t:'Points scored while on this manager’s bench'},
-  ],rows.slice(0,4000),{sort:4,me:r=>r.p===ME});
+  ],rows.slice(0,4000),{sort:4});
 }
 
 function renderDraft(){
@@ -490,7 +489,7 @@ function renderDraft(){
     {h:'Lost',v:r=>r.lg-r.pts,f:r=>r.lg-r.pts>0.05?num(r.lg-r.pts,1):'–',
      cls:r=>(r.lg-r.pts)>100?'neg':'', t:'Production that went to another roster'},
     {h:'Keeper',n:false,v:r=>r.k,f:r=>r.k?el('span','tag','K'):''},
-  ],rows,{sort:6,me:r=>r.p===ME});
+  ],rows,{sort:6});
 
   const byRound={};
   D.draft.filter(r=>seasonOK(r.s)&&r.lg>0).forEach(r=>{(byRound[r.rd] ??= []).push(r.lg)});
@@ -533,7 +532,7 @@ function renderRecords(){
       {h:'Opponent',n:false,v:r=>r.o||''},
       {h:'When',n:false,v:r=>r.s*100+r.wk,f:r=>`${r.s} wk${r.wk}`},
       ...extra
-    ],rows,{sort:3,me:r=>r.p===ME});
+    ],rows,{sort:3});
   };
   mk('Highest weeks',
      `Single-week point totals, regular season and playoffs together. Scoring settings have not `

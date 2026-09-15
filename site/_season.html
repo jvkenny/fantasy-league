@@ -37,7 +37,6 @@ try{if(localStorage.getItem('ffl-theme')==='dark')
   <div id="rosters"></div>
   <div id="draft"></div>
   <div id="form"></div>
-  <div id="subscribe"></div>
 </main>
 
 <script id="payload" type="application/json">__DATA__</script>
@@ -90,7 +89,7 @@ function table(host,cols,rows,opts={}){
     if(!sorted.length){const tr=el('tr'),td=el('td');td.colSpan=cols.length;
       td.className='empty';td.textContent='Nothing here yet.';tr.append(td);tb.append(tr);return}
     sorted.forEach(r=>{
-      const tr=el('tr',opts.me&&opts.me(r)?'me':'');
+      const tr=el('tr');
       cols.forEach(c=>{const td=el('td',c.n===false?'':'n');
         const o=c.f?c.f(r):c.v(r);
         if(o instanceof Node)td.append(o);else td.textContent=o;
@@ -112,21 +111,25 @@ const sp=el('span',null,'Tracker'); $('#brand').append(sp);
 $('#back').href=M.recordBook;
 const F={week:'all',person:'all'};
 const fw=$('#fWeek'), fp=$('#fPerson');
+// Only weeks with results. Listing all 14 meant every unplayed option fell
+// through to the same last-completed week, so the control appeared to do
+// nothing - and it defaulted to ESPN's *active* period, which has no games yet.
+const PLAYED=(M.weeksDone||[]).slice().sort((a,b)=>a-b);
 fw.append(new Option('All weeks','all'));
-for(let i=1;i<=(M.regularWeeks||14);i++) fw.append(new Option('Week '+i,i));
-fw.value = M.currentWeek<= (M.regularWeeks||14) ? String(M.currentWeek) : 'all';
+PLAYED.forEach(i=>fw.append(new Option('Week '+i,i)));
+fw.value = PLAYED.length ? String(PLAYED[PLAYED.length-1]) : 'all';
 F.week = fw.value;
 fp.append(new Option('All managers','all'));
 [...new Set(D.standings.map(s=>s.p))].sort().forEach(p=>fp.append(new Option(p,p)));
-const ME = D.standings.find(s=>s.tm && s.tm.indexOf('Double-Doink')>=0)?.p || null;
 [fw,fp].forEach(s=>s.addEventListener('change',()=>{F.week=fw.value;F.person=fp.value;render()}));
 
 const st=$('#state'); st.textContent='';
 st.append(el('span','pill'+(M.started?' live':''),
-  M.started?`Week ${M.currentWeek} of ${M.regularWeeks}`:'Preseason — no games played'));
+  M.started?`Week ${M.currentWeek} of ${M.regularWeeks} underway`:'Preseason — no games played'));
 st.append(el('span','pill',`${M.teams} teams`));
 st.append(el('span','pill',`${M.playoffTeams} make the playoffs`));
 st.append(el('span','pill',`Data pulled ${M.generated}`));
+try{window.matchMedia('(max-width:640px)').addEventListener('change',()=>render());}catch(e){}
 
 const wkOK = w => F.week==='all' || +w===+F.week;
 const perOK = p => F.person==='all' || p===F.person;
@@ -150,7 +153,12 @@ function renderAwards(){
       +`is the loser whose score beat the most, which is the all-play view applied to a single `
       +`week. Facepalm ranks a loss where the bench outscored the losing margin above merely `
       +`benching a lot of points, because only one of those cost a game. Bust and Overachiever `
-      +`compare a started player's actual score against ESPN's projection for that week.`});
+      +`compare a started player's actual score against ESPN's projection for that week. `
+      +`Those projections are used here only after the fact, never to preview a matchup: `
+      +`across ${C.n} past matchups the higher projected team has won just `
+      +`${(C.hit*100).toFixed(1)}% of the time, with actual-minus-projected scattering by `
+      +`${C.sd} points over ${C.residN} team-weeks. That is too close to a coin flip to `
+      +`publish as a prediction.`});
   if(!list){
     const e=el('div','empty');
     e.innerHTML=`<b>No completed weeks yet.</b><br>Awards are handed out the morning after `
@@ -199,7 +207,7 @@ function renderStandings(){
     {h:'All-play',n:false,v:r=>r.apw,f:r=>`${r.apw}-${r.apl}`},
     {h:'Streak',n:false,v:r=>r.streak||'',cls:r=>r.streak?(r.streak[0]==='W'?'pos':'neg'):''},
     {h:'Benched',v:r=>r.bn,f:r=>num(r.bn,0)},
-  ],rows,{sort:2,me:r=>r.p===ME});
+  ],rows,{sort:2});
 }
 
 /* ---- 3. schedule ---- */
@@ -221,7 +229,7 @@ function renderSchedule(){
     {h:'Score',n:false,v:r=>r.as??-1,f:r=>r.as!=null?num(r.as,2):'-',
      cls:r=>r.won==='AWAY'?'pos':''},
     {h:'Round',n:false,v:r=>r.po?1:0,f:r=>r.po?el('span','tag','PLAYOFF'):''},
-  ],rows,{sort:0,asc:true,me:r=>r.hp===ME||r.ap===ME});
+  ],rows,{sort:0,asc:true});
 }
 
 /* ---- 4. rosters ---- */
@@ -243,7 +251,7 @@ function renderRosters(){
     {h:'Starting',n:false,v:r=>r.st?1:0,f:r=>r.st?el('span','tag gold','START'):el('span','tag','BE')},
     {h:'Proj',v:r=>r.proj},
     {h:'Act',v:r=>r.act,f:r=>r.act==null?'–':num(r.act,1)},
-  ],rows,{sort:5,me:r=>r.p===ME});
+  ],rows,{sort:5});
 }
 
 /* ---- 5. draft ---- */
@@ -262,7 +270,7 @@ function renderDraft(){
     {h:'Pos',n:false,v:r=>r.pos||''},
     {h:'Manager',n:false,v:r=>r.p||''},
     {h:'Keeper',n:false,v:r=>r.k,f:r=>r.k?el('span','tag','K'):''},
-  ],rows,{sort:0,asc:true,me:r=>r.p===ME});
+  ],rows,{sort:0,asc:true});
 }
 
 /* ---- 6. form ---- */
@@ -281,133 +289,140 @@ function renderForm(){
     {h:'Titles',v:r=>r.titles,f:r=>r.titles?el('span','tag gold','★'.repeat(r.titles)):'–'},
     {h:'Last season',n:false,v:r=>r.last?r.last.s:0,
      f:r=>r.last?`${r.last.s}: ${r.last.w}-${r.last.l}, finished ${r.last.rk??'–'}`:'–'},
-  ],rows,{sort:4,me:r=>r.p===ME});
-}
-
-function renderSubscribe(){
-  const host=$('#subscribe'); host.textContent='';
-  const b=card(host,{
-    title:'Weekly recap by email',
-    scope:'opt in',
-    methods:`This page is static, so there is no server here to store an address. Submitting `
-      +`opens a pre-filled message in your own mail app addressed to the commissioner - you `
-      +`just press send, and you get added to the list by hand. Nothing is transmitted from `
-      +`this page, and your address is not stored anywhere on it.`});
-  const f=el('form','sub-form');
-  const inp=el('input'); inp.type='email'; inp.required=true;
-  inp.placeholder='you@example.com'; inp.setAttribute('aria-label','Your email address');
-  const btn=el('button'); btn.type='submit'; btn.textContent='Send me the recap';
-  f.append(inp,btn); b.append(f);
-  const msg=el('div','sub-msg'); b.append(msg);
-
-  let already=null;
-  try{ already=localStorage.getItem('ffl-sub'); }catch(e){}
-  if(already){ msg.className='sub-msg ok';
-    msg.textContent=`You already opted in as ${already}. Submit again to resend.`; }
-  else msg.textContent='Sent after each week is final, with the awards above and the standings.';
-
-  f.addEventListener('submit',ev=>{
-    ev.preventDefault();
-    const v=inp.value.trim();
-    if(!/^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/.test(v)){
-      msg.className='sub-msg bad'; msg.textContent='That does not look like an email address.';
-      return;
-    }
-    // assembled at runtime rather than sitting in the markup as plain text
-    const to=['jkenny2334','gmail.com'].join('@');
-    const subj=encodeURIComponent(`Fantasy League weekly recap - subscribe`);
-    const body=encodeURIComponent(
-      `Please add me to the ${M.season} weekly recap list.\n\nEmail: ${v}\n`);
-    try{ localStorage.setItem('ffl-sub',v); }catch(e){}
-    msg.className='sub-msg ok';
-    msg.textContent='Opening your mail app - press send and you are on the list.';
-    window.location.href=`mailto:${to}?subject=${subj}&body=${body}`;
-  });
+  ],rows,{sort:4});
 }
 
 
-/* ---- charts ---- */
+
+/* ---- charts ----
+   These are about the league: who scored what, who sat what, which players
+   beat their number. The distribution/calibration plots that used to live here
+   were left over from the pregame previews and described the method, not the
+   season. The one number worth keeping from them is quoted in the footnotes. */
+const NARROW=()=>window.matchMedia('(max-width:640px)').matches;
 function renderCharts(){
   const host=$('#charts'); host.textContent='';
-  const C=D.calib;
   const cols=el('div','cols'); host.append(cols);
+  // A 560-wide viewBox scaled into a ~317px phone column shrinks every label to
+  // about 6px. Draw a narrower box on small screens so the type lands near 1:1.
+  const nar=NARROW();
+  const BAR=nar?{w:360,gutter:74,rowH:28,valPad:50}:{};
+  const SCT=nar?{w:360,h:300}:{};
+  const wk = F.week==='all' ? null : +F.week;
+  const wkLabel = wk===null ? 'the season so far' : ('week '+wk);
 
-  // 1. score distribution, with this week's scores marked once they exist
-  const c1=el('div'); cols.append(c1);
-  const sorted=[...C.scores].sort((a,b)=>a-b);
-  const q=f=>sorted[Math.round((sorted.length-1)*f)];
-  const wkScores=[];
-  const key=Object.keys(D.awards||{}).slice(-1)[0];
-  D.schedule.filter(g=>g.hs!=null).forEach(g=>{wkScores.push(g.hs,g.as)});
-  const b1=cardPad(c1,{
-    title:'What a good week looks like',
-    scope:`n = ${C.scores.length} team-weeks, all seasons`,
-    methods:`Every team-week this league has ever played, bucketed by points scored. The `
-      +`dashed lines are the 5th, 50th and 95th percentiles: half of all weeks land between `
-      +`${q(.25).toFixed(0)} and ${q(.75).toFixed(0)}, and anything past ${q(.95).toFixed(0)} `
-      +`is a top-5% week. Use it to judge whether a score was actually good or merely `
-      +`survived the schedule.`});
-  histogram(b1,C.scores,{bins:26,xl:'Points scored in a week',yl:'Team-weeks',
-    marks:[{v:q(.05),label:'5th',color:'var(--loss)'},
-           {v:q(.50),label:'median '+q(.50).toFixed(0),color:'var(--text)'},
-           {v:q(.95),label:'95th',color:'var(--win)'}]});
+  /* -- 1. the week, manager by manager -- */
+  const games=D.schedule.filter(g=>g.hs!=null&&(wk===null||g.wk===wk));
+  const tally={};
+  games.forEach(g=>{
+    tally[g.hp]=(tally[g.hp]||0)+g.hs;
+    tally[g.ap]=(tally[g.ap]||0)+g.as;
+  });
+  const scored=Object.entries(tally).map(([p,v])=>({label:p,value:Math.round(v*10)/10}))
+    .sort((a,b)=>b.value-a.value);
+  if(scored.length){
+    const avg=scored.reduce((a,b)=>a+b.value,0)/scored.length;
+    const top=scored[0], bot=scored[scored.length-1];
+    scored.forEach(r=>{r.hot = r.value===top.value || r.value===bot.value;
+      r.tip = r.label+' '+r.value.toFixed(1);});
+    const c1=el('div'); cols.append(c1);
+    const b1=cardPad(c1,{
+      title:'Who scored what',
+      scope:(wk===null?('weeks '+(M.weeksDone||[]).join(', ')):('week '+wk))
+            +', '+scored.length+' managers',
+      methods:'Points scored in '+wkLabel+', highest to lowest. The dashed line is the '
+        +'league average of '+avg.toFixed(1)+'. '+top.label+' led with '+top.value.toFixed(1)
+        +' and '+bot.label+' brought up the rear on '+bot.value.toFixed(1)+' - a spread of '
+        +(top.value-bot.value).toFixed(1)+' points between the best and worst nights.'});
+    barsH(b1,scored,Object.assign({ref:avg,refLabel:'avg '+avg.toFixed(0),
+      vfmt:v=>v.toFixed(1),xl:'Points scored'},BAR));
+  }
 
-  // 2. how close games actually are
-  const c2=el('div'); cols.append(c2);
-  const m=C.margins, close=t=>m.filter(x=>x<=t).length/m.length;
-  const b2=cardPad(c2,{
-    title:'Margins are wider than they feel',
-    scope:`n = ${m.length} completed matchups`,
-    methods:`Margin of victory across every matchup on record. The median is `
-      +`${m[Math.floor(m.length/2)].toFixed(1)} points and only `
-      +`${(close(10)*100).toFixed(1)}% of games finish within ten - fantasy weeks are decided `
-      +`by more than they seem to be in the moment. This is also why a single lineup call `
-      +`rarely swings a result, and why the ones that do are worth an award.`});
-  histogram(b2,m,{bins:24,min:0,xl:'Margin of victory',yl:'Matchups',
-    marks:[{v:10,label:(close(10)*100).toFixed(0)+'% within 10',color:'var(--accent)'}]});
+  /* -- 2. what sat on the bench -- */
+  const bench=D.standings.filter(s=>s.bn!=null)
+    .map(s=>({label:s.p,value:Math.round(s.bn*10)/10}))
+    .sort((a,b)=>b.value-a.value);
+  if(bench.length){
+    const worst=bench[0];
+    bench.forEach((r,i)=>{r.hot=i===0; r.tip=r.label+' left '+r.value.toFixed(1)+' on the bench';});
+    const bavg=bench.reduce((a,b)=>a+b.value,0)/bench.length;
+    const c2=el('div'); cols.append(c2);
+    const b2=cardPad(c2,{
+      title:'Points left on the bench',
+      scope:'season to date',
+      methods:'Points scored by players who were sitting on the bench, added up per manager. '
+        +worst.label+' has the worst of it at '+worst.value.toFixed(1)+', against a league '
+        +'average of '+bavg.toFixed(1)+'. High bench totals are not automatically bad - a deep '
+        +'roster scores points it cannot start - but they are where the Facepalm comes from.'});
+    barsH(b2,bench,Object.assign({ref:bavg,refLabel:'avg '+bavg.toFixed(0),
+      vfmt:v=>v.toFixed(1),xl:'Bench points'},BAR));
+  }
 
-  // 3. the probability curve
-  const c3=el('div'); cols.append(c3);
-  const spread=C.sd*Math.SQRT2;
-  const erf=x=>{const t=1/(1+.3275911*Math.abs(x));
-    const y=1-((((1.061405429*t-1.453152027)*t+1.421413741)*t-.284496736)*t+.254829592)*t*Math.exp(-x*x);
-    return x>=0?y:-y};
-  const P=d=>0.5*(1+erf(d/spread/Math.SQRT2));
-  const b3=cardPad(c3,{
-    title:'What a projected lead is worth',
-    scope:`spread = ${spread.toFixed(1)} pts`,
-    methods:`Probability of winning as a function of how many points you are projected to win `
-      +`by. Derived, not assumed: actual minus projected has a standard deviation of ${C.sd} `
-      +`over ${C.residN} team-weeks, and two independent teams combine to `
-      +`${spread.toFixed(1)}. The shaded band is a projected margin inside ten points, where `
-      +`the curve barely leaves a coin flip - which is most matchups.`});
-  curve(b3,P,{domain:[-50,50],range:[0,1],hline:.5,vline:0,
-    bands:[{from:-10,to:10}],
-    yfmt:v=>(v*100).toFixed(0)+'%',
-    xl:'Projected margin (points)',yl:'Win probability',
-    marks:[{x:10,y:P(10),label:(P(10)*100).toFixed(0)+'% at +10'},
-           {x:25,y:P(25),label:(P(25)*100).toFixed(0)+'% at +25'}]});
+  /* -- 3. every starter against their projection -- */
+  const pts=[], diffs=[];
+  D.rosters.forEach(r=>{
+    (r.players||[]).forEach(pl=>{
+      if(!pl.st||pl.act==null||pl.proj==null) return;
+      const d=pl.act-pl.proj;
+      pts.push({x:pl.proj,y:pl.act,r:3,hot:Math.abs(d)>=14,
+        tip:pl.n+' ('+pl.pos+', '+r.p+') '+pl.act.toFixed(1)+' vs '+pl.proj.toFixed(1)+' proj'});
+      diffs.push({n:pl.n,p:r.p,d:d,x:pl.proj,y:pl.act});
+    });
+  });
+  if(pts.length){
+    diffs.sort((a,b)=>b.d-a.d);
+    const over=diffs[0], under=diffs[diffs.length-1];
+    const beat=diffs.filter(d=>d.d>0).length;
+    const c3=el('div'); cols.append(c3);
+    const b3=cardPad(c3,{
+      title:'Every starter against their projection',
+      scope:pts.length+' started players, '+wkLabel,
+      methods:'Each dot is one started player: ESPN’s projection across, what they actually '
+        +'scored up. The dashed diagonal is the projection exactly met - above it beat the '
+        +'number, below it missed. '+beat+' of '+pts.length+' starters ('
+        +(beat/pts.length*100).toFixed(0)+'%) came in over. Best of the week was '+over.n
+        +' for '+over.p+' at '+over.d.toFixed(1)+' over; worst was '+under.n+' for '+under.p
+        +' at '+under.d.toFixed(1)+'.'});
+    scatterTrend(b3,pts,Object.assign({x0:0,y0:0,diag:true,
+      labels:[{x:over.x,y:over.y,text:over.n},{x:under.x,y:under.y,text:under.n}],
+      xl:'Projected points',yl:'Actual points'},SCT));
+  }
 
-  // 4. does the model actually hold up
-  const c4=el('div'); cols.append(c4);
-  const big=C.bins.filter(b=>b.n>=40);
-  const b4=cardPad(c4,{
-    title:'Does that curve hold up?',
-    scope:`n = ${C.n} matchups`,
-    methods:`Every past matchup scored by the curve above, then grouped by predicted `
-      +`probability and checked against what happened. Dots on the dashed line mean the model `
-      +`is honest; dot size is how many matchups fell in that bucket. It tracks reasonably `
-      +`where the data is thick, and the outliers sit in the sparse tails. The real lesson is `
-      +`the clustering: ${(big.reduce((a,b)=>a+b.n,0)/C.n*100).toFixed(0)}% of all matchups `
-      +`fall in the middle buckets, so projections seldom say anything strong. Overall the `
-      +`higher projection has won ${(C.hit*100).toFixed(1)}% of the time.`});
-  reliability(b4,C.bins,{xl:'Predicted win probability',yl:'Actual win rate'});
+  /* -- 4. schedule luck -- */
+  const luck=D.standings.filter(s=>(s.apw+s.apl)>0).map(s=>({
+    label:s.p, value:Math.round(s.apw/(s.apw+s.apl)*1000)/10,
+    hot:false, w:s.w, l:s.l, apw:s.apw, apl:s.apl,
+    tip:s.p+': '+s.w+'-'+s.l+' real, '+s.apw+'-'+s.apl+' against the whole league'
+  })).sort((a,b)=>b.value-a.value);
+  if(luck.length){
+    const games_ea=(D.standings[0].w+D.standings[0].l)||1;
+    luck.forEach(r=>{
+      const expected=r.value/100*games_ea;
+      r.gap=r.w-expected;
+      r.color=r.gap>=0.5?'var(--win)':(r.gap<=-0.5?'var(--loss)':'var(--muted)');
+      r.hot=Math.abs(r.gap)>=0.5;
+    });
+    const lucky=[...luck].sort((a,b)=>b.gap-a.gap)[0];
+    const robbed=[...luck].sort((a,b)=>a.gap-b.gap)[0];
+    const c4=el('div'); cols.append(c4);
+    const b4=cardPad(c4,{
+      title:'Who the schedule has been kind to',
+      scope:games_ea+' week'+(games_ea===1?'':'s')+' played',
+      methods:'All-play win rate: what each manager’s record would be if they played every '
+        +'other team every week, which strips the schedule out. Blue means the real record is '
+        +'running ahead of that, orange behind. '+lucky.label+' is the biggest beneficiary ('
+        +lucky.w+'-'+lucky.l+' real against '+lucky.apw+'-'+lucky.apl+' all-play) and '
+        +robbed.label+' the biggest victim ('+robbed.w+'-'+robbed.l+' against '+robbed.apw
+        +'-'+robbed.apl+'). Over a full season these converge; early on they rarely do.'});
+    barsH(b4,luck,Object.assign({max:100,ref:50,refLabel:'50%',
+      vfmt:v=>v.toFixed(0)+'%',xl:'All-play win rate'},BAR));
+  }
 }
 
 function render(){
   PLATE=0;
   renderAwards(); renderCharts(); renderStandings(); renderSchedule();
-  renderRosters(); renderDraft(); renderForm(); renderSubscribe();
+  renderRosters(); renderDraft(); renderForm();
 }
 render();
 </script>

@@ -50,6 +50,17 @@ function histogram(host,values,o){
     const t=axisLabel(svg,x,M.t-1,m.label,'middle');
     t.setAttribute('fill',m.color||'var(--text)');
   });
+  if(o.diag){
+    const a=Math.max(x0,y0), b=Math.min(x1,y1);
+    svg.append(mkS('line',{x1:sx(a),y1:sy(a),x2:sx(b),y2:sy(b),class:'ref'}));
+  }
+  (o.labels||[]).forEach(L=>{
+    // a label near the right edge has to read inward or it runs off the card
+    const px=sx(L.x), flip=px>W*0.6;
+    const t=mkS('text',{x:px+(flip?-7:7),y:sy(L.y)-6,class:'dlbl'});
+    if(flip) t.setAttribute('text-anchor','end');
+    t.textContent=L.text; svg.append(t);
+  });
   if(o.xl)axisLabel(svg,W/2,H-4,o.xl);
   if(o.yl)axisLabel(svg,13,H/2,o.yl,'middle',-90);
 }
@@ -83,6 +94,17 @@ function curve(host,fn,o){
     svg.append(mkS('circle',{cx,cy,r:4,fill:'var(--accent)'}));
     const t=axisLabel(svg,cx+7,cy-6,m.label,'start'); t.setAttribute('fill','var(--text)');
   });
+  if(o.diag){
+    const a=Math.max(x0,y0), b=Math.min(x1,y1);
+    svg.append(mkS('line',{x1:sx(a),y1:sy(a),x2:sx(b),y2:sy(b),class:'ref'}));
+  }
+  (o.labels||[]).forEach(L=>{
+    // a label near the right edge has to read inward or it runs off the card
+    const px=sx(L.x), flip=px>W*0.6;
+    const t=mkS('text',{x:px+(flip?-7:7),y:sy(L.y)-6,class:'dlbl'});
+    if(flip) t.setAttribute('text-anchor','end');
+    t.textContent=L.text; svg.append(t);
+  });
   if(o.xl)axisLabel(svg,W/2,H-4,o.xl);
   if(o.yl)axisLabel(svg,13,H/2,o.yl,'middle',-90);
 }
@@ -106,6 +128,17 @@ function reliability(host,bins,o){
     const t=mkS('title');
     t.textContent=`predicted ${(b.pred*100).toFixed(0)}%, actual ${(b.act*100).toFixed(0)}% (n=${b.n})`;
     c.append(t); svg.append(c);
+  });
+  if(o.diag){
+    const a=Math.max(x0,y0), b=Math.min(x1,y1);
+    svg.append(mkS('line',{x1:sx(a),y1:sy(a),x2:sx(b),y2:sy(b),class:'ref'}));
+  }
+  (o.labels||[]).forEach(L=>{
+    // a label near the right edge has to read inward or it runs off the card
+    const px=sx(L.x), flip=px>W*0.6;
+    const t=mkS('text',{x:px+(flip?-7:7),y:sy(L.y)-6,class:'dlbl'});
+    if(flip) t.setAttribute('text-anchor','end');
+    t.textContent=L.text; svg.append(t);
   });
   if(o.xl)axisLabel(svg,W/2,H-4,o.xl);
   if(o.yl)axisLabel(svg,13,H/2,o.yl,'middle',-90);
@@ -142,6 +175,52 @@ function scatterTrend(host,pts,o){
       svg.append(mkS('polyline',{points:acc.map(a=>`${sx(a[0])},${sy(a[1])}`).join(' '),
         fill:'none',stroke:'var(--accent)','stroke-width':2.5}));
   }
+  if(o.diag){
+    const a=Math.max(x0,y0), b=Math.min(x1,y1);
+    svg.append(mkS('line',{x1:sx(a),y1:sy(a),x2:sx(b),y2:sy(b),class:'ref'}));
+  }
+  (o.labels||[]).forEach(L=>{
+    // a label near the right edge has to read inward or it runs off the card
+    const px=sx(L.x), flip=px>W*0.6;
+    const t=mkS('text',{x:px+(flip?-7:7),y:sy(L.y)-6,class:'dlbl'});
+    if(flip) t.setAttribute('text-anchor','end');
+    t.textContent=L.text; svg.append(t);
+  });
   if(o.xl)axisLabel(svg,W/2,H-4,o.xl);
   if(o.yl)axisLabel(svg,13,H/2,o.yl,'middle',-90);
+}
+
+/* Horizontal bars keyed by name. The league has ten managers and names of very
+   uneven length, so the category axis is a left gutter of real text rather than
+   rotated tick labels - on a phone a rotated name is unreadable. */
+function barsH(host,rows,o){
+  o=o||{}; if(!rows.length){host.append(el('div','empty','No data yet.'));return}
+  const gut=o.gutter||96, rh=o.rowH||26, pad=o.valPad||46;
+  const W=o.w||560, H=rows.length*rh+40;
+  const vals=rows.map(r=>r.value);
+  const x1=o.max!==undefined?o.max:Math.max(...vals,0)*1.02||1;
+  const x0=Math.min(0,...vals);
+  const sx=v=>gut+((v-x0)/((x1-x0)||1))*(W-gut-pad);
+  const svg=svgBox(host,W,H);
+  const zero=sx(0);
+  rows.forEach((r,i)=>{
+    const y=18+i*rh;
+    const w=Math.max(1,Math.abs(sx(r.value)-zero));
+    const x=r.value<0?sx(r.value):zero;
+    const bar=mkS('rect',{x:x,y:y,width:w,height:rh-9,rx:1,
+      fill:r.color||(r.hot?'var(--accent)':'var(--muted)'),
+      'fill-opacity':r.hot?.92:.55});
+    if(r.tip){const t=mkS('title');t.textContent=r.tip;bar.append(t)}
+    svg.append(bar);
+    axisLabel(svg,gut-8,y+rh/2-1,r.label,'end');
+    const vt=mkS('text',{x:x+w+6,y:y+rh/2-1,class:'dlbl'});
+    vt.textContent=o.vfmt?o.vfmt(r.value):r.value;
+    svg.append(vt);
+  });
+  if(o.ref!==undefined&&o.ref!==null){
+    const rx=sx(o.ref);
+    svg.append(mkS('line',{x1:rx,x2:rx,y1:10,y2:H-20,class:'ref'}));
+    if(o.refLabel) axisLabel(svg,rx,8,o.refLabel);
+  }
+  if(o.xl) axisLabel(svg,gut+(W-gut-pad)/2,H-2,o.xl);
 }

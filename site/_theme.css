@@ -69,7 +69,7 @@ main{padding:28px 0 80px}
   color:var(--text);margin-right:8px}
 .chip{font-family:"IBM Plex Mono",monospace;font-size:10.5px;color:var(--muted);
   border:1px solid var(--line);border-radius:2px;padding:2px 8px;white-space:nowrap}
-.cols{display:grid;gap:24px;grid-template-columns:repeat(auto-fit,minmax(360px,1fr))}
+.cols{display:grid;gap:24px;grid-template-columns:repeat(auto-fit,minmax(min(360px,100%),1fr))}
 /* tables */
 .tw{overflow-x:auto;max-height:620px}
 table{border-collapse:collapse;width:100%;font-size:14px}
@@ -82,7 +82,6 @@ thead th:hover,thead th[data-on]{color:var(--accent)}
 tbody tr:hover td,tbody tr:hover td:first-child{background:var(--raised)}
 td.n{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;font-size:13px}
 .pos{color:var(--win)}.neg{color:var(--loss)}
-.me td:first-child{box-shadow:inset 3px 0 0 var(--accent)}
 .tag{font-family:"IBM Plex Mono",monospace;font-size:10px;padding:2px 6px;border-radius:2px;
   background:var(--raised);color:var(--muted);border:1px solid var(--line)}
 .tag.gold{background:var(--accentbg);color:var(--accent);border-color:var(--accent)}
@@ -106,7 +105,7 @@ svg{display:block;width:100%;height:auto;overflow:visible}
 .catline h3{font-weight:700;text-transform:uppercase;letter-spacing:.11em;font-size:13px;margin:0}
 .catline .rule{flex:1;height:1px;background:var(--line)}
 .catline .ct{font-family:"IBM Plex Mono",monospace;font-size:10.5px;color:var(--muted)}
-.find,.aw{display:grid;gap:16px;grid-template-columns:repeat(auto-fill,minmax(330px,1fr))}
+.find,.aw{display:grid;gap:16px;grid-template-columns:repeat(auto-fill,minmax(min(330px,100%),1fr))}
 .aw{padding:18px 20px}
 .fi,.ac{background:var(--surface);border:1px solid var(--line);
   border-bottom:2px solid var(--line);border-radius:2px;padding:16px 18px 15px;
@@ -133,17 +132,39 @@ svg{display:block;width:100%;height:auto;overflow:visible}
 .banner{margin:18px 20px 0;padding:12px 14px;border:1px dashed var(--line);border-radius:2px;
   font-size:13px;color:var(--muted);line-height:1.6}
 .banner b{color:var(--accent);font-weight:600}
-.sub-form{display:flex;gap:10px;flex-wrap:wrap;padding:18px 20px 6px;align-items:center}
-.sub-form input{font-family:inherit;font-size:15px;color:var(--text);background:var(--surface);
-  border:1px solid var(--line);border-radius:2px;padding:9px 12px;min-width:250px;flex:1;
-  max-width:360px}
-.sub-form button{font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.09em;
-  color:var(--surface);background:var(--accent);border:1px solid var(--accent);border-radius:2px;
-  padding:10px 18px;cursor:pointer}
-.sub-form button:hover{opacity:.9}
-.sub-msg{padding:4px 20px 18px;font-size:13px;color:var(--muted);line-height:1.55}
-.sub-msg.ok{color:var(--win)}
-.sub-msg.bad{color:var(--loss)}
 .empty{color:var(--muted);font-size:13px;padding:24px 20px;text-align:center;line-height:1.6}
 .empty b{color:var(--text);font-weight:600}
+/* ---- phones -------------------------------------------------------------
+   The desktop layout nests wrap(28) > card > bd(20) > aw(20) > ac(18) of
+   padding, which on a 375px screen leaves the content about 190px wide. Pull
+   the nesting in and push the number up: on a one-column stack the value is
+   the only thing worth leading with. */
+@media (max-width:640px){
+  .wrap{padding:0 14px}
+  main{padding:18px 0 56px}
+  .hbar{gap:12px;padding:12px 0}
+  .brand{font-size:15px;letter-spacing:.1em}
+  .ctl{gap:8px;margin-left:0;width:100%}
+  select,input[type=search]{font-size:16px;padding:8px 10px}  /* 16px: iOS zooms below it */
+  input[type=search]{width:100%}
+  .state{gap:6px;padding:0 0 10px}
+  .pill{font-size:10px;padding:3px 7px}
+  .card>.hd{padding:13px 14px 11px;gap:8px}
+  .card>.bd{padding:14px}
+  .card>.ft{padding:11px 14px 13px;font-size:12px}
+  .find,.aw{gap:10px}
+  .aw{padding:12px}
+  .fi,.ac{padding:13px 14px 12px;gap:5px}
+  .fi .v,.ac .v{font-size:30px;line-height:1}
+  .fi .t,.ac .t{font-size:11px}
+  .fi .d,.ac .d{font-size:13.5px;line-height:1.5}
+  .catline{margin:20px 0 10px;gap:10px}
+  .banner{margin:14px 14px 0;padding:11px 12px}
+  .empty{padding:20px 14px}
+  th,td{padding:7px 9px}
+  td.n{font-size:12.5px}
+  .tw{max-height:none}
+  .axl{font-size:11px}
+  .dlbl{font-size:12px}
+}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
