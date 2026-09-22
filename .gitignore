@@ -8,3 +8,4 @@ data/identities.json
 .env.local
 *.tmp
 __pycache__/
+.DS_Store
