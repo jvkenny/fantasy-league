@@ -46,6 +46,7 @@ SLOT_NAMES = {0: "QB", 2: "RB", 4: "WR", 6: "TE", 23: "FLEX", 16: "D/ST", 17: "K
 SLOT_ORDER = {0: 0, 2: 1, 4: 2, 6: 3, 23: 4, 3: 4, 5: 4, 7: 4, 16: 5, 17: 6}
 PR_K = 4.0          # weeks at which results and outlook would weigh equally
 PR_FLOOR = 0.60     # results never count for less than this
+PR_LOOK_CAP = 0.25  # and the projection never counts for more than this
 PR_HALFLIFE = 4.0   # recency half-life, in weeks
 
 
@@ -58,7 +59,44 @@ def _z(vals):
     return [0.0] * n if sd < 1e-9 else [(v - mu) / sd for v in vals]
 
 
-def power_rankings(season, weeks, pw, outlook, slot_counts, owner, tname):
+def _records_through(season, matchups, upto):
+    """Record and all-play record through week `upto`, as display strings.
+
+    All-play is how a team would have done against every other team that week -
+    the same measure the schedule-luck chart uses. It is here to be read beside
+    the rank, not to feed it.
+    """
+    wlt = defaultdict(lambda: [0, 0, 0])
+    scores = defaultdict(dict)
+    for m in matchups:
+        if m["season"] != season or not (1 <= m["week"] <= upto):
+            continue
+        if m["winner"] in (None, "UNDECIDED"):
+            continue
+        h, a = m["homeTeamId"], m["awayTeamId"]
+        scores[m["week"]][h] = m["homeScore"]
+        scores[m["week"]][a] = m["awayScore"]
+        if m["winner"] == "HOME":
+            wlt[h][0] += 1; wlt[a][1] += 1
+        elif m["winner"] == "AWAY":
+            wlt[a][0] += 1; wlt[h][1] += 1
+        else:
+            wlt[h][2] += 1; wlt[a][2] += 1
+
+    allplay = defaultdict(lambda: [0, 0])
+    for wk_scores in scores.values():
+        for t, sc in wk_scores.items():
+            for o, osc in wk_scores.items():
+                if o == t:
+                    continue
+                allplay[t][0 if sc > osc else 1] += 1
+
+    rec = {t: f"{w}-{l}" + (f"-{ti}" if ti else "") for t, (w, l, ti) in wlt.items()}
+    ap = {t: f"{w}-{l}" for t, (w, l) in allplay.items()}
+    return rec, ap
+
+
+def power_rankings(season, weeks, pw, outlook, matchups, slot_counts, owner, tname):
     """Rank teams by what their roster can do, how much of it they capture, and
     what it projects to do from here.
 
@@ -67,6 +105,16 @@ def power_rankings(season, weeks, pw, outlook, slot_counts, owner, tname):
     penalty for benching points is measured against the best LEGAL lineup, not
     against total bench points - you cannot start everyone, and depth is not a
     mistake.
+
+    The projection is capped at PR_LOOK_CAP. It is the same ESPN number this
+    page refuses to preview a game with - right on 55.7% of past matchups - so
+    it is allowed to lean a ranking, never to lead one. Without the cap it took
+    the whole remainder and outweighed strength, which is how a roster that had
+    lost every game it played could come out first.
+
+    Each row also carries the record and the all-play record through that week.
+    Neither is an ingredient - record is the opponent you happened to draw, and
+    all-play is scored twice over - but a rank is only legible next to them.
 
     Returns one row per completed week, so the movement column is recomputed
     from data rather than depending on stored state.
@@ -133,9 +181,13 @@ def power_rankings(season, weeks, pw, outlook, slot_counts, owner, tname):
         zf = (dict(zip(have, _z([look[t] for t in have])))
               if all(t in look for t in have) else {t: 0.0 for t in have})
 
+        rec, ap = _records_through(season, matchups, upto)
+
         n = len(wks)
-        wp = 0.0 if n == 0 else max(n / (n + PR_K), PR_FLOOR)
-        wo = 1.0 - wp
+        # Week 0 is all projection because nothing has been played. After that
+        # the projection is held to PR_LOOK_CAP and the field takes the rest.
+        wo = 1.0 if n == 0 else min(1.0 - max(n / (n + PR_K), PR_FLOOR), PR_LOOK_CAP)
+        wp = 1.0 - wo
         rows = []
         for t in have:
             val = wp * (0.60 * zs[t] + 0.40 * ze[t]) + wo * zf[t]
@@ -149,7 +201,8 @@ def power_rankings(season, weeks, pw, outlook, slot_counts, owner, tname):
                 "eff": round(efficiency[t] * 100, 1) if t in efficiency else None,
                 "look": round(look[t], 1) if t in look else None,
                 "scored": round(scored[t], 1) if t in scored else None,
-                "wResults": round(wp, 3),
+                "wResults": round(wp, 3), "wLook": round(wo, 3),
+                "rec": rec.get(t), "ap": ap.get(t),
             })
         rows.sort(key=lambda r: -r["rating"])
         for i, r in enumerate(rows, 1):
@@ -664,7 +717,7 @@ def main(season: int | None = None):
                 sample = {"season": ps, "week": pwk}
                 awards[f"{ps}|{pwk}"] = a
 
-    power = power_rankings(SEASON, weeks_done, pw, outlook, slotc, owner, tname)
+    power = power_rankings(SEASON, weeks_done, pw, outlook, matchups, slotc, owner, tname)
 
     payload = {
         "meta": {

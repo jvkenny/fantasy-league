@@ -589,6 +589,7 @@ function renderPower(){
   const latest=all[all.length-1];
   const shown=latest[0].week;
   const wres=Math.round(latest[0].wResults*100);
+  const wlook=Math.round((latest[0].wLook!=null?latest[0].wLook:1-latest[0].wResults)*100);
   const nar=NARROW();
 
   const b=cardPad(host,{
@@ -602,10 +603,13 @@ function renderPower(){
       +`Captured is what was actually started over that best legal lineup, which is the only `
       +`fair way to charge someone for a bad call: you cannot start everyone, so only points `
       +`you could have started are held against you. Outlook is the best legal lineup by `
-      +`ESPN's remaining-season projection - the same source this page distrusts for picking a `
-      +`single winner, which is why it is labelled and capped rather than hidden. Results `
-      +`count ${wres}% this week and climb as the season gives them more to stand on, with a `
-      +`four-week recency half-life. The draft column is the season-start ranking: the `
+      +`ESPN's remaining-season projection, and it is held to ${wlook}% - it is the same number `
+      +`that picks the winner of a single game right 55.7% of the time, so it is allowed to `
+      +`lean a ranking and never to lead one. What has actually been played counts the other `
+      +`${wres}%, with a four-week recency half-life. Record is printed beside each rank but `
+      +`is not an ingredient: it is the opponent you happened to draw, which is why a good `
+      +`team can sit at 0-2 - the all-play record beside it is how that week would have gone `
+      +`against the whole league. The draft column is the season-start ranking: the `
       +`roster each manager walked out of the draft with, scored on preseason `
       +`projections alone, since nothing had been played yet. It is what week 1 moves `
       +`against.`});
@@ -640,6 +644,12 @@ function renderPower(){
       el('span','pick-num'+(r.eff>=85?' up':' dn'),`${r.eff.toFixed(1)}%`));
     if(r.look!=null) read.append(
       el('span','pick-meta',` \u00b7 outlook `), el('span','pick-num',`${r.look.toFixed(0)}`));
+    // record is not a term in the rating - it is here so the rank can be read
+    // against what it actually produced, and the gap seen for what it is
+    if(r.rec) read.append(
+      el('span','pick-meta',` \u00b7 record `), el('span','pick-num',`${r.rec}`));
+    if(r.ap) read.append(
+      el('span','pick-meta',` \u00b7 all-play `), el('span','pick-num',`${r.ap}`));
   };
   show(null);
 
