@@ -1,0 +1,2359 @@
+{
+ "seasons": [
+  2019,
+  2021,
+  2022,
+  2023,
+  2024,
+  2025
+ ],
+ "first_week": 4,
+ "tail": 3,
+ "shrink_games": 2,
+ "summary": {
+  "xfp": {
+   "mean_rho": 0.439,
+   "se": 0.113
+  },
+  "fp": {
+   "mean_rho": 0.395,
+   "se": 0.067
+  },
+  "blend": {
+   "mean_rho": 0.448,
+   "se": 0.088
+  },
+  "xfp_av": {
+   "mean_rho": 0.41,
+   "se": 0.084
+  },
+  "fp_av": {
+   "mean_rho": 0.365,
+   "se": 0.05
+  },
+  "espn": {
+   "mean_rho": 0.41,
+   "se": 0.066
+  },
+  "record": {
+   "mean_rho": 0.393,
+   "se": 0.072
+  }
+ },
+ "per_season": {
+  "2019": {
+   "xfp": 0.4227,
+   "fp": 0.3379,
+   "blend": 0.3591,
+   "xfp_av": 0.3697,
+   "fp_av": 0.3955,
+   "espn": 0.5424,
+   "record": 0.3894
+  },
+  "2021": {
+   "xfp": 0.7857,
+   "fp": 0.5952,
+   "blend": 0.7619,
+   "xfp_av": 0.7116,
+   "fp_av": 0.5134,
+   "espn": 0.4947,
+   "record": 0.4471
+  },
+  "2022": {
+   "xfp": 0.4741,
+   "fp": 0.3051,
+   "blend": 0.3899,
+   "xfp_av": 0.3274,
+   "fp_av": 0.2323,
+   "espn": 0.3262,
+   "record": 0.2956
+  },
+  "2023": {
+   "xfp": 0.6768,
+   "fp": 0.6054,
+   "blend": 0.6633,
+   "xfp_av": 0.5798,
+   "fp_av": 0.4815,
+   "espn": 0.5488,
+   "record": 0.6781
+  },
+  "2024": {
+   "xfp": 0.2471,
+   "fp": 0.231,
+   "blend": 0.301,
+   "xfp_av": 0.3333,
+   "fp_av": 0.2269,
+   "espn": 0.4195,
+   "record": 0.1434
+  },
+  "2025": {
+   "xfp": 0.0276,
+   "fp": 0.2943,
+   "blend": 0.2148,
+   "xfp_av": 0.1354,
+   "fp_av": 0.3428,
+   "espn": 0.1313,
+   "record": 0.4061
+  }
+ },
+ "paired_vs_xfp": {
+  "fp": {
+   "mean_diff": 0.044,
+   "se": 0.068,
+   "seasons_xfp_wins": 5
+  },
+  "blend": {
+   "mean_diff": -0.009,
+   "se": 0.041,
+   "seasons_xfp_wins": 4
+  },
+  "xfp_av": {
+   "mean_diff": 0.029,
+   "se": 0.042,
+   "seasons_xfp_wins": 4
+  },
+  "fp_av": {
+   "mean_diff": 0.074,
+   "se": 0.089,
+   "seasons_xfp_wins": 5
+  },
+  "espn": {
+   "mean_diff": 0.029,
+   "se": 0.076,
+   "seasons_xfp_wins": 3
+  },
+  "record": {
+   "mean_diff": 0.046,
+   "se": 0.098,
+   "seasons_xfp_wins": 4
+  }
+ },
+ "rows": [
+  {
+   "season": 2019,
+   "week": 4,
+   "pred": "xfp",
+   "rho": 0.2121
+  },
+  {
+   "season": 2019,
+   "week": 4,
+   "pred": "fp",
+   "rho": 0.2
+  },
+  {
+   "season": 2019,
+   "week": 4,
+   "pred": "blend",
+   "rho": 0.0909
+  },
+  {
+   "season": 2019,
+   "week": 4,
+   "pred": "xfp_av",
+   "rho": 0.2606
+  },
+  {
+   "season": 2019,
+   "week": 4,
+   "pred": "fp_av",
+   "rho": 0.1273
+  },
+  {
+   "season": 2019,
+   "week": 4,
+   "pred": "espn",
+   "rho": 0.5636
+  },
+  {
+   "season": 2019,
+   "week": 4,
+   "pred": "record",
+   "rho": 0.6242
+  },
+  {
+   "season": 2019,
+   "week": 5,
+   "pred": "xfp",
+   "rho": 0.4909
+  },
+  {
+   "season": 2019,
+   "week": 5,
+   "pred": "fp",
+   "rho": 0.4182
+  },
+  {
+   "season": 2019,
+   "week": 5,
+   "pred": "blend",
+   "rho": 0.4424
+  },
+  {
+   "season": 2019,
+   "week": 5,
+   "pred": "xfp_av",
+   "rho": 0.5515
+  },
+  {
+   "season": 2019,
+   "week": 5,
+   "pred": "fp_av",
+   "rho": 0.3697
+  },
+  {
+   "season": 2019,
+   "week": 5,
+   "pred": "espn",
+   "rho": 0.5758
+  },
+  {
+   "season": 2019,
+   "week": 5,
+   "pred": "record",
+   "rho": 0.2485
+  },
+  {
+   "season": 2019,
+   "week": 6,
+   "pred": "xfp",
+   "rho": 0.2848
+  },
+  {
+   "season": 2019,
+   "week": 6,
+   "pred": "fp",
+   "rho": 0.1758
+  },
+  {
+   "season": 2019,
+   "week": 6,
+   "pred": "blend",
+   "rho": 0.2606
+  },
+  {
+   "season": 2019,
+   "week": 6,
+   "pred": "xfp_av",
+   "rho": 0.1879
+  },
+  {
+   "season": 2019,
+   "week": 6,
+   "pred": "fp_av",
+   "rho": 0.3697
+  },
+  {
+   "season": 2019,
+   "week": 6,
+   "pred": "espn",
+   "rho": 0.3455
+  },
+  {
+   "season": 2019,
+   "week": 6,
+   "pred": "record",
+   "rho": 0.1879
+  },
+  {
+   "season": 2019,
+   "week": 7,
+   "pred": "xfp",
+   "rho": 0.0788
+  },
+  {
+   "season": 2019,
+   "week": 7,
+   "pred": "fp",
+   "rho": 0.103
+  },
+  {
+   "season": 2019,
+   "week": 7,
+   "pred": "blend",
+   "rho": 0.2121
+  },
+  {
+   "season": 2019,
+   "week": 7,
+   "pred": "xfp_av",
+   "rho": 0.0061
+  },
+  {
+   "season": 2019,
+   "week": 7,
+   "pred": "fp_av",
+   "rho": 0.5515
+  },
+  {
+   "season": 2019,
+   "week": 7,
+   "pred": "espn",
+   "rho": 0.6
+  },
+  {
+   "season": 2019,
+   "week": 7,
+   "pred": "record",
+   "rho": -0.0909
+  },
+  {
+   "season": 2019,
+   "week": 8,
+   "pred": "xfp",
+   "rho": 0.6606
+  },
+  {
+   "season": 2019,
+   "week": 8,
+   "pred": "fp",
+   "rho": 0.4788
+  },
+  {
+   "season": 2019,
+   "week": 8,
+   "pred": "blend",
+   "rho": 0.5636
+  },
+  {
+   "season": 2019,
+   "week": 8,
+   "pred": "xfp_av",
+   "rho": 0.4303
+  },
+  {
+   "season": 2019,
+   "week": 8,
+   "pred": "fp_av",
+   "rho": 0.4182
+  },
+  {
+   "season": 2019,
+   "week": 8,
+   "pred": "espn",
+   "rho": 0.4424
+  },
+  {
+   "season": 2019,
+   "week": 8,
+   "pred": "record",
+   "rho": 0.4303
+  },
+  {
+   "season": 2019,
+   "week": 9,
+   "pred": "xfp",
+   "rho": 0.3818
+  },
+  {
+   "season": 2019,
+   "week": 9,
+   "pred": "fp",
+   "rho": 0.3333
+  },
+  {
+   "season": 2019,
+   "week": 9,
+   "pred": "blend",
+   "rho": 0.2485
+  },
+  {
+   "season": 2019,
+   "week": 9,
+   "pred": "xfp_av",
+   "rho": 0.4545
+  },
+  {
+   "season": 2019,
+   "week": 9,
+   "pred": "fp_av",
+   "rho": 0.3697
+  },
+  {
+   "season": 2019,
+   "week": 9,
+   "pred": "espn",
+   "rho": 0.4424
+  },
+  {
+   "season": 2019,
+   "week": 9,
+   "pred": "record",
+   "rho": 0.3697
+  },
+  {
+   "season": 2019,
+   "week": 10,
+   "pred": "xfp",
+   "rho": 0.6242
+  },
+  {
+   "season": 2019,
+   "week": 10,
+   "pred": "fp",
+   "rho": 0.4545
+  },
+  {
+   "season": 2019,
+   "week": 10,
+   "pred": "blend",
+   "rho": 0.4667
+  },
+  {
+   "season": 2019,
+   "week": 10,
+   "pred": "xfp_av",
+   "rho": 0.5879
+  },
+  {
+   "season": 2019,
+   "week": 10,
+   "pred": "fp_av",
+   "rho": 0.6121
+  },
+  {
+   "season": 2019,
+   "week": 10,
+   "pred": "espn",
+   "rho": 0.8061
+  },
+  {
+   "season": 2019,
+   "week": 10,
+   "pred": "record",
+   "rho": 0.697
+  },
+  {
+   "season": 2019,
+   "week": 11,
+   "pred": "xfp",
+   "rho": 0.6485
+  },
+  {
+   "season": 2019,
+   "week": 11,
+   "pred": "fp",
+   "rho": 0.5394
+  },
+  {
+   "season": 2019,
+   "week": 11,
+   "pred": "blend",
+   "rho": 0.5879
+  },
+  {
+   "season": 2019,
+   "week": 11,
+   "pred": "xfp_av",
+   "rho": 0.4788
+  },
+  {
+   "season": 2019,
+   "week": 11,
+   "pred": "fp_av",
+   "rho": 0.3455
+  },
+  {
+   "season": 2019,
+   "week": 11,
+   "pred": "espn",
+   "rho": 0.5636
+  },
+  {
+   "season": 2019,
+   "week": 11,
+   "pred": "record",
+   "rho": 0.6485
+  },
+  {
+   "season": 2021,
+   "week": 4,
+   "pred": "xfp",
+   "rho": 0.881
+  },
+  {
+   "season": 2021,
+   "week": 4,
+   "pred": "fp",
+   "rho": -0.0238
+  },
+  {
+   "season": 2021,
+   "week": 4,
+   "pred": "blend",
+   "rho": 0.6905
+  },
+  {
+   "season": 2021,
+   "week": 4,
+   "pred": "xfp_av",
+   "rho": 0.8571
+  },
+  {
+   "season": 2021,
+   "week": 4,
+   "pred": "fp_av",
+   "rho": 0.3333
+  },
+  {
+   "season": 2021,
+   "week": 4,
+   "pred": "espn",
+   "rho": 0.3333
+  },
+  {
+   "season": 2021,
+   "week": 4,
+   "pred": "record",
+   "rho": -0.4048
+  },
+  {
+   "season": 2021,
+   "week": 5,
+   "pred": "xfp",
+   "rho": 0.7381
+  },
+  {
+   "season": 2021,
+   "week": 5,
+   "pred": "fp",
+   "rho": 0.0238
+  },
+  {
+   "season": 2021,
+   "week": 5,
+   "pred": "blend",
+   "rho": 0.5714
+  },
+  {
+   "season": 2021,
+   "week": 5,
+   "pred": "xfp_av",
+   "rho": 0.7381
+  },
+  {
+   "season": 2021,
+   "week": 5,
+   "pred": "fp_av",
+   "rho": 0.0
+  },
+  {
+   "season": 2021,
+   "week": 5,
+   "pred": "espn",
+   "rho": 0.5476
+  },
+  {
+   "season": 2021,
+   "week": 5,
+   "pred": "record",
+   "rho": -0.2619
+  },
+  {
+   "season": 2021,
+   "week": 6,
+   "pred": "xfp",
+   "rho": 0.9286
+  },
+  {
+   "season": 2021,
+   "week": 6,
+   "pred": "fp",
+   "rho": 0.7619
+  },
+  {
+   "season": 2021,
+   "week": 6,
+   "pred": "blend",
+   "rho": 0.9048
+  },
+  {
+   "season": 2021,
+   "week": 6,
+   "pred": "xfp_av",
+   "rho": 0.8095
+  },
+  {
+   "season": 2021,
+   "week": 6,
+   "pred": "fp_av",
+   "rho": 0.2635
+  },
+  {
+   "season": 2021,
+   "week": 6,
+   "pred": "espn",
+   "rho": 0.0
+  },
+  {
+   "season": 2021,
+   "week": 6,
+   "pred": "record",
+   "rho": 0.5952
+  },
+  {
+   "season": 2021,
+   "week": 7,
+   "pred": "xfp",
+   "rho": 0.9286
+  },
+  {
+   "season": 2021,
+   "week": 7,
+   "pred": "fp",
+   "rho": 0.8333
+  },
+  {
+   "season": 2021,
+   "week": 7,
+   "pred": "blend",
+   "rho": 0.9524
+  },
+  {
+   "season": 2021,
+   "week": 7,
+   "pred": "xfp_av",
+   "rho": 0.2857
+  },
+  {
+   "season": 2021,
+   "week": 7,
+   "pred": "fp_av",
+   "rho": 0.4048
+  },
+  {
+   "season": 2021,
+   "week": 7,
+   "pred": "espn",
+   "rho": 0.119
+  },
+  {
+   "season": 2021,
+   "week": 7,
+   "pred": "record",
+   "rho": 0.7143
+  },
+  {
+   "season": 2021,
+   "week": 8,
+   "pred": "xfp",
+   "rho": 0.8333
+  },
+  {
+   "season": 2021,
+   "week": 8,
+   "pred": "fp",
+   "rho": 0.8333
+  },
+  {
+   "season": 2021,
+   "week": 8,
+   "pred": "blend",
+   "rho": 0.7619
+  },
+  {
+   "season": 2021,
+   "week": 8,
+   "pred": "xfp_av",
+   "rho": 0.8095
+  },
+  {
+   "season": 2021,
+   "week": 8,
+   "pred": "fp_av",
+   "rho": 0.7381
+  },
+  {
+   "season": 2021,
+   "week": 8,
+   "pred": "espn",
+   "rho": 0.881
+  },
+  {
+   "season": 2021,
+   "week": 8,
+   "pred": "record",
+   "rho": 0.6667
+  },
+  {
+   "season": 2021,
+   "week": 9,
+   "pred": "xfp",
+   "rho": 0.8095
+  },
+  {
+   "season": 2021,
+   "week": 9,
+   "pred": "fp",
+   "rho": 0.7381
+  },
+  {
+   "season": 2021,
+   "week": 9,
+   "pred": "blend",
+   "rho": 0.7619
+  },
+  {
+   "season": 2021,
+   "week": 9,
+   "pred": "xfp_av",
+   "rho": 0.8095
+  },
+  {
+   "season": 2021,
+   "week": 9,
+   "pred": "fp_av",
+   "rho": 0.8333
+  },
+  {
+   "season": 2021,
+   "week": 9,
+   "pred": "espn",
+   "rho": 0.7857
+  },
+  {
+   "season": 2021,
+   "week": 9,
+   "pred": "record",
+   "rho": 0.5476
+  },
+  {
+   "season": 2021,
+   "week": 10,
+   "pred": "xfp",
+   "rho": 0.6429
+  },
+  {
+   "season": 2021,
+   "week": 10,
+   "pred": "fp",
+   "rho": 0.5476
+  },
+  {
+   "season": 2021,
+   "week": 10,
+   "pred": "blend",
+   "rho": 0.5952
+  },
+  {
+   "season": 2021,
+   "week": 10,
+   "pred": "xfp_av",
+   "rho": 0.5952
+  },
+  {
+   "season": 2021,
+   "week": 10,
+   "pred": "fp_av",
+   "rho": 0.5
+  },
+  {
+   "season": 2021,
+   "week": 10,
+   "pred": "espn",
+   "rho": 0.5238
+  },
+  {
+   "season": 2021,
+   "week": 10,
+   "pred": "record",
+   "rho": 0.4762
+  },
+  {
+   "season": 2021,
+   "week": 11,
+   "pred": "xfp",
+   "rho": 0.7619
+  },
+  {
+   "season": 2021,
+   "week": 11,
+   "pred": "fp",
+   "rho": 0.8333
+  },
+  {
+   "season": 2021,
+   "week": 11,
+   "pred": "blend",
+   "rho": 0.8571
+  },
+  {
+   "season": 2021,
+   "week": 11,
+   "pred": "xfp_av",
+   "rho": 0.8095
+  },
+  {
+   "season": 2021,
+   "week": 11,
+   "pred": "fp_av",
+   "rho": 0.7619
+  },
+  {
+   "season": 2021,
+   "week": 11,
+   "pred": "espn",
+   "rho": 0.4524
+  },
+  {
+   "season": 2021,
+   "week": 11,
+   "pred": "record",
+   "rho": 0.8095
+  },
+  {
+   "season": 2021,
+   "week": 12,
+   "pred": "xfp",
+   "rho": 0.5476
+  },
+  {
+   "season": 2021,
+   "week": 12,
+   "pred": "fp",
+   "rho": 0.8095
+  },
+  {
+   "season": 2021,
+   "week": 12,
+   "pred": "blend",
+   "rho": 0.7619
+  },
+  {
+   "season": 2021,
+   "week": 12,
+   "pred": "xfp_av",
+   "rho": 0.6905
+  },
+  {
+   "season": 2021,
+   "week": 12,
+   "pred": "fp_av",
+   "rho": 0.7857
+  },
+  {
+   "season": 2021,
+   "week": 12,
+   "pred": "espn",
+   "rho": 0.8095
+  },
+  {
+   "season": 2021,
+   "week": 12,
+   "pred": "record",
+   "rho": 0.881
+  },
+  {
+   "season": 2022,
+   "week": 4,
+   "pred": "xfp",
+   "rho": 0.4303
+  },
+  {
+   "season": 2022,
+   "week": 4,
+   "pred": "fp",
+   "rho": 0.4303
+  },
+  {
+   "season": 2022,
+   "week": 4,
+   "pred": "blend",
+   "rho": 0.6242
+  },
+  {
+   "season": 2022,
+   "week": 4,
+   "pred": "xfp_av",
+   "rho": 0.3818
+  },
+  {
+   "season": 2022,
+   "week": 4,
+   "pred": "fp_av",
+   "rho": 0.3212
+  },
+  {
+   "season": 2022,
+   "week": 4,
+   "pred": "espn",
+   "rho": 0.7212
+  },
+  {
+   "season": 2022,
+   "week": 4,
+   "pred": "record",
+   "rho": 0.7576
+  },
+  {
+   "season": 2022,
+   "week": 5,
+   "pred": "xfp",
+   "rho": 0.8061
+  },
+  {
+   "season": 2022,
+   "week": 5,
+   "pred": "fp",
+   "rho": 0.3818
+  },
+  {
+   "season": 2022,
+   "week": 5,
+   "pred": "blend",
+   "rho": 0.6485
+  },
+  {
+   "season": 2022,
+   "week": 5,
+   "pred": "xfp_av",
+   "rho": 0.8788
+  },
+  {
+   "season": 2022,
+   "week": 5,
+   "pred": "fp_av",
+   "rho": 0.5394
+  },
+  {
+   "season": 2022,
+   "week": 5,
+   "pred": "espn",
+   "rho": 0.7538
+  },
+  {
+   "season": 2022,
+   "week": 5,
+   "pred": "record",
+   "rho": 0.5879
+  },
+  {
+   "season": 2022,
+   "week": 6,
+   "pred": "xfp",
+   "rho": 0.8424
+  },
+  {
+   "season": 2022,
+   "week": 6,
+   "pred": "fp",
+   "rho": 0.503
+  },
+  {
+   "season": 2022,
+   "week": 6,
+   "pred": "blend",
+   "rho": 0.6364
+  },
+  {
+   "season": 2022,
+   "week": 6,
+   "pred": "xfp_av",
+   "rho": 0.6848
+  },
+  {
+   "season": 2022,
+   "week": 6,
+   "pred": "fp_av",
+   "rho": 0.6485
+  },
+  {
+   "season": 2022,
+   "week": 6,
+   "pred": "espn",
+   "rho": 0.4545
+  },
+  {
+   "season": 2022,
+   "week": 6,
+   "pred": "record",
+   "rho": 0.503
+  },
+  {
+   "season": 2022,
+   "week": 7,
+   "pred": "xfp",
+   "rho": 0.8667
+  },
+  {
+   "season": 2022,
+   "week": 7,
+   "pred": "fp",
+   "rho": 0.6
+  },
+  {
+   "season": 2022,
+   "week": 7,
+   "pred": "blend",
+   "rho": 0.697
+  },
+  {
+   "season": 2022,
+   "week": 7,
+   "pred": "xfp_av",
+   "rho": 0.8667
+  },
+  {
+   "season": 2022,
+   "week": 7,
+   "pred": "fp_av",
+   "rho": 0.697
+  },
+  {
+   "season": 2022,
+   "week": 7,
+   "pred": "espn",
+   "rho": 0.8303
+  },
+  {
+   "season": 2022,
+   "week": 7,
+   "pred": "record",
+   "rho": 0.6606
+  },
+  {
+   "season": 2022,
+   "week": 8,
+   "pred": "xfp",
+   "rho": 0.4303
+  },
+  {
+   "season": 2022,
+   "week": 8,
+   "pred": "fp",
+   "rho": 0.2606
+  },
+  {
+   "season": 2022,
+   "week": 8,
+   "pred": "blend",
+   "rho": 0.2485
+  },
+  {
+   "season": 2022,
+   "week": 8,
+   "pred": "xfp_av",
+   "rho": 0.2553
+  },
+  {
+   "season": 2022,
+   "week": 8,
+   "pred": "fp_av",
+   "rho": 0.1636
+  },
+  {
+   "season": 2022,
+   "week": 8,
+   "pred": "espn",
+   "rho": 0.3576
+  },
+  {
+   "season": 2022,
+   "week": 8,
+   "pred": "record",
+   "rho": 0.1515
+  },
+  {
+   "season": 2022,
+   "week": 9,
+   "pred": "xfp",
+   "rho": 0.2121
+  },
+  {
+   "season": 2022,
+   "week": 9,
+   "pred": "fp",
+   "rho": 0.2121
+  },
+  {
+   "season": 2022,
+   "week": 9,
+   "pred": "blend",
+   "rho": 0.2121
+  },
+  {
+   "season": 2022,
+   "week": 9,
+   "pred": "xfp_av",
+   "rho": -0.0061
+  },
+  {
+   "season": 2022,
+   "week": 9,
+   "pred": "fp_av",
+   "rho": -0.2242
+  },
+  {
+   "season": 2022,
+   "week": 9,
+   "pred": "espn",
+   "rho": -0.2364
+  },
+  {
+   "season": 2022,
+   "week": 9,
+   "pred": "record",
+   "rho": -0.0061
+  },
+  {
+   "season": 2022,
+   "week": 10,
+   "pred": "xfp",
+   "rho": 0.1879
+  },
+  {
+   "season": 2022,
+   "week": 10,
+   "pred": "fp",
+   "rho": 0.2121
+  },
+  {
+   "season": 2022,
+   "week": 10,
+   "pred": "blend",
+   "rho": 0.1515
+  },
+  {
+   "season": 2022,
+   "week": 10,
+   "pred": "xfp_av",
+   "rho": 0.1636
+  },
+  {
+   "season": 2022,
+   "week": 10,
+   "pred": "fp_av",
+   "rho": 0.0303
+  },
+  {
+   "season": 2022,
+   "week": 10,
+   "pred": "espn",
+   "rho": -0.0182
+  },
+  {
+   "season": 2022,
+   "week": 10,
+   "pred": "record",
+   "rho": -0.0303
+  },
+  {
+   "season": 2022,
+   "week": 11,
+   "pred": "xfp",
+   "rho": 0.1581
+  },
+  {
+   "season": 2022,
+   "week": 11,
+   "pred": "fp",
+   "rho": 0.0303
+  },
+  {
+   "season": 2022,
+   "week": 11,
+   "pred": "blend",
+   "rho": 0.0182
+  },
+  {
+   "season": 2022,
+   "week": 11,
+   "pred": "xfp_av",
+   "rho": -0.297
+  },
+  {
+   "season": 2022,
+   "week": 11,
+   "pred": "fp_av",
+   "rho": -0.0909
+  },
+  {
+   "season": 2022,
+   "week": 11,
+   "pred": "espn",
+   "rho": -0.0909
+  },
+  {
+   "season": 2022,
+   "week": 11,
+   "pred": "record",
+   "rho": -0.0788
+  },
+  {
+   "season": 2022,
+   "week": 12,
+   "pred": "xfp",
+   "rho": 0.3333
+  },
+  {
+   "season": 2022,
+   "week": 12,
+   "pred": "fp",
+   "rho": 0.1152
+  },
+  {
+   "season": 2022,
+   "week": 12,
+   "pred": "blend",
+   "rho": 0.2727
+  },
+  {
+   "season": 2022,
+   "week": 12,
+   "pred": "xfp_av",
+   "rho": 0.0182
+  },
+  {
+   "season": 2022,
+   "week": 12,
+   "pred": "fp_av",
+   "rho": 0.0061
+  },
+  {
+   "season": 2022,
+   "week": 12,
+   "pred": "espn",
+   "rho": 0.1636
+  },
+  {
+   "season": 2022,
+   "week": 12,
+   "pred": "record",
+   "rho": 0.1152
+  },
+  {
+   "season": 2023,
+   "week": 4,
+   "pred": "xfp",
+   "rho": 0.4788
+  },
+  {
+   "season": 2023,
+   "week": 4,
+   "pred": "fp",
+   "rho": 0.4303
+  },
+  {
+   "season": 2023,
+   "week": 4,
+   "pred": "blend",
+   "rho": 0.3212
+  },
+  {
+   "season": 2023,
+   "week": 4,
+   "pred": "xfp_av",
+   "rho": 0.4788
+  },
+  {
+   "season": 2023,
+   "week": 4,
+   "pred": "fp_av",
+   "rho": 0.4303
+  },
+  {
+   "season": 2023,
+   "week": 4,
+   "pred": "espn",
+   "rho": 0.7212
+  },
+  {
+   "season": 2023,
+   "week": 4,
+   "pred": "record",
+   "rho": 0.6242
+  },
+  {
+   "season": 2023,
+   "week": 5,
+   "pred": "xfp",
+   "rho": 0.7212
+  },
+  {
+   "season": 2023,
+   "week": 5,
+   "pred": "fp",
+   "rho": 0.4303
+  },
+  {
+   "season": 2023,
+   "week": 5,
+   "pred": "blend",
+   "rho": 0.5515
+  },
+  {
+   "season": 2023,
+   "week": 5,
+   "pred": "xfp_av",
+   "rho": 0.3091
+  },
+  {
+   "season": 2023,
+   "week": 5,
+   "pred": "fp_av",
+   "rho": 0.3091
+  },
+  {
+   "season": 2023,
+   "week": 5,
+   "pred": "espn",
+   "rho": 0.4667
+  },
+  {
+   "season": 2023,
+   "week": 5,
+   "pred": "record",
+   "rho": 0.8909
+  },
+  {
+   "season": 2023,
+   "week": 6,
+   "pred": "xfp",
+   "rho": 0.8667
+  },
+  {
+   "season": 2023,
+   "week": 6,
+   "pred": "fp",
+   "rho": 0.6
+  },
+  {
+   "season": 2023,
+   "week": 6,
+   "pred": "blend",
+   "rho": 0.7455
+  },
+  {
+   "season": 2023,
+   "week": 6,
+   "pred": "xfp_av",
+   "rho": 0.697
+  },
+  {
+   "season": 2023,
+   "week": 6,
+   "pred": "fp_av",
+   "rho": 0.5394
+  },
+  {
+   "season": 2023,
+   "week": 6,
+   "pred": "espn",
+   "rho": 0.4061
+  },
+  {
+   "season": 2023,
+   "week": 6,
+   "pred": "record",
+   "rho": 0.8303
+  },
+  {
+   "season": 2023,
+   "week": 7,
+   "pred": "xfp",
+   "rho": 0.7333
+  },
+  {
+   "season": 2023,
+   "week": 7,
+   "pred": "fp",
+   "rho": 0.7333
+  },
+  {
+   "season": 2023,
+   "week": 7,
+   "pred": "blend",
+   "rho": 0.8303
+  },
+  {
+   "season": 2023,
+   "week": 7,
+   "pred": "xfp_av",
+   "rho": 0.4909
+  },
+  {
+   "season": 2023,
+   "week": 7,
+   "pred": "fp_av",
+   "rho": 0.5636
+  },
+  {
+   "season": 2023,
+   "week": 7,
+   "pred": "espn",
+   "rho": 0.3455
+  },
+  {
+   "season": 2023,
+   "week": 7,
+   "pred": "record",
+   "rho": 0.8545
+  },
+  {
+   "season": 2023,
+   "week": 8,
+   "pred": "xfp",
+   "rho": 0.7091
+  },
+  {
+   "season": 2023,
+   "week": 8,
+   "pred": "fp",
+   "rho": 0.7939
+  },
+  {
+   "season": 2023,
+   "week": 8,
+   "pred": "blend",
+   "rho": 0.7212
+  },
+  {
+   "season": 2023,
+   "week": 8,
+   "pred": "xfp_av",
+   "rho": 0.5636
+  },
+  {
+   "season": 2023,
+   "week": 8,
+   "pred": "fp_av",
+   "rho": 0.6121
+  },
+  {
+   "season": 2023,
+   "week": 8,
+   "pred": "espn",
+   "rho": 0.6485
+  },
+  {
+   "season": 2023,
+   "week": 8,
+   "pred": "record",
+   "rho": 0.6485
+  },
+  {
+   "season": 2023,
+   "week": 9,
+   "pred": "xfp",
+   "rho": 0.7333
+  },
+  {
+   "season": 2023,
+   "week": 9,
+   "pred": "fp",
+   "rho": 0.7939
+  },
+  {
+   "season": 2023,
+   "week": 9,
+   "pred": "blend",
+   "rho": 0.8424
+  },
+  {
+   "season": 2023,
+   "week": 9,
+   "pred": "xfp_av",
+   "rho": 0.6727
+  },
+  {
+   "season": 2023,
+   "week": 9,
+   "pred": "fp_av",
+   "rho": 0.5515
+  },
+  {
+   "season": 2023,
+   "week": 9,
+   "pred": "espn",
+   "rho": 0.3939
+  },
+  {
+   "season": 2023,
+   "week": 9,
+   "pred": "record",
+   "rho": 0.6485
+  },
+  {
+   "season": 2023,
+   "week": 10,
+   "pred": "xfp",
+   "rho": 0.7818
+  },
+  {
+   "season": 2023,
+   "week": 10,
+   "pred": "fp",
+   "rho": 0.6485
+  },
+  {
+   "season": 2023,
+   "week": 10,
+   "pred": "blend",
+   "rho": 0.7576
+  },
+  {
+   "season": 2023,
+   "week": 10,
+   "pred": "xfp_av",
+   "rho": 0.6606
+  },
+  {
+   "season": 2023,
+   "week": 10,
+   "pred": "fp_av",
+   "rho": 0.2121
+  },
+  {
+   "season": 2023,
+   "week": 10,
+   "pred": "espn",
+   "rho": 0.4788
+  },
+  {
+   "season": 2023,
+   "week": 10,
+   "pred": "record",
+   "rho": 0.697
+  },
+  {
+   "season": 2023,
+   "week": 11,
+   "pred": "xfp",
+   "rho": 0.6848
+  },
+  {
+   "season": 2023,
+   "week": 11,
+   "pred": "fp",
+   "rho": 0.5152
+  },
+  {
+   "season": 2023,
+   "week": 11,
+   "pred": "blend",
+   "rho": 0.7212
+  },
+  {
+   "season": 2023,
+   "week": 11,
+   "pred": "xfp_av",
+   "rho": 0.7091
+  },
+  {
+   "season": 2023,
+   "week": 11,
+   "pred": "fp_av",
+   "rho": 0.5152
+  },
+  {
+   "season": 2023,
+   "week": 11,
+   "pred": "espn",
+   "rho": 0.6727
+  },
+  {
+   "season": 2023,
+   "week": 11,
+   "pred": "record",
+   "rho": 0.5636
+  },
+  {
+   "season": 2023,
+   "week": 12,
+   "pred": "xfp",
+   "rho": 0.3818
+  },
+  {
+   "season": 2023,
+   "week": 12,
+   "pred": "fp",
+   "rho": 0.503
+  },
+  {
+   "season": 2023,
+   "week": 12,
+   "pred": "blend",
+   "rho": 0.4788
+  },
+  {
+   "season": 2023,
+   "week": 12,
+   "pred": "xfp_av",
+   "rho": 0.6364
+  },
+  {
+   "season": 2023,
+   "week": 12,
+   "pred": "fp_av",
+   "rho": 0.6
+  },
+  {
+   "season": 2023,
+   "week": 12,
+   "pred": "espn",
+   "rho": 0.8061
+  },
+  {
+   "season": 2023,
+   "week": 12,
+   "pred": "record",
+   "rho": 0.3455
+  },
+  {
+   "season": 2024,
+   "week": 4,
+   "pred": "xfp",
+   "rho": 0.3091
+  },
+  {
+   "season": 2024,
+   "week": 4,
+   "pred": "fp",
+   "rho": 0.0667
+  },
+  {
+   "season": 2024,
+   "week": 4,
+   "pred": "blend",
+   "rho": 0.2242
+  },
+  {
+   "season": 2024,
+   "week": 4,
+   "pred": "xfp_av",
+   "rho": 0.2848
+  },
+  {
+   "season": 2024,
+   "week": 4,
+   "pred": "fp_av",
+   "rho": 0.0667
+  },
+  {
+   "season": 2024,
+   "week": 4,
+   "pred": "espn",
+   "rho": 0.3576
+  },
+  {
+   "season": 2024,
+   "week": 4,
+   "pred": "record",
+   "rho": -0.0788
+  },
+  {
+   "season": 2024,
+   "week": 5,
+   "pred": "xfp",
+   "rho": -0.0424
+  },
+  {
+   "season": 2024,
+   "week": 5,
+   "pred": "fp",
+   "rho": -0.3333
+  },
+  {
+   "season": 2024,
+   "week": 5,
+   "pred": "blend",
+   "rho": -0.2
+  },
+  {
+   "season": 2024,
+   "week": 5,
+   "pred": "xfp_av",
+   "rho": 0.2848
+  },
+  {
+   "season": 2024,
+   "week": 5,
+   "pred": "fp_av",
+   "rho": 0.103
+  },
+  {
+   "season": 2024,
+   "week": 5,
+   "pred": "espn",
+   "rho": 0.3939
+  },
+  {
+   "season": 2024,
+   "week": 5,
+   "pred": "record",
+   "rho": -0.3091
+  },
+  {
+   "season": 2024,
+   "week": 6,
+   "pred": "xfp",
+   "rho": 0.3455
+  },
+  {
+   "season": 2024,
+   "week": 6,
+   "pred": "fp",
+   "rho": 0.1758
+  },
+  {
+   "season": 2024,
+   "week": 6,
+   "pred": "blend",
+   "rho": 0.2848
+  },
+  {
+   "season": 2024,
+   "week": 6,
+   "pred": "xfp_av",
+   "rho": 0.6485
+  },
+  {
+   "season": 2024,
+   "week": 6,
+   "pred": "fp_av",
+   "rho": 0.4909
+  },
+  {
+   "season": 2024,
+   "week": 6,
+   "pred": "espn",
+   "rho": 0.4545
+  },
+  {
+   "season": 2024,
+   "week": 6,
+   "pred": "record",
+   "rho": -0.0788
+  },
+  {
+   "season": 2024,
+   "week": 7,
+   "pred": "xfp",
+   "rho": 0.1515
+  },
+  {
+   "season": 2024,
+   "week": 7,
+   "pred": "fp",
+   "rho": 0.0788
+  },
+  {
+   "season": 2024,
+   "week": 7,
+   "pred": "blend",
+   "rho": 0.1636
+  },
+  {
+   "season": 2024,
+   "week": 7,
+   "pred": "xfp_av",
+   "rho": 0.4303
+  },
+  {
+   "season": 2024,
+   "week": 7,
+   "pred": "fp_av",
+   "rho": 0.3455
+  },
+  {
+   "season": 2024,
+   "week": 7,
+   "pred": "espn",
+   "rho": 0.5515
+  },
+  {
+   "season": 2024,
+   "week": 7,
+   "pred": "record",
+   "rho": 0.2848
+  },
+  {
+   "season": 2024,
+   "week": 8,
+   "pred": "xfp",
+   "rho": 0.0424
+  },
+  {
+   "season": 2024,
+   "week": 8,
+   "pred": "fp",
+   "rho": 0.0303
+  },
+  {
+   "season": 2024,
+   "week": 8,
+   "pred": "blend",
+   "rho": -0.0303
+  },
+  {
+   "season": 2024,
+   "week": 8,
+   "pred": "xfp_av",
+   "rho": -0.3091
+  },
+  {
+   "season": 2024,
+   "week": 8,
+   "pred": "fp_av",
+   "rho": -0.1879
+  },
+  {
+   "season": 2024,
+   "week": 8,
+   "pred": "espn",
+   "rho": -0.1515
+  },
+  {
+   "season": 2024,
+   "week": 8,
+   "pred": "record",
+   "rho": 0.0424
+  },
+  {
+   "season": 2024,
+   "week": 9,
+   "pred": "xfp",
+   "rho": 0.0182
+  },
+  {
+   "season": 2024,
+   "week": 9,
+   "pred": "fp",
+   "rho": 0.1273
+  },
+  {
+   "season": 2024,
+   "week": 9,
+   "pred": "blend",
+   "rho": 0.2121
+  },
+  {
+   "season": 2024,
+   "week": 9,
+   "pred": "xfp_av",
+   "rho": 0.4667
+  },
+  {
+   "season": 2024,
+   "week": 9,
+   "pred": "fp_av",
+   "rho": 0.2242
+  },
+  {
+   "season": 2024,
+   "week": 9,
+   "pred": "espn",
+   "rho": 0.6364
+  },
+  {
+   "season": 2024,
+   "week": 9,
+   "pred": "record",
+   "rho": -0.0909
+  },
+  {
+   "season": 2024,
+   "week": 10,
+   "pred": "xfp",
+   "rho": 0.4182
+  },
+  {
+   "season": 2024,
+   "week": 10,
+   "pred": "fp",
+   "rho": 0.4788
+  },
+  {
+   "season": 2024,
+   "week": 10,
+   "pred": "blend",
+   "rho": 0.6848
+  },
+  {
+   "season": 2024,
+   "week": 10,
+   "pred": "xfp_av",
+   "rho": 0.2848
+  },
+  {
+   "season": 2024,
+   "week": 10,
+   "pred": "fp_av",
+   "rho": 0.1394
+  },
+  {
+   "season": 2024,
+   "week": 10,
+   "pred": "espn",
+   "rho": 0.5273
+  },
+  {
+   "season": 2024,
+   "week": 10,
+   "pred": "record",
+   "rho": 0.4788
+  },
+  {
+   "season": 2024,
+   "week": 11,
+   "pred": "xfp",
+   "rho": 0.4061
+  },
+  {
+   "season": 2024,
+   "week": 11,
+   "pred": "fp",
+   "rho": 0.6848
+  },
+  {
+   "season": 2024,
+   "week": 11,
+   "pred": "blend",
+   "rho": 0.5879
+  },
+  {
+   "season": 2024,
+   "week": 11,
+   "pred": "xfp_av",
+   "rho": 0.6727
+  },
+  {
+   "season": 2024,
+   "week": 11,
+   "pred": "fp_av",
+   "rho": 0.7212
+  },
+  {
+   "season": 2024,
+   "week": 11,
+   "pred": "espn",
+   "rho": 0.6606
+  },
+  {
+   "season": 2024,
+   "week": 11,
+   "pred": "record",
+   "rho": 0.4061
+  },
+  {
+   "season": 2024,
+   "week": 12,
+   "pred": "xfp",
+   "rho": 0.5758
+  },
+  {
+   "season": 2024,
+   "week": 12,
+   "pred": "fp",
+   "rho": 0.7697
+  },
+  {
+   "season": 2024,
+   "week": 12,
+   "pred": "blend",
+   "rho": 0.7818
+  },
+  {
+   "season": 2024,
+   "week": 12,
+   "pred": "xfp_av",
+   "rho": 0.2364
+  },
+  {
+   "season": 2024,
+   "week": 12,
+   "pred": "fp_av",
+   "rho": 0.1394
+  },
+  {
+   "season": 2024,
+   "week": 12,
+   "pred": "espn",
+   "rho": 0.3455
+  },
+  {
+   "season": 2024,
+   "week": 12,
+   "pred": "record",
+   "rho": 0.6364
+  },
+  {
+   "season": 2025,
+   "week": 4,
+   "pred": "xfp",
+   "rho": -0.0545
+  },
+  {
+   "season": 2025,
+   "week": 4,
+   "pred": "fp",
+   "rho": 0.3939
+  },
+  {
+   "season": 2025,
+   "week": 4,
+   "pred": "blend",
+   "rho": 0.2242
+  },
+  {
+   "season": 2025,
+   "week": 4,
+   "pred": "xfp_av",
+   "rho": 0.1394
+  },
+  {
+   "season": 2025,
+   "week": 4,
+   "pred": "fp_av",
+   "rho": 0.4424
+  },
+  {
+   "season": 2025,
+   "week": 4,
+   "pred": "espn",
+   "rho": 0.2
+  },
+  {
+   "season": 2025,
+   "week": 4,
+   "pred": "record",
+   "rho": 0.6727
+  },
+  {
+   "season": 2025,
+   "week": 5,
+   "pred": "xfp",
+   "rho": -0.4061
+  },
+  {
+   "season": 2025,
+   "week": 5,
+   "pred": "fp",
+   "rho": -0.2121
+  },
+  {
+   "season": 2025,
+   "week": 5,
+   "pred": "blend",
+   "rho": -0.1515
+  },
+  {
+   "season": 2025,
+   "week": 5,
+   "pred": "xfp_av",
+   "rho": 0.0667
+  },
+  {
+   "season": 2025,
+   "week": 5,
+   "pred": "fp_av",
+   "rho": 0.2485
+  },
+  {
+   "season": 2025,
+   "week": 5,
+   "pred": "espn",
+   "rho": 0.4303
+  },
+  {
+   "season": 2025,
+   "week": 5,
+   "pred": "record",
+   "rho": 0.3333
+  },
+  {
+   "season": 2025,
+   "week": 6,
+   "pred": "xfp",
+   "rho": 0.0424
+  },
+  {
+   "season": 2025,
+   "week": 6,
+   "pred": "fp",
+   "rho": 0.1273
+  },
+  {
+   "season": 2025,
+   "week": 6,
+   "pred": "blend",
+   "rho": 0.1394
+  },
+  {
+   "season": 2025,
+   "week": 6,
+   "pred": "xfp_av",
+   "rho": 0.1879
+  },
+  {
+   "season": 2025,
+   "week": 6,
+   "pred": "fp_av",
+   "rho": 0.503
+  },
+  {
+   "season": 2025,
+   "week": 6,
+   "pred": "espn",
+   "rho": 0.2364
+  },
+  {
+   "season": 2025,
+   "week": 6,
+   "pred": "record",
+   "rho": 0.4667
+  },
+  {
+   "season": 2025,
+   "week": 7,
+   "pred": "xfp",
+   "rho": 0.1273
+  },
+  {
+   "season": 2025,
+   "week": 7,
+   "pred": "fp",
+   "rho": 0.2
+  },
+  {
+   "season": 2025,
+   "week": 7,
+   "pred": "blend",
+   "rho": 0.1636
+  },
+  {
+   "season": 2025,
+   "week": 7,
+   "pred": "xfp_av",
+   "rho": 0.2485
+  },
+  {
+   "season": 2025,
+   "week": 7,
+   "pred": "fp_av",
+   "rho": 0.4424
+  },
+  {
+   "season": 2025,
+   "week": 7,
+   "pred": "espn",
+   "rho": 0.103
+  },
+  {
+   "season": 2025,
+   "week": 7,
+   "pred": "record",
+   "rho": 0.3091
+  },
+  {
+   "season": 2025,
+   "week": 8,
+   "pred": "xfp",
+   "rho": -0.0182
+  },
+  {
+   "season": 2025,
+   "week": 8,
+   "pred": "fp",
+   "rho": 0.1273
+  },
+  {
+   "season": 2025,
+   "week": 8,
+   "pred": "blend",
+   "rho": 0.103
+  },
+  {
+   "season": 2025,
+   "week": 8,
+   "pred": "xfp_av",
+   "rho": -0.1152
+  },
+  {
+   "season": 2025,
+   "week": 8,
+   "pred": "fp_av",
+   "rho": 0.0303
+  },
+  {
+   "season": 2025,
+   "week": 8,
+   "pred": "espn",
+   "rho": -0.0424
+  },
+  {
+   "season": 2025,
+   "week": 8,
+   "pred": "record",
+   "rho": 0.2485
+  },
+  {
+   "season": 2025,
+   "week": 9,
+   "pred": "xfp",
+   "rho": 0.2606
+  },
+  {
+   "season": 2025,
+   "week": 9,
+   "pred": "fp",
+   "rho": 0.5758
+  },
+  {
+   "season": 2025,
+   "week": 9,
+   "pred": "blend",
+   "rho": 0.4303
+  },
+  {
+   "season": 2025,
+   "week": 9,
+   "pred": "xfp_av",
+   "rho": 0.3091
+  },
+  {
+   "season": 2025,
+   "week": 9,
+   "pred": "fp_av",
+   "rho": 0.4424
+  },
+  {
+   "season": 2025,
+   "week": 9,
+   "pred": "espn",
+   "rho": 0.697
+  },
+  {
+   "season": 2025,
+   "week": 9,
+   "pred": "record",
+   "rho": 0.5636
+  },
+  {
+   "season": 2025,
+   "week": 10,
+   "pred": "xfp",
+   "rho": 0.1879
+  },
+  {
+   "season": 2025,
+   "week": 10,
+   "pred": "fp",
+   "rho": 0.5152
+  },
+  {
+   "season": 2025,
+   "week": 10,
+   "pred": "blend",
+   "rho": 0.4303
+  },
+  {
+   "season": 2025,
+   "week": 10,
+   "pred": "xfp_av",
+   "rho": 0.0424
+  },
+  {
+   "season": 2025,
+   "week": 10,
+   "pred": "fp_av",
+   "rho": 0.2
+  },
+  {
+   "season": 2025,
+   "week": 10,
+   "pred": "espn",
+   "rho": 0.0909
+  },
+  {
+   "season": 2025,
+   "week": 10,
+   "pred": "record",
+   "rho": 0.4788
+  },
+  {
+   "season": 2025,
+   "week": 11,
+   "pred": "xfp",
+   "rho": -0.1515
+  },
+  {
+   "season": 2025,
+   "week": 11,
+   "pred": "fp",
+   "rho": 0.2121
+  },
+  {
+   "season": 2025,
+   "week": 11,
+   "pred": "blend",
+   "rho": 0.0424
+  },
+  {
+   "season": 2025,
+   "week": 11,
+   "pred": "xfp_av",
+   "rho": -0.0061
+  },
+  {
+   "season": 2025,
+   "week": 11,
+   "pred": "fp_av",
+   "rho": 0.1152
+  },
+  {
+   "season": 2025,
+   "week": 11,
+   "pred": "espn",
+   "rho": -0.5515
+  },
+  {
+   "season": 2025,
+   "week": 11,
+   "pred": "record",
+   "rho": 0.0424
+  },
+  {
+   "season": 2025,
+   "week": 12,
+   "pred": "xfp",
+   "rho": 0.2606
+  },
+  {
+   "season": 2025,
+   "week": 12,
+   "pred": "fp",
+   "rho": 0.7091
+  },
+  {
+   "season": 2025,
+   "week": 12,
+   "pred": "blend",
+   "rho": 0.5515
+  },
+  {
+   "season": 2025,
+   "week": 12,
+   "pred": "xfp_av",
+   "rho": 0.3455
+  },
+  {
+   "season": 2025,
+   "week": 12,
+   "pred": "fp_av",
+   "rho": 0.6606
+  },
+  {
+   "season": 2025,
+   "week": 12,
+   "pred": "espn",
+   "rho": 0.0182
+  },
+  {
+   "season": 2025,
+   "week": 12,
+   "pred": "record",
+   "rho": 0.5394
+  }
+ ]
+}

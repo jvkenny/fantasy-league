@@ -4,6 +4,26 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&family=Barlow+Condensed:wght@600;700&display=swap">
 <style>
 __THEME__
+__HAUST__
+.gr-leg{display:flex;gap:18px;flex-wrap:wrap;font-size:13px;color:var(--muted);padding:12px 20px 4px}
+.gr-leg i{display:inline-block;vertical-align:-1px;margin-right:6px}
+.gr-row{display:grid;grid-template-columns:40px minmax(0,1.25fr) minmax(0,2fr) 58px 62px 52px;gap:12px;align-items:center;
+  padding:9px 20px;border-bottom:1px solid var(--grid);cursor:pointer}
+.gr-row:hover{background:var(--raised)}
+.gr-g{font:700 30px/1 'Barlow Condensed',sans-serif;text-align:center}
+.gr-who b{display:block;font-weight:700}.gr-who span{font-size:12.5px;color:var(--muted)}
+.gr-trk{position:relative;height:16px;background:var(--turf)}
+.gr-bar{position:absolute;left:0;top:0;bottom:0;background:var(--bruar)}
+.gr-tick{position:absolute;top:-4px;bottom:-4px;width:3px;margin-left:-1.5px;background:var(--rowan)}
+.gr-n{font:700 18px/1 'Barlow Condensed',sans-serif;text-align:right;font-variant-numeric:tabular-nums}
+.gr-l{font-size:13px;text-align:right;padding:3px 4px;font-variant-numeric:tabular-nums}
+.gr-pr{font-size:12.5px;color:var(--muted);text-align:right}
+.gr-hd{font:700 12px/1 'Barlow Condensed',sans-serif;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);cursor:default}
+.gr-hd:hover{background:none}
+.gr-lu{padding:4px 20px 12px 72px;font-size:13px;border-bottom:1px solid var(--grid);background:var(--ground)}
+.gr-lu table{border-collapse:collapse}.gr-lu td{padding:3px 12px 3px 0}.gr-lu td.r{text-align:right;font-variant-numeric:tabular-nums}
+@media (max-width:640px){.gr-row{grid-template-columns:30px minmax(0,1fr) minmax(0,1.2fr) 44px 46px;gap:8px;padding:9px 14px}
+  .gr-pr{display:none}.gr-who span{display:none}.gr-g{font-size:24px}.gr-lu{padding-left:14px}.gr-leg{padding:12px 14px 4px}}
 .qb-svg{display:block;width:100%;height:auto}
 .qb-svg text{font-family:'Source Sans 3',sans-serif}
 .qb-ctl{display:flex;gap:16px;flex-wrap:wrap;align-items:center;font-size:13px;color:var(--muted);padding:12px 20px 0}
@@ -13,6 +33,7 @@ __THEME__
 </style>
 <script>
 document.documentElement.setAttribute('data-page','season');
+document.documentElement.setAttribute('data-skin','haust');
 try{if(localStorage.getItem('ffl-theme')==='dark')
   document.documentElement.setAttribute('data-theme','dark');}catch(e){}
 </script>
@@ -29,6 +50,7 @@ try{if(localStorage.getItem('ffl-theme')==='dark')
       <a class="back" id="backR">All-time record book</a>
     </div>
   </div>
+  <nav class="pills" id="pills" aria-label="Sections"></nav>
   <div class="state" id="state"></div>
   <div style="height:10px"></div>
 </div></header>
@@ -61,11 +83,52 @@ const el = (t,c,x)=>{const n=document.createElement(t);if(c)n.className=c;
 $('#brand').append(document.createTextNode('League '));
 $('#brand').append(el('span',null,'Analysis'));
 $('#backS').href=D.meta.seasonPage; $('#backR').href=D.meta.recordBook;
-$('#state').textContent='Charts and analysis for the league, sourced and reproducible. Newest first.';
+$('#state').textContent='Charts and analysis for the league, sourced and reproducible. Newest first. Position pages: QB, RB, WR, TE above.';
 
 const sgn=(v,d)=>(v>0?'+':v<0?'−':'')+Math.abs(v).toFixed(d);
 
-const RENDER={qb_scatter:qbScatter};
+(function(){const pg=D.meta.pages||{},n=$('#pills');
+  [['Analysis',null]].concat(['QB','RB','WR','TE'].map(p=>[p,pg[p]])).forEach(([l,h])=>{
+    if(l!=='Analysis'&&!h)return;const a=el('a',null,l);if(h)a.href=h;else a.setAttribute('aria-current','page');n.append(a)});})();
+const RENDER={qb_scatter:qbScatter,team_grade:teamGrade};
+function teamGrade(F){
+  const c=el('div','card'),hd=el('div','hd');
+  hd.append(el('h2',null,F.title));
+  hd.append(el('span','chip',F.season+' \u00b7 rosters wk '+F.rosterWeek+' \u00b7 NFL wks '+F.nflWeeks[0]+'\u2013'+F.nflWeeks[1]));
+  const B=F.backtest;
+  let sub='Each roster\u2019s best legal lineup (QB, 2 RB, 2 WR, TE, FLEX), every player valued at his expected fantasy points per game: what his targets, carries and throws are usually worth, whether or not they have paid off yet. Kickers and defenses are left out.';
+  hd.append(el('div','sub',sub));
+  const bd=el('div','bd flush');
+  if(B){const s=B.summary,p=B.paired.fp,v=el('div','qb-verdict');
+    v.textContent='Is it any good? Tested on '+B.seasons.length+' past seasons of this league, from week 4 on: it ordered teams\u2019 rest-of-season scoring with a rank correlation of '+
+      s.xfp.mean_rho.toFixed(2)+', against '+s.fp.mean_rho.toFixed(2)+' valuing the same players by actual points and '+s.espn.mean_rho.toFixed(2)+
+      ' using ESPN\u2019s weekly projection. Ahead in '+p.seasons_xfp_wins+' of '+B.seasons.length+' seasons, but by less than the season-to-season noise. A second opinion beside the power rankings, not a replacement.';
+    bd.append(v);}
+  const leg=el('div','gr-leg');
+  leg.innerHTML='<span><i style="width:14px;height:10px;background:var(--bruar)"></i>lineup xFP per week</span><span><i style="width:3px;height:14px;background:var(--rowan)"></i>same roster valued by actual points</span><span>click a team for its lineup</span>';
+  bd.append(leg);
+  const T=F.teams,lo=Math.min(...T.map(t=>Math.min(t.xfp,t.fp)))-8,hi=Math.max(...T.map(t=>Math.max(t.xfp,t.fp)))+2;
+  const pc=v=>((v-lo)/(hi-lo)*100).toFixed(1)+'%';
+  const h=el('div','gr-row gr-hd');
+  h.innerHTML='<span>Grade</span><span>Manager</span><span>Lineup value</span><span style="text-align:right">xFP</span><span style="text-align:right">vs exp</span><span class="gr-pr">Power</span>';
+  bd.append(h);
+  T.forEach(t=>{const r=el('div','gr-row');
+    const a=Math.min(Math.abs(t.luck)/10,1)*32;
+    r.innerHTML='<span class="gr-g">'+t.grade+'</span><span class="gr-who"><b>'+t.p+'</b><span>'+t.tm+'</span></span>'+
+      '<span class="gr-trk"><span class="gr-bar" style="width:'+pc(t.xfp)+'"></span><span class="gr-tick" style="left:'+pc(t.fp)+'"></span></span>'+
+      '<span class="gr-n">'+t.xfp.toFixed(1)+'</span>'+
+      '<span class="gr-l" style="background:color-mix(in srgb,var('+(t.luck>0?'--rowan':'--glacial')+') '+a.toFixed(0)+'%,transparent)">'+(t.luck>0?'+':t.luck<0?'\u2212':'')+Math.abs(t.luck).toFixed(1)+'</span>'+
+      '<span class="gr-pr">#'+(t.power??'\u2013')+'</span>';
+    r.title=t.p+': graded #'+t.rank+', power ranking #'+t.power;
+    const lu=el('div','gr-lu');lu.hidden=true;
+    lu.innerHTML='<table><tr><td class="gr-hd">Slot</td><td class="gr-hd">Player</td><td class="gr-hd r">xFP/G</td><td class="gr-hd r">FP/G</td></tr>'+
+      t.lineup.map(x=>'<tr><td>'+x.slot+'</td><td>'+x.n+'</td><td class="r">'+x.xfp.toFixed(1)+'</td><td class="r">'+x.fp.toFixed(1)+'</td></tr>').join('')+'</table>';
+    r.addEventListener('click',()=>{lu.hidden=!lu.hidden});
+    bd.append(r,lu)});
+  const ft=el('div','ft');
+  ft.innerHTML='<b>Method</b> Grade letters are standard deviations from the league average lineup: A \u2265 +1, B \u2265 +\u2153, C within \u2153, D \u2265 \u22121, F below. \u201cvs exp\u201d is the same roster valued by actual points minus by expected: positive means its players have scored above their volume, which tends not to last. Player rates are per game played, shrunk 2 games toward the position median. Expected points: ffverse ffopportunity; scoring: league rules. Power = this week\u2019s power ranking (week '+F.powerWeek+'). Backtest: ffl/backtest_grade.py.';
+  c.append(hd,bd,ft);return c;
+}
 function qbScatter(F){
   const L=F.league,[w0,w1]=F.weeks;
   const c=el('div','card'),hd=el('div','hd');

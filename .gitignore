@@ -9,3 +9,5 @@ data/identities.json
 *.tmp
 __pycache__/
 .DS_Store
+# nflverse / ffverse public data, re-fetchable with `python3 -m ffl.nfl <yr>`
+data/nfl/

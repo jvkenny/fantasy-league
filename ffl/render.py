@@ -42,8 +42,10 @@ def build(tpl_path: Path, data_path: Path, frag_out: Path, pages_out: Path) -> i
 
     charts = (REPO / "site" / "_charts.js").read_text(encoding="utf-8")
     theme = (REPO / "site" / "_theme.css").read_text(encoding="utf-8")
+    haust = (REPO / "site" / "_haust.css").read_text(encoding="utf-8")
     out = (head + escape_non_ascii(script)) \
         .replace("__THEME__", escape_non_ascii(theme)) \
+        .replace("__HAUST__", escape_non_ascii(haust)) \
         .replace("__CHARTS__", escape_non_ascii(charts)) \
         .replace("__DATA__", data)
     if not out.isascii():
@@ -84,6 +86,14 @@ def main() -> int:
     if atpl.exists() and adat.exists():
         rc |= build(atpl, adat, REPO / "site" / "analysis.html",
                     REPO / "docs" / "analysis.html")
+    # Position stat pages (Haust skin): one template, one payload per position,
+    # written by ffl.build_stats from nflverse/ffverse data.
+    ptpl = REPO / "site" / "_pos.html"
+    for pos in ("qb", "rb", "wr", "te"):
+        pdat = REPO / "site" / f"stats_{pos}.json"
+        if ptpl.exists() and pdat.exists():
+            rc |= build(ptpl, pdat, REPO / "site" / f"{pos}.html",
+                        REPO / "docs" / f"{pos}.html")
     return rc
 
 

@@ -31,7 +31,17 @@ ffl.render     site/_template.html + _season.html + _theme.css + _charts.js + pa
                -> site/index.html, site/season.html, site/analysis.html   (fragments for an artifact host)
                -> docs/index.html, docs/season.html, docs/analysis.html   (standalone pages for GitHub Pages)
 ffl.seed_week0 week-0 power ranking from the draft (regenerable; never hand-place outlook files)
+ffl.nfl        nflverse + ffverse public data -> data/nfl/<year>/ (gitignored; no auth)
+ffl.build_stats   data/nfl + data/derived -> site/stats_{qb,rb,wr,te}.json + team_grade in
+               site/analysis.json (position pages + analytics roster grade, league scoring)
+ffl.backtest_grade  tests the grade on 2019, 2021-2025 -> reports/grade_backtest.json
 ```
+
+Position pages (`/qb.html` … `/te.html`, template `site/_pos.html`) and `/analysis.html` wear the
+**Haust** skin (`site/_haust.css`, John's Iceland palette, scoped by `data-skin=haust`); the record
+book and season tracker keep `_theme.css`. The analytics grade sits NEXT TO the power rankings, not
+inside them: the backtest found it only modestly better (within noise). Do not wire it into
+`power_rankings()` without a new backtest and the maintainer's say-so.
 
 Key code: `ffl/espn.py` (client, per-season route fallback), `ffl/build_season.py`
 (`power_rankings()`, `decisions()`, `weekly_awards()`), `site/_charts.js` (SVG chart primitives).
@@ -74,7 +84,8 @@ Full weekly refresh (maintainer only, needs ESPN access):
 
 ```bash
 python3 -m ffl.normalize && python3 -m ffl.build_site && \
-  python3 -m ffl.build_season && python3 -m ffl.render
+  python3 -m ffl.build_season && python3 -m ffl.nfl 2026 && python3 -m ffl.build_stats && \
+  python3 -m ffl.render
 ```
 
 ## Deployment

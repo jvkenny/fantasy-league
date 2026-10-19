@@ -1,0 +1,550 @@
+<title>Player stats</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&family=Barlow+Condensed:wght@600;700&display=swap">
+<style>
+/* Shared stylesheet for both pages, injected at render time.
+   Harpers Ferry house rules applied to a stat sheet: two typefaces, warm
+   desaturated ground, colourblind-safe blue/orange diverging pair (never
+   red-green on decision-critical data), white space as structure.
+
+   LIGHT IS THE DEFAULT, deliberately - there is no prefers-color-scheme block,
+   so the OS does not decide. Dark is opt-in through the header toggle, which
+   stamps data-theme="dark" and remembers the choice.
+   Every token below was contrast-checked to 4.5:1 on both grounds. */
+:root{
+  --ground:#F2EFE9;--surface:#FBFAF7;--raised:#E8E3D9;--line:#D6CFC2;
+  --text:#241F1A;--muted:#61584C;--accent:#0F5C8C;--accentbg:#DCE8F1;
+  --win:#00618F;--loss:#B24A00;--grid:#E4DED2;
+}
+:root[data-theme="dark"]{
+  --ground:#191614;--surface:#221E1A;--raised:#2C2721;--line:#3A342C;
+  --text:#EDE7DC;--muted:#A2988A;--accent:#7FB6DD;--accentbg:#20303C;
+  --win:#56B4E9;--loss:#E69F00;--grid:#2A251F;
+}
+*{box-sizing:border-box}
+html,body{max-width:100%;overflow-x:hidden}
+body{margin:0;background:var(--ground);color:var(--text);
+  font-family:"Source Sans 3",system-ui,-apple-system,sans-serif;
+  font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1200px;margin:0 auto;padding:0 28px}
+.mono{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums}
+h2{font-weight:700;text-transform:uppercase;letter-spacing:.09em;font-size:15px;margin:0}
+.sub{color:var(--muted);font-size:13px;margin:3px 0 0}
+/* header */
+header{position:sticky;top:0;z-index:20;background:var(--surface);
+  border-bottom:1px solid var(--line)}
+.hbar{display:flex;align-items:center;gap:20px;padding:16px 0;flex-wrap:wrap}
+.brand{font-weight:700;font-size:17px;text-transform:uppercase;letter-spacing:.13em;
+  white-space:nowrap}
+.brand span{color:var(--accent)}
+.ctl{display:flex;align-items:center;gap:10px;margin-left:auto;flex-wrap:wrap}
+select,input[type=search]{font-family:inherit;font-size:14px;color:var(--text);
+  background:var(--surface);border:1px solid var(--line);border-radius:2px;padding:7px 10px}
+input[type=search]{width:210px}
+a.back{font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.09em;
+  color:var(--muted);text-decoration:none;border:1px solid var(--line);border-radius:2px;
+  padding:7px 12px;white-space:nowrap}
+a.back:hover{color:var(--accent);border-color:var(--accent)}
+/* theme toggle */
+.theme{display:inline-flex;border:1px solid var(--line);border-radius:2px;overflow:hidden}
+.theme button{font-family:inherit;font-weight:600;font-size:11px;text-transform:uppercase;
+  letter-spacing:.09em;background:var(--surface);border:none;color:var(--muted);
+  padding:7px 11px;cursor:pointer}
+.theme button+button{border-left:1px solid var(--line)}
+.theme button:hover{color:var(--text)}
+.theme button[aria-pressed="true"]{background:var(--raised);color:var(--accent)}
+nav{display:flex;gap:6px;overflow-x:auto;border-top:1px solid var(--line)}
+nav button{font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.1em;
+  background:none;border:none;color:var(--muted);padding:13px 4px;margin-right:18px;
+  cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap}
+nav button:hover{color:var(--text)}
+nav button[aria-current]{color:var(--text);border-bottom-color:var(--accent)}
+main{padding:28px 0 80px}
+.panel{display:none}.panel.on{display:block}
+/* cards */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:2px;
+  margin-bottom:24px}
+.card>.hd{padding:16px 20px 14px;border-bottom:1px solid var(--line);
+  display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.card>.bd{padding:18px 20px}.card>.bd.flush{padding:0}
+.card>.ft{padding:12px 20px 14px;border-top:1px solid var(--line);font-size:12.5px;
+  line-height:1.6;color:var(--muted);max-width:92ch}
+.card>.ft b{font-weight:700;text-transform:uppercase;letter-spacing:.1em;font-size:10.5px;
+  color:var(--text);margin-right:8px}
+.chip{font-family:"IBM Plex Mono",monospace;font-size:10.5px;color:var(--muted);
+  border:1px solid var(--line);border-radius:2px;padding:2px 8px;white-space:nowrap}
+.cols{display:grid;gap:24px;grid-template-columns:repeat(auto-fit,minmax(min(360px,100%),1fr))}
+/* tables */
+.tw{overflow-x:auto;max-height:620px}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{padding:8px 14px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--line)}
+th:first-child,td:first-child{text-align:left;position:sticky;left:0;background:var(--surface)}
+thead th{position:sticky;top:0;z-index:2;background:var(--raised);font-weight:700;
+  font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);cursor:pointer}
+thead th:first-child{z-index:3;background:var(--raised)}
+thead th:hover,thead th[data-on]{color:var(--accent)}
+tbody tr:hover td,tbody tr:hover td:first-child{background:var(--raised)}
+td.n{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;font-size:13px}
+.pos{color:var(--win)}.neg{color:var(--loss)}
+.tag{font-family:"IBM Plex Mono",monospace;font-size:10px;padding:2px 6px;border-radius:2px;
+  background:var(--raised);color:var(--muted);border:1px solid var(--line)}
+.tag.gold{background:var(--accentbg);color:var(--accent);border-color:var(--accent)}
+.bar-c{position:relative}
+.bar-c i{position:absolute;left:0;top:3px;bottom:3px;background:var(--accent);opacity:.18;
+  border-radius:1px}
+.bar-c span{position:relative}
+.matrix{overflow-x:auto}
+/* charts */
+svg{display:block;width:100%;height:auto;overflow:visible}
+.ax{stroke:var(--grid);stroke-width:1}
+.axl{fill:var(--muted);font-family:"IBM Plex Mono",monospace;font-size:9.5px}
+.ref{stroke:var(--muted);stroke-dasharray:3 3;stroke-width:1;opacity:.6}
+.dot{cursor:pointer}
+.dot:hover circle{stroke:var(--text);stroke-width:2}
+.dlbl{fill:var(--text);font-size:10.5px;font-weight:600}
+.note{font-size:12px;color:var(--muted);margin-top:10px}
+/* findings + weekly awards: category reads as a quiet rule underneath rather
+   than a colour bar down the side - the number is the subject */
+.catline{display:flex;align-items:baseline;gap:14px;margin:28px 0 12px}
+.catline h3{font-weight:700;text-transform:uppercase;letter-spacing:.11em;font-size:13px;margin:0}
+.catline .rule{flex:1;height:1px;background:var(--line)}
+.catline .ct{font-family:"IBM Plex Mono",monospace;font-size:10.5px;color:var(--muted)}
+.find,.aw{display:grid;gap:16px;grid-template-columns:repeat(auto-fill,minmax(min(330px,100%),1fr))}
+.aw{padding:18px 20px}
+.fi,.ac{background:var(--surface);border:1px solid var(--line);
+  border-bottom:2px solid var(--line);border-radius:2px;padding:16px 18px 15px;
+  display:flex;flex-direction:column;gap:7px}
+.fi[data-c="Bragging rights"]{border-bottom-color:color-mix(in oklab,var(--win) 45%,var(--line))}
+.fi[data-c="Facepalm"]{border-bottom-color:color-mix(in oklab,var(--loss) 45%,var(--line))}
+.fi[data-c="Robbed"]{border-bottom-color:color-mix(in oklab,var(--accent) 45%,var(--line))}
+.ac[data-k=mvp],.ac[data-k=sleeper],.ac[data-k=high],.ac[data-k=blowout]{
+  border-bottom-color:color-mix(in oklab,var(--win) 45%,var(--line))}
+.ac[data-k=facepalm],.ac[data-k=bust],.ac[data-k=low]{
+  border-bottom-color:color-mix(in oklab,var(--loss) 45%,var(--line))}
+.ac[data-k=lucky],.ac[data-k=robbed]{
+  border-bottom-color:color-mix(in oklab,var(--accent) 45%,var(--line))}
+.fi .v,.ac .v{font-family:"IBM Plex Mono",monospace;font-size:20px;font-weight:500;
+  color:var(--accent);line-height:1.05;font-variant-numeric:tabular-nums}
+.fi .t,.ac .t{font-weight:700;text-transform:uppercase;letter-spacing:.07em;font-size:12.5px}
+.fi .d,.ac .d{font-size:13px;color:var(--muted);line-height:1.55}
+/* season page */
+.state{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:0 0 14px}
+.pill{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.07em;
+  text-transform:uppercase;border:1px solid var(--line);border-radius:2px;padding:3px 9px;
+  color:var(--muted)}
+.pill.live{border-color:var(--accent);color:var(--accent)}
+.banner{margin:18px 20px 0;padding:12px 14px;border:1px dashed var(--line);border-radius:2px;
+  font-size:13px;color:var(--muted);line-height:1.6}
+.banner b{color:var(--accent);font-weight:600}
+.empty{color:var(--muted);font-size:13px;padding:24px 20px;text-align:center;line-height:1.6}
+.empty b{color:var(--text);font-weight:600}
+/* ---- phones -------------------------------------------------------------
+   The desktop layout nests wrap(28) > card > bd(20) > aw(20) > ac(18) of
+   padding, which on a 375px screen leaves the content about 190px wide. Pull
+   the nesting in and push the number up: on a one-column stack the value is
+   the only thing worth leading with. */
+@media (max-width:640px){
+  .wrap{padding:0 14px}
+  main{padding:18px 0 56px}
+  .hbar{gap:12px;padding:12px 0}
+  .brand{font-size:15px;letter-spacing:.1em}
+  .ctl{gap:8px;margin-left:0;width:100%}
+  select,input[type=search]{font-size:16px;padding:8px 10px}  /* 16px: iOS zooms below it */
+  input[type=search]{width:100%}
+  .state{gap:6px;padding:0 0 10px}
+  .pill{font-size:10px;padding:3px 7px}
+  .card>.hd{padding:13px 14px 11px;gap:8px}
+  .card>.bd{padding:14px}
+  .card>.ft{padding:11px 14px 13px;font-size:12px}
+  .find,.aw{gap:10px}
+  .aw{padding:12px}
+  .fi,.ac{padding:13px 14px 12px;gap:5px}
+  .fi .v,.ac .v{font-size:30px;line-height:1}
+  .fi .t,.ac .t{font-size:11px}
+  .fi .d,.ac .d{font-size:13.5px;line-height:1.5}
+  .catline{margin:20px 0 10px;gap:10px}
+  .banner{margin:14px 14px 0;padding:11px 12px}
+  .empty{padding:20px 14px}
+  th,td{padding:7px 9px}
+  td.n{font-size:12.5px}
+  .tw{max-height:none}
+  .axl{font-size:11px}
+  .pick{font-size:13px;padding:9px 10px}
+  .dlbl{font-size:12px}
+}
+.pick{margin-top:10px;padding:10px 12px;border:1px solid var(--line);border-radius:2px;
+  background:var(--bg);font-size:13.5px;line-height:1.5;min-height:1em}
+.pick b{font-weight:700}
+.pick-hint{color:var(--muted);font-style:italic}
+.pick-meta{color:var(--muted)}
+.pick-num{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;font-weight:600}
+.pick-num.up{color:var(--win)}
+.pick-num.dn{color:var(--loss)}
+svg[tabindex]{cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+svg[tabindex]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* ======================================================================
+   SEASON TRACKER - the broadcast register. The record book is an almanac
+   and stays exactly as above; the tracker is a screen. Same tokens, same
+   charts, one more typeface (Barlow Condensed for display only) and the
+   team identity kit. Kit colours are IDENTITY: they always sit beside a
+   name and a crest and never carry a meaning on their own. Anything the
+   reader has to decode stays on the blue/orange pair.
+   Scoped to [data-page=season], stamped by the page's own head script.
+   ====================================================================== */
+[data-page=season] .disp,[data-page=season] h2,[data-page=season] .brand,
+[data-page=season] .ac .t,[data-page=season] .fi .t{
+  font-family:"Barlow Condensed","Source Sans 3",system-ui,sans-serif}
+[data-page=season] h2{font-size:21px;letter-spacing:.06em;font-weight:700}
+[data-page=season] .brand{font-size:26px;letter-spacing:.08em}
+[data-page=season] .ac .t{font-size:15px;letter-spacing:.06em}
+[data-page=season] .catline h3{font-family:"Barlow Condensed","Source Sans 3",sans-serif;
+  font-size:16px;letter-spacing:.08em}
+/* yard-line rule: a section break drawn as a field, hash marks every ten */
+.yard{position:relative;height:20px;margin:2px 0 22px}
+.yard:before{content:"";position:absolute;left:0;right:0;top:50%;height:1px;background:var(--line)}
+.yard:after{content:"";position:absolute;left:0;right:0;top:5px;bottom:5px;
+  background:repeating-linear-gradient(90deg,var(--line) 0 1px,transparent 1px 10%)}
+.yard i{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  background:var(--ground);padding:0 6px;font-family:"IBM Plex Mono",monospace;
+  font-size:9.5px;color:var(--muted);letter-spacing:.1em;font-style:normal}
+/* crest: shield with a sash, monogram on top */
+.crest{display:inline-block;vertical-align:middle;flex:none}
+img.crest{object-fit:contain;border-radius:3px;background:#FBFAF7;padding:1px;
+  box-shadow:0 0 0 1.5px var(--k1,var(--line))}
+.crest text{font-family:"Barlow Condensed","Source Sans 3",sans-serif;font-weight:700;
+  letter-spacing:.02em}
+.who{display:inline-flex;align-items:center;gap:8px}
+.who .crest{width:20px;height:23px}
+/* headshots + NFL marks */
+.hs{width:56px;height:56px;border-radius:50%;object-fit:cover;object-position:top;
+  background:var(--raised);border:2px solid var(--k1,var(--line));flex:none}
+.hs.sm{width:28px;height:28px;border-width:1.5px}
+.mark{width:16px;height:16px;object-fit:contain;vertical-align:-3px;margin-right:5px}
+/* ---- scoreboard ---- */
+.sbg{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(min(196px,100%),1fr));
+  padding:16px 20px 18px}
+.sb{background:var(--surface);border:1px solid var(--line);border-radius:2px;
+  display:flex;flex-direction:column}
+.sb-row{display:flex;align-items:center;gap:10px;padding:10px 12px 10px 10px;
+  border-left:4px solid transparent}
+.sb-row+.sb-row{border-top:1px solid var(--line)}
+.sb-row.win{border-left-color:var(--k1)}
+.sb-row .crest{width:30px;height:34px}
+.sb-who{flex:1;min-width:0;line-height:1.15}
+.sb-who b{display:block;font-family:"Barlow Condensed","Source Sans 3",sans-serif;
+  font-size:18px;font-weight:700;letter-spacing:.03em}
+.sb-who span{display:block;font-size:11.5px;color:var(--muted);white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis}
+.sb-sc{font-family:"Barlow Condensed","Source Sans 3",sans-serif;font-weight:700;
+  font-size:30px;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:.01em}
+.sb-row:not(.win) .sb-sc,.sb-row:not(.win) .sb-who b{color:var(--muted);font-weight:600}
+.sb-row.tbd .sb-sc{font-size:14px;color:var(--muted);font-family:"IBM Plex Mono",monospace}
+.sb-ft{display:flex;align-items:center;gap:8px;padding:9px 12px;border-top:1px solid var(--line);
+  font-size:12px;color:var(--muted);background:var(--raised)}
+.sb-ft .hs{width:26px;height:26px;border-width:1.5px}
+.sb-ft b{color:var(--text);font-weight:600}
+.sb-ft .mono{font-size:11.5px}
+.sb-riv{padding:8px 12px 10px;font-size:11.5px;line-height:1.45;color:var(--muted);
+  border-top:1px dashed var(--line)}
+.sb-riv b{color:var(--text);font-weight:600}
+.sb-riv .lead{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--accent)}
+.sb-wk{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--muted);padding:8px 12px 0}
+/* ---- award hierarchy: three heroes, then the strip ---- */
+.aw-hero{display:grid;gap:16px;padding:18px 20px 4px;
+  grid-template-columns:repeat(auto-fit,minmax(min(280px,100%),1fr))}
+.ac.hero{padding:18px 20px 16px;gap:10px;border-bottom-width:3px}
+.ac.hero .top{display:flex;align-items:center;gap:14px}
+.ac.hero .v{font-family:"Barlow Condensed","Source Sans 3",sans-serif;font-size:46px;
+  font-weight:700;letter-spacing:.01em;line-height:.95}
+.ac.hero .t{font-size:17px}
+.ac.hero .d{font-size:13.5px}
+.ac.hero .hs{width:64px;height:64px}
+.ac .by{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--muted);
+  margin-top:auto}
+.ac .by .crest{width:16px;height:18px}
+.ac .by .hs.sm{margin-right:2px}
+/* ---- heat grids: position strength + schedule swap ---- */
+.hmw{overflow-x:auto;padding:14px 20px 18px}
+.hm{border-collapse:separate;border-spacing:3px;font-family:"IBM Plex Mono",monospace;
+  font-size:12.5px;font-variant-numeric:tabular-nums;min-width:100%}
+.hm th{font-family:"Barlow Condensed","Source Sans 3",sans-serif;font-size:13px;
+  letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:700;
+  padding:4px 6px;text-align:center;position:static;background:none;cursor:default;
+  border:none;white-space:nowrap}
+.hm th:first-child,.hm td:first-child{text-align:left;position:static;background:none;
+  font-family:"Source Sans 3",system-ui,sans-serif;font-size:13.5px;padding-right:10px;
+  white-space:nowrap}
+.hm th .crest{width:18px;height:21px;margin-right:4px;vertical-align:-5px}
+.hm td{text-align:center;padding:7px 6px;border:none;border-radius:2px;
+  background:var(--raised);color:var(--text);min-width:52px}
+.hm td.self{outline:1px solid var(--line);outline-offset:-1px;background:var(--surface);
+  color:var(--muted)}
+.hm td.hi{color:var(--text);font-weight:600}
+.hm tfoot td{background:none;color:var(--muted);font-size:11px;padding-top:2px}
+.hm .cap{font-size:10.5px;color:var(--muted);letter-spacing:.06em;font-family:"IBM Plex Mono",monospace}
+.legend{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--muted);
+  padding:0 20px 14px;flex-wrap:wrap}
+.legend i{display:inline-block;width:38px;height:10px;border-radius:2px;font-style:normal}
+/* ---- trophy case ---- */
+.trophy td.n{font-size:13px}
+.trophy .cup{display:inline-block;font-family:"Barlow Condensed","Source Sans 3",sans-serif;
+  font-weight:700;font-size:14px;color:var(--accent)}
+.trophy .cup.bad{color:var(--loss)}
+.trophy .cup.dim{color:var(--line)}
+@media (max-width:640px){
+  [data-page=season] h2{font-size:19px}
+  [data-page=season] .brand{font-size:22px}
+  .sbg{padding:12px;gap:10px}
+  .sb-sc{font-size:26px}
+  .aw-hero{padding:12px 12px 2px;gap:10px}
+  .ac.hero .v{font-size:40px}
+  .hmw{padding:10px 12px 14px}
+  .hm td{min-width:44px;padding:6px 4px;font-size:12px}
+}
+
+/* Haust skin (John's Iceland palette, ~/dev/.agents/skills/iceland-palette)
+   for the analysis + position stat pages. Overrides the site tokens only under
+   [data-skin=haust], so the record book and season tracker are untouched.
+   Football read: an overcast late-season ground (mist/frost; basalt at night),
+   accents spent only on data - rowan = above expectation and the hero accent,
+   glacial = below, birch = "this manager's players". 80/20: the grounds stay
+   quiet. Text accent is a darkened rowan (#9A4A18, 5.9:1 on frost) because
+   true rowan is 3.9:1 on mist; marks keep true rowan. */
+:root[data-skin=haust]{
+  --ground:#E8EDF2;--surface:#F6F8FA;--raised:#DCE3EA;--line:#C9D2DB;
+  --text:#1F1D18;--muted:#6B6156;--accent:#9A4A18;--accentbg:#F3E3D6;
+  --win:#2F6B73;--loss:#B95A1F;--grid:#DCE2E8;
+  --rowan:#B95A1F;--glacial:#2F6B73;--birch:#CC9C2E;--birchbg:#F6EDD3;
+  --bruar:#4DA3AC;--fissure:#1F1D18;--turf:#E3E9EE}
+:root[data-skin=haust][data-theme=dark]{
+  --ground:#16191C;--surface:#1F2429;--raised:#272D34;--line:#343C44;
+  --text:#E8EDF2;--muted:#9AA5B1;--accent:#E09A5F;--accentbg:#33261D;
+  --win:#5BB4BD;--loss:#C96A2E;--grid:#2A3138;
+  --rowan:#C96A2E;--glacial:#5BB4BD;--birch:#D6A836;--birchbg:#3A3220;
+  --bruar:#5BB4BD;--fissure:#E8EDF2;--turf:#1B2024}
+[data-skin=haust] body{background:var(--ground)}
+/* position pills: a down-and-distance bar */
+.pills{margin:2px 0 10px;display:flex;gap:0;border:1px solid var(--line);width:max-content;max-width:100%;overflow-x:auto}
+.pills a{font:700 15px/1 'Barlow Condensed',sans-serif;letter-spacing:.08em;text-transform:uppercase;
+  padding:8px 14px;color:var(--muted);text-decoration:none;border-right:1px solid var(--line)}
+.pills a:last-child{border-right:0}
+.pills a[aria-current]{background:var(--fissure);color:var(--ground)}
+.pills a:hover{color:var(--accent)}
+.num{font-family:'Barlow Condensed',sans-serif;font-variant-numeric:tabular-nums}
+.own{display:inline-block;font:600 11px/1.5 'Source Sans 3',sans-serif;padding:0 6px;border:1px solid var(--line);
+  color:var(--muted);margin-left:6px;white-space:nowrap}
+tr.mine td{background:var(--birchbg)}
+tr.mine td:first-child{box-shadow:inset 3px 0 0 var(--birch)}
+tr.mine .own{border-color:var(--birch);color:var(--text)}
+
+.ps-ctl{display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin:14px 0 18px;color:var(--muted);font-size:14px}
+.ps-ctl input[type=search]{font:inherit;padding:6px 10px;border:1px solid var(--line);background:var(--surface);color:var(--text);min-width:180px}
+.ps-svg{display:block;width:100%;height:auto}
+.ps-svg text{font-family:'Source Sans 3',sans-serif}
+.ps-tip{position:absolute;pointer-events:none;background:var(--surface);border:1px solid var(--line);padding:7px 10px;font-size:13px;opacity:0;white-space:nowrap;color:var(--text);z-index:2}
+.ps-tw{overflow-x:auto}
+.ps-t{border-collapse:collapse;width:100%;font-size:13.5px;font-variant-numeric:tabular-nums}
+.ps-t th{font:700 13px/1.2 'Barlow Condensed',sans-serif;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);
+  text-align:right;padding:9px 8px;border-bottom:2px solid var(--fissure);cursor:pointer;white-space:nowrap;background:var(--surface);position:sticky;top:0}
+.ps-t th:first-child,.ps-t td:first-child{text-align:left;position:sticky;left:0;background:var(--surface);z-index:1}
+.ps-t th[data-on]{color:var(--accent)}
+.ps-t td{text-align:right;padding:7px 8px;border-bottom:1px solid var(--grid);white-space:nowrap}
+.ps-t td:first-child{font-weight:600;min-width:150px}
+.ps-t td .tm{font-weight:400;color:var(--muted);margin-left:6px;font-size:12px}
+.ps-t td.k{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700}
+.ps-t tr:hover td{background:var(--raised)}
+.ps-meta{font-size:13px;color:var(--muted);padding:10px 20px}
+@media (max-width:640px){.ps-meta{padding:10px 14px}.ps-t{font-size:13px}.ps-t td:first-child{min-width:120px}}
+</style>
+<script>
+document.documentElement.setAttribute('data-page','season');
+document.documentElement.setAttribute('data-skin','haust');
+try{if(localStorage.getItem('ffl-theme')==='dark')
+  document.documentElement.setAttribute('data-theme','dark');}catch(e){}
+</script>
+
+<header><div class="wrap">
+  <div class="hbar">
+    <div class="brand" id="brand"></div>
+    <div class="ctl">
+      <div class="theme" role="group" aria-label="Colour theme">
+        <button type="button" data-t="light" aria-pressed="true">Light</button>
+        <button type="button" data-t="dark" aria-pressed="false">Dark</button>
+      </div>
+      <a class="back" id="backS">Season tracker</a>
+      <a class="back" id="backR">All-time record book</a>
+    </div>
+  </div>
+  <nav class="pills" id="pills" aria-label="Positions"></nav>
+  <div class="state" id="state"></div>
+  <div style="height:10px"></div>
+</div></header>
+
+<main class="wrap">
+  <div class="ps-ctl">
+    <label>Manager <select id="fOwn"></select></label>
+    <input type="search" id="fQ" placeholder="Find a player" aria-label="Find a player">
+    <span id="count"></span>
+  </div>
+  <div id="scatter"></div>
+  <div class="yard"><i>50</i></div>
+  <div id="table"></div>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<script id="payload" type="application/json">{"meta":{"season":2026,"nflWeeks":[1,6],"rosterWeek":5,"managers":["Andy","Chris","Conor","Gabriel","Jared","Jeffrey","John","Maddie","Mark","Richard"],"generated":"2026-10-19 22:50 UTC","recordBook":"https://jvkenny.github.io/fantasy-league/","seasonPage":"https://jvkenny.github.io/fantasy-league/season.html","analysisPage":"https://jvkenny.github.io/fantasy-league/analysis.html","pages":{"QB":"https://jvkenny.github.io/fantasy-league/qb.html","RB":"https://jvkenny.github.io/fantasy-league/rb.html","WR":"https://jvkenny.github.io/fantasy-league/wr.html","TE":"https://jvkenny.github.io/fantasy-league/te.html"},"pos":"WR","gate":"min 8 targets (rostered players always shown)"},"cols":[{"k":"g","l":"G","f":"i","d":"Games with at least one opportunity"},{"k":"snap","l":"Snap%","f":"pct","d":"Average share of offensive snaps"},{"k":"tgt","l":"Tgt","f":"i","d":"Targets"},{"k":"tshare","l":"Tgt share","f":"pct","d":"Share of team targets, game average"},{"k":"ayshare","l":"AY share","f":"pct","d":"Share of team air yards, game average"},{"k":"wopr","l":"WOPR","f":"2","d":"Weighted opportunity: 1.5 x target share + 0.7 x air-yards share"},{"k":"adot","l":"aDOT","f":"1","d":"Air yards per target"},{"k":"rec","l":"Rec","f":"i","d":"Receptions"},{"k":"catch","l":"Catch%","f":"pct","d":"Receptions per target"},{"k":"recyds","l":"Yds","f":"i","d":"Receiving yards"},{"k":"yac","l":"YAC/rec","f":"1","d":"Yards after catch per reception"},{"k":"racr","l":"RACR","f":"2","d":"Receiving yards per air yard"},{"k":"epa_t","l":"EPA/tgt","f":"2","d":"Receiving EPA per target"},{"k":"rectd","l":"TD","f":"i","d":"Receiving touchdowns"},{"k":"fpg","l":"FP/G","f":"1","d":"Fantasy points per game, league scoring"},{"k":"xfpg","l":"xFP/G","f":"1","d":"Expected fantasy points per game: what this player's opportunities are usually worth (ffopportunity model)"},{"k":"fpoe","l":"+/- exp","f":"pm1","d":"FP/G minus xFP/G. Positive = scoring above what the opportunities predict; large values tend to shrink"}],"players":[{"n":"Puka Nacua","gsis":"00-0039075","team":"LA","g":4,"snap":0.8375,"fpg":22.95,"xfpg":24.107,"fpoe":-1.157,"tgt":52.0,"tshare":0.3091,"ayshare":0.4163,"wopr":0.7551,"adot":9.5192,"rec":37.0,"catch":0.7115,"recyds":417.0,"yac":5.7568,"racr":0.8424,"epa_t":0.1266,"rectd":1.0,"own":"John","sc":1},{"n":"Amon-Ra St. Brown","gsis":"00-0036963","team":"DET","g":5,"snap":0.882,"fpg":20.84,"xfpg":23.1466,"fpoe":-2.3066,"tgt":57.0,"tshare":0.3108,"ayshare":0.3197,"wopr":0.69,"adot":8.1579,"rec":37.0,"catch":0.6491,"recyds":372.0,"yac":3.4595,"racr":0.8,"epa_t":0.1891,"rectd":5.0,"own":"Mark","sc":1},{"n":"CeeDee Lamb","gsis":"00-0036358","team":"DAL","g":6,"snap":0.7817,"fpg":21.85,"xfpg":21.5127,"fpoe":0.3373,"tgt":69.0,"tshare":0.283,"ayshare":0.39,"wopr":0.6975,"adot":9.8406,"rec":48.0,"catch":0.6957,"recyds":577.0,"yac":3.7292,"racr":0.8498,"epa_t":0.3554,"rectd":4.0,"own":"Richard","sc":1},{"n":"Jaxon Smith-Njigba","gsis":"00-0038543","team":"SEA","g":6,"snap":0.8467,"fpg":27.4767,"xfpg":18.8584,"fpoe":8.6183,"tgt":66.0,"tshare":0.3561,"ayshare":0.4895,"wopr":0.8768,"adot":10.5455,"rec":49.0,"catch":0.7424,"recyds":717.0,"yac":4.2857,"racr":1.0302,"epa_t":0.6989,"rectd":7.0,"own":"Jared","sc":1},{"n":"Matthew Golden","gsis":"00-0040667","team":"GB","g":6,"snap":0.8317,"fpg":16.7833,"xfpg":18.516,"fpoe":-1.7327,"tgt":57.0,"tshare":0.2544,"ayshare":0.4084,"wopr":0.6675,"adot":14.3333,"rec":30.0,"catch":0.5263,"recyds":501.0,"yac":5.7,"racr":0.6132,"epa_t":0.2651,"rectd":3.0,"own":"Jeffrey","sc":1},{"n":"Tetairoa McMillan","gsis":"00-0040124","team":"CAR","g":5,"snap":0.844,"fpg":17.82,"xfpg":17.8414,"fpoe":-0.0214,"tgt":48.0,"tshare":0.2668,"ayshare":0.3142,"wopr":0.6202,"adot":11.4583,"rec":32.0,"catch":0.6667,"recyds":471.0,"yac":3.4375,"racr":0.8564,"epa_t":0.4502,"rectd":2.0,"own":"Maddie","sc":1},{"n":"Chris Olave","gsis":"00-0037239","team":"NO","g":6,"snap":0.815,"fpg":18.8333,"xfpg":17.7153,"fpoe":1.118,"tgt":61.0,"tshare":0.271,"ayshare":0.4338,"wopr":0.7102,"adot":12.8197,"rec":43.0,"catch":0.7049,"recyds":580.0,"yac":2.9535,"racr":0.7417,"epa_t":0.6417,"rectd":2.0,"own":"Conor","sc":1},{"n":"Malik Nabers","gsis":"00-0039337","team":"NYG","g":6,"snap":0.76,"fpg":17.0667,"xfpg":17.6047,"fpoe":-0.538,"tgt":61.0,"tshare":0.2826,"ayshare":0.3073,"wopr":0.6391,"adot":11.2787,"rec":41.0,"catch":0.6721,"recyds":494.0,"yac":3.0732,"racr":0.718,"epa_t":0.192,"rectd":2.0,"own":"Gabriel","sc":1},{"n":"Michael Wilson","gsis":"00-0038559","team":"ARI","g":6,"snap":0.9033,"fpg":11.88,"xfpg":17.329,"fpoe":-5.449,"tgt":58.0,"tshare":0.2547,"ayshare":0.41,"wopr":0.669,"adot":10.431,"rec":33.0,"catch":0.569,"recyds":320.0,"yac":2.8485,"racr":0.5289,"epa_t":-0.114,"rectd":1.0,"own":"Richard","sc":1},{"n":"DeVonta Smith","gsis":"00-0036912","team":"PHI","g":4,"snap":0.8725,"fpg":17.25,"xfpg":16.418,"fpoe":0.832,"tgt":41.0,"tshare":0.3233,"ayshare":0.4641,"wopr":0.8098,"adot":12.2439,"rec":26.0,"catch":0.6341,"recyds":310.0,"yac":1.8462,"racr":0.6175,"epa_t":0.0196,"rectd":2.0,"own":"Maddie","sc":1},{"n":"George Pickens","gsis":"00-0037247","team":"DAL","g":6,"snap":0.845,"fpg":13.6333,"xfpg":15.8525,"fpoe":-2.2192,"tgt":52.0,"tshare":0.2193,"ayshare":0.3194,"wopr":0.5526,"adot":11.1923,"rec":33.0,"catch":0.6346,"recyds":428.0,"yac":2.9091,"racr":0.7354,"epa_t":0.3948,"rectd":1.0,"own":"Maddie","sc":1},{"n":"Jalen Coker","gsis":"00-0039491","team":"CAR","g":4,"snap":0.6775,"fpg":16.975,"xfpg":15.7668,"fpoe":1.2082,"tgt":35.0,"tshare":0.2532,"ayshare":0.2682,"wopr":0.5674,"adot":11.4286,"rec":24.0,"catch":0.6857,"recyds":319.0,"yac":4.7083,"racr":0.7975,"epa_t":0.3881,"rectd":2.0,"own":"Chris","sc":1},{"n":"Christian Watson","gsis":"00-0038124","team":"GB","g":6,"snap":0.8033,"fpg":19.8,"xfpg":15.7263,"fpoe":4.0737,"tgt":48.0,"tshare":0.2222,"ayshare":0.324,"wopr":0.5601,"adot":13.5625,"rec":29.0,"catch":0.6042,"recyds":538.0,"yac":5.6552,"racr":0.8264,"epa_t":0.5038,"rectd":6.0,"own":"Jared","sc":1},{"n":"Davante Adams","gsis":"00-0031381","team":"LA","g":6,"snap":0.74,"fpg":17.0,"xfpg":15.2247,"fpoe":1.7753,"tgt":49.0,"tshare":0.2092,"ayshare":0.3631,"wopr":0.568,"adot":15.4898,"rec":30.0,"catch":0.6122,"recyds":480.0,"yac":4.1333,"racr":0.6324,"epa_t":0.4511,"rectd":4.0,"own":"Jeffrey","sc":1},{"n":"Nico Collins","gsis":"00-0036554","team":"HOU","g":4,"snap":0.7125,"fpg":18.375,"xfpg":15.1562,"fpoe":3.2188,"tgt":30.0,"tshare":0.2366,"ayshare":0.3144,"wopr":0.575,"adot":12.9,"rec":22.0,"catch":0.7333,"recyds":323.0,"yac":3.6364,"racr":0.8346,"epa_t":0.7973,"rectd":3.0,"own":"Gabriel","sc":1},{"n":"Emeka Egbuka","gsis":"00-0040129","team":"TB","g":6,"snap":0.8583,"fpg":11.85,"xfpg":14.7742,"fpoe":-2.9242,"tgt":49.0,"tshare":0.2558,"ayshare":0.3842,"wopr":0.6527,"adot":9.6939,"rec":28.0,"catch":0.5714,"recyds":240.0,"yac":3.5,"racr":0.5053,"epa_t":-0.2595,"rectd":2.0,"own":"Conor","sc":1},{"n":"Tee Higgins","gsis":"00-0036410","team":"CIN","g":5,"snap":0.77,"fpg":15.06,"xfpg":14.491,"fpoe":0.569,"tgt":43.0,"tshare":0.2238,"ayshare":0.4217,"wopr":0.6309,"adot":13.3256,"rec":27.0,"catch":0.6279,"recyds":423.0,"yac":3.963,"racr":0.7382,"epa_t":0.5827,"rectd":1.0,"own":"Gabriel","sc":1},{"n":"Parker Washington","gsis":"00-0038606","team":"JAX","g":6,"snap":0.7633,"fpg":15.3167,"xfpg":14.1953,"fpoe":1.1213,"tgt":46.0,"tshare":0.2558,"ayshare":0.3765,"wopr":0.6473,"adot":13.0217,"rec":26.0,"catch":0.5652,"recyds":416.0,"yac":4.8462,"racr":0.6945,"epa_t":0.4415,"rectd":4.0,"own":"Jared","sc":1},{"n":"Ja'Marr Chase","gsis":"00-0036900","team":"CIN","g":5,"snap":0.782,"fpg":15.98,"xfpg":14.1004,"fpoe":1.8796,"tgt":38.0,"tshare":0.2223,"ayshare":0.3132,"wopr":0.5527,"adot":9.2105,"rec":27.0,"catch":0.7105,"recyds":289.0,"yac":2.7407,"racr":0.8257,"epa_t":0.4752,"rectd":4.0,"own":"Chris","sc":1},{"n":"Zay Flowers","gsis":"00-0039064","team":"BAL","g":5,"snap":0.61,"fpg":18.9,"xfpg":14.084,"fpoe":4.816,"tgt":42.0,"tshare":0.308,"ayshare":0.3403,"wopr":0.7002,"adot":8.881,"rec":32.0,"catch":0.7619,"recyds":471.0,"yac":6.5625,"racr":1.2627,"epa_t":0.6341,"rectd":2.0,"own":"Jared","sc":1},{"n":"Luther Burden III","gsis":"00-0040735","team":"CHI","g":6,"snap":0.605,"fpg":12.2167,"xfpg":14.0778,"fpoe":-1.8612,"tgt":43.0,"tshare":0.2225,"ayshare":0.2799,"wopr":0.5297,"adot":8.4186,"rec":31.0,"catch":0.7209,"recyds":361.0,"yac":5.0968,"racr":0.9972,"epa_t":0.0371,"rectd":1.0,"own":"Conor","sc":1},{"n":"DK Metcalf","gsis":"00-0035640","team":"PIT","g":6,"snap":0.9533,"fpg":11.4833,"xfpg":14.0647,"fpoe":-2.5813,"tgt":52.0,"tshare":0.23,"ayshare":0.3419,"wopr":0.5843,"adot":12.0577,"rec":30.0,"catch":0.5769,"recyds":318.0,"yac":3.2667,"racr":0.5072,"epa_t":0.0309,"rectd":1.0,"own":"John","sc":1},{"n":"Drake London","gsis":"00-0037238","team":"ATL","g":6,"snap":0.9,"fpg":14.7333,"xfpg":13.8588,"fpoe":0.8745,"tgt":46.0,"tshare":0.2889,"ayshare":0.4208,"wopr":0.7279,"adot":10.2174,"rec":31.0,"catch":0.6739,"recyds":550.0,"yac":8.1935,"racr":1.1702,"epa_t":0.6157,"rectd":0.0,"own":"Chris","sc":1},{"n":"Mike Evans","gsis":"00-0031408","team":"SF","g":5,"snap":0.568,"fpg":16.52,"xfpg":13.8324,"fpoe":2.6876,"tgt":34.0,"tshare":0.2451,"ayshare":0.4219,"wopr":0.663,"adot":13.8824,"rec":24.0,"catch":0.7059,"recyds":326.0,"yac":1.7917,"racr":0.6907,"epa_t":1.0353,"rectd":3.0,"own":"Andy","sc":1},{"n":"Garrett Wilson","gsis":"00-0037740","team":"NYJ","g":6,"snap":0.9133,"fpg":15.8,"xfpg":13.6305,"fpoe":2.1695,"tgt":48.0,"tshare":0.2855,"ayshare":0.3796,"wopr":0.6939,"adot":9.6458,"rec":35.0,"catch":0.7292,"recyds":418.0,"yac":3.0571,"racr":0.9028,"epa_t":0.4894,"rectd":3.0,"own":"Andy","sc":1},{"n":"Keenan Allen","gsis":"00-0030279","team":"IND","g":5,"snap":0.614,"fpg":10.94,"xfpg":12.9718,"fpoe":-2.0318,"tgt":40.0,"tshare":0.2259,"ayshare":0.18,"wopr":0.4648,"adot":7.3,"rec":26.0,"catch":0.65,"recyds":227.0,"yac":3.0769,"racr":0.7774,"epa_t":0.0739,"rectd":1.0,"own":null,"sc":1},{"n":"Devaughn Vele","gsis":"00-0039424","team":"NO","g":6,"snap":0.92,"fpg":11.5667,"xfpg":12.8005,"fpoe":-1.2338,"tgt":43.0,"tshare":0.1972,"ayshare":0.2808,"wopr":0.4924,"adot":10.3023,"rec":28.0,"catch":0.6512,"recyds":294.0,"yac":2.75,"racr":0.6637,"epa_t":0.3216,"rectd":2.0,"own":"Jeffrey","sc":1},{"n":"Jameson Williams","gsis":"00-0037240","team":"DET","g":5,"snap":0.902,"fpg":11.52,"xfpg":12.284,"fpoe":-0.764,"tgt":29.0,"tshare":0.152,"ayshare":0.3412,"wopr":0.4668,"adot":16.5172,"rec":18.0,"catch":0.6207,"recyds":276.0,"yac":1.2778,"racr":0.5762,"epa_t":0.705,"rectd":2.0,"own":"Conor","sc":1},{"n":"Adonai Mitchell","gsis":"00-0039890","team":"NYJ","g":2,"snap":0.755,"fpg":10.65,"xfpg":12.2495,"fpoe":-1.5995,"tgt":15.0,"tshare":0.2319,"ayshare":0.5302,"wopr":0.7189,"adot":15.8,"rec":9.0,"catch":0.6,"recyds":123.0,"yac":2.8889,"racr":0.519,"epa_t":0.5763,"rectd":0.0,"own":null,"sc":1},{"n":"Stefon Diggs","gsis":"00-0031588","team":"WAS","g":4,"snap":0.5975,"fpg":13.25,"xfpg":12.2163,"fpoe":1.0337,"tgt":31.0,"tshare":0.2425,"ayshare":0.2046,"wopr":0.507,"adot":9.0323,"rec":18.0,"catch":0.5806,"recyds":170.0,"yac":2.7222,"racr":0.6071,"epa_t":0.1507,"rectd":3.0,"own":"Conor","sc":1},{"n":"Malik Washington","gsis":"00-0039880","team":"MIA","g":5,"snap":0.848,"fpg":10.04,"xfpg":12.0642,"fpoe":-2.0242,"tgt":36.0,"tshare":0.2802,"ayshare":0.2955,"wopr":0.6272,"adot":11.7778,"rec":23.0,"catch":0.6389,"recyds":262.0,"yac":5.6087,"racr":0.6179,"epa_t":-0.0123,"rectd":0.0,"own":"Chris","sc":1},{"n":"Terry McLaurin","gsis":"00-0035659","team":"WAS","g":4,"snap":0.725,"fpg":10.575,"xfpg":12.006,"fpoe":-1.431,"tgt":26.0,"tshare":0.2191,"ayshare":0.2827,"wopr":0.5266,"adot":12.4615,"rec":14.0,"catch":0.5385,"recyds":203.0,"yac":4.9286,"racr":0.6265,"epa_t":0.4695,"rectd":1.0,"own":"Jeffrey","sc":1},{"n":"KeAndre Lambert-Smith","gsis":"00-0040184","team":"LAC","g":1,"snap":0.435,"fpg":6.2,"xfpg":11.737,"fpoe":-5.537,"tgt":9.0,"tshare":0.25,"ayshare":0.3485,"wopr":0.6189,"adot":7.6667,"rec":5.0,"catch":0.5556,"recyds":32.0,"yac":1.2,"racr":0.4638,"epa_t":-1.7777,"rectd":0.0,"own":null,"sc":0},{"n":"A.J. Brown","gsis":"00-0035676","team":"NE","g":2,"snap":0.6,"fpg":5.65,"xfpg":11.674,"fpoe":-6.024,"tgt":14.0,"tshare":0.2312,"ayshare":0.2319,"wopr":0.5091,"adot":8.4286,"rec":6.0,"catch":0.4286,"recyds":53.0,"yac":3.8333,"racr":0.4492,"epa_t":-0.4387,"rectd":0.0,"own":"Jared","sc":1},{"n":"Josh Downs","gsis":"00-0038997","team":"IND","g":6,"snap":0.8133,"fpg":8.9333,"xfpg":11.6483,"fpoe":-2.715,"tgt":42.0,"tshare":0.2067,"ayshare":0.2627,"wopr":0.4939,"adot":10.7381,"rec":24.0,"catch":0.5714,"recyds":289.0,"yac":3.8333,"racr":0.6408,"epa_t":0.2909,"rectd":0.0,"own":"Gabriel","sc":1},{"n":"Justin Jefferson","gsis":"00-0036322","team":"MIN","g":4,"snap":0.7325,"fpg":15.925,"xfpg":11.3945,"fpoe":4.5305,"tgt":24.0,"tshare":0.2571,"ayshare":0.3859,"wopr":0.6558,"adot":10.9583,"rec":19.0,"catch":0.7917,"recyds":258.0,"yac":3.7895,"racr":0.981,"epa_t":0.883,"rectd":3.0,"own":"Richard","sc":1},{"n":"Carnell Tate","gsis":"00-0041438","team":"TEN","g":6,"snap":0.8083,"fpg":11.2333,"xfpg":11.314,"fpoe":-0.0807,"tgt":44.0,"tshare":0.2759,"ayshare":0.4823,"wopr":0.7514,"adot":13.1591,"rec":29.0,"catch":0.6591,"recyds":344.0,"yac":2.6552,"racr":0.5941,"epa_t":0.1822,"rectd":1.0,"own":"Gabriel","sc":1},{"n":"Tre Tucker","gsis":"00-0038563","team":"LV","g":6,"snap":0.665,"fpg":13.0833,"xfpg":10.699,"fpoe":2.3843,"tgt":35.0,"tshare":0.1663,"ayshare":0.2827,"wopr":0.4473,"adot":14.8571,"rec":24.0,"catch":0.6857,"recyds":371.0,"yac":1.75,"racr":0.7135,"epa_t":0.5489,"rectd":3.0,"own":null,"sc":1},{"n":"Xavier Worthy","gsis":"00-0039894","team":"KC","g":5,"snap":0.81,"fpg":9.52,"xfpg":10.4804,"fpoe":-0.9604,"tgt":29.0,"tshare":0.1981,"ayshare":0.2341,"wopr":0.461,"adot":8.2759,"rec":21.0,"catch":0.7241,"recyds":206.0,"yac":5.1429,"racr":0.8583,"epa_t":-0.0005,"rectd":1.0,"own":"Mark","sc":1},{"n":"Rome Odunze","gsis":"00-0039919","team":"CHI","g":6,"snap":0.835,"fpg":8.2,"xfpg":10.4248,"fpoe":-2.2248,"tgt":33.0,"tshare":0.1662,"ayshare":0.3168,"wopr":0.4711,"adot":13.4545,"rec":20.0,"catch":0.6061,"recyds":312.0,"yac":2.65,"racr":0.7027,"epa_t":0.3078,"rectd":0.0,"own":"John","sc":1},{"n":"Ryan Flournoy","gsis":"00-0039410","team":"DAL","g":6,"snap":0.7367,"fpg":8.7333,"xfpg":10.3612,"fpoe":-1.6278,"tgt":36.0,"tshare":0.1508,"ayshare":0.121,"wopr":0.311,"adot":6.25,"rec":23.0,"catch":0.6389,"recyds":234.0,"yac":5.087,"racr":1.04,"epa_t":0.189,"rectd":1.0,"own":null,"sc":1},{"n":"Jaylen Waddle","gsis":"00-0036613","team":"DEN","g":6,"snap":0.6783,"fpg":9.1833,"xfpg":10.247,"fpoe":-1.0637,"tgt":38.0,"tshare":0.2264,"ayshare":0.3533,"wopr":0.5869,"adot":9.1842,"rec":22.0,"catch":0.5789,"recyds":228.0,"yac":3.5,"racr":0.6533,"epa_t":0.0136,"rectd":1.0,"own":"Andy","sc":1},{"n":"Khalil Shakir","gsis":"00-0037261","team":"BUF","g":6,"snap":0.6333,"fpg":9.0,"xfpg":10.1837,"fpoe":-1.1837,"tgt":32.0,"tshare":0.1962,"ayshare":0.1339,"wopr":0.388,"adot":6.125,"rec":22.0,"catch":0.6875,"recyds":290.0,"yac":9.0,"racr":1.4796,"epa_t":0.3125,"rectd":1.0,"own":"Maddie","sc":1},{"n":"Denzel Boston","gsis":"00-0041037","team":"CLE","g":6,"snap":0.92,"fpg":11.9167,"xfpg":9.634,"fpoe":2.2827,"tgt":34.0,"tshare":0.1966,"ayshare":0.4526,"wopr":0.6116,"adot":16.5882,"rec":17.0,"catch":0.5,"recyds":345.0,"yac":6.5294,"racr":0.6117,"epa_t":0.4747,"rectd":3.0,"own":"Chris","sc":1},{"n":"Kendrick Bourne","gsis":"00-0033307","team":"ARI","g":5,"snap":0.5867,"fpg":8.9,"xfpg":9.5708,"fpoe":-0.6708,"tgt":30.0,"tshare":0.1602,"ayshare":0.1138,"wopr":0.3199,"adot":5.3,"rec":22.0,"catch":0.7333,"recyds":225.0,"yac":5.1818,"racr":1.4151,"epa_t":0.348,"rectd":0.0,"own":null,"sc":1},{"n":"Rashee Rice","gsis":"00-0039067","team":"KC","g":3,"snap":0.6225,"fpg":12.6667,"xfpg":9.3973,"fpoe":3.2693,"tgt":17.0,"tshare":0.2036,"ayshare":0.2276,"wopr":0.4647,"adot":7.4118,"rec":13.0,"catch":0.7647,"recyds":190.0,"yac":9.1538,"racr":1.5079,"epa_t":0.2172,"rectd":1.0,"own":"Mark","sc":1},{"n":"DJ Moore","gsis":"00-0034827","team":"BUF","g":4,"snap":0.525,"fpg":9.075,"xfpg":9.3755,"fpoe":-0.3005,"tgt":20.0,"tshare":0.1842,"ayshare":0.2386,"wopr":0.4434,"adot":15.15,"rec":12.0,"catch":0.6,"recyds":178.0,"yac":3.9167,"racr":0.5875,"epa_t":0.3187,"rectd":1.0,"own":"Maddie","sc":1},{"n":"Xavier Hutchinson","gsis":"00-0038618","team":"HOU","g":6,"snap":0.5283,"fpg":7.0833,"xfpg":9.316,"fpoe":-2.2327,"tgt":34.0,"tshare":0.17,"ayshare":0.1885,"wopr":0.3869,"adot":11.9412,"rec":18.0,"catch":0.5294,"recyds":241.0,"yac":5.6111,"racr":0.5936,"epa_t":0.0006,"rectd":0.0,"own":null,"sc":1},{"n":"Germie Bernard","gsis":"00-0041489","team":"PIT","g":5,"snap":0.56,"fpg":10.62,"xfpg":9.3086,"fpoe":1.3114,"tgt":32.0,"tshare":0.1745,"ayshare":0.1741,"wopr":0.3836,"adot":5.25,"rec":24.0,"catch":0.75,"recyds":227.0,"yac":4.8333,"racr":1.3512,"epa_t":0.0153,"rectd":1.0,"own":null,"sc":1},{"n":"KC Concepcion","gsis":"00-0041547","team":"CLE","g":6,"snap":0.6833,"fpg":6.6167,"xfpg":9.3003,"fpoe":-2.6837,"tgt":35.0,"tshare":0.2068,"ayshare":0.1862,"wopr":0.4406,"adot":6.6,"rec":22.0,"catch":0.6286,"recyds":186.0,"yac":4.0,"racr":0.8052,"epa_t":0.0392,"rectd":0.0,"own":null,"sc":1},{"n":"Jordan Addison","gsis":"00-0038994","team":"MIN","g":4,"snap":0.9125,"fpg":8.3,"xfpg":9.2027,"fpoe":-0.9027,"tgt":22.0,"tshare":0.223,"ayshare":0.3283,"wopr":0.5643,"adot":12.3636,"rec":11.0,"catch":0.5,"recyds":163.0,"yac":5.0909,"racr":0.5993,"epa_t":-0.1018,"rectd":1.0,"own":"Richard","sc":1},{"n":"Deebo Samuel Sr.","gsis":"00-0035719","team":"SF","g":5,"snap":0.576,"fpg":9.28,"xfpg":9.0284,"fpoe":0.2516,"tgt":20.0,"tshare":0.1429,"ayshare":0.0558,"wopr":0.2534,"adot":2.55,"rec":16.0,"catch":0.8,"recyds":206.0,"yac":10.4375,"racr":4.0392,"epa_t":0.3939,"rectd":3.0,"own":"Mark","sc":1},{"n":"Dontayvion Wicks","gsis":"00-0038393","team":"PHI","g":6,"snap":0.7983,"fpg":8.9,"xfpg":8.9125,"fpoe":-0.0125,"tgt":32.0,"tshare":0.1776,"ayshare":0.2882,"wopr":0.4681,"adot":13.125,"rec":19.0,"catch":0.5938,"recyds":284.0,"yac":4.0526,"racr":0.6762,"epa_t":0.5018,"rectd":1.0,"own":null,"sc":1},{"n":"Mack Hollins","gsis":"00-0033555","team":"NE","g":4,"snap":0.645,"fpg":8.975,"xfpg":8.7505,"fpoe":0.2245,"tgt":20.0,"tshare":0.1669,"ayshare":0.2387,"wopr":0.4174,"adot":14.85,"rec":15.0,"catch":0.75,"recyds":209.0,"yac":2.5333,"racr":0.7037,"epa_t":0.6442,"rectd":0.0,"own":null,"sc":1},{"n":"Jakobi Meyers","gsis":"00-0034960","team":"JAX","g":6,"snap":0.7967,"fpg":10.1167,"xfpg":8.7475,"fpoe":1.3692,"tgt":28.0,"tshare":0.154,"ayshare":0.2004,"wopr":0.3713,"adot":10.6071,"rec":20.0,"catch":0.7143,"recyds":285.0,"yac":3.25,"racr":0.9596,"epa_t":0.5626,"rectd":2.0,"own":"John","sc":1},{"n":"DeMario Douglas","gsis":"00-0038621","team":"NE","g":6,"snap":0.5367,"fpg":9.8833,"xfpg":8.6733,"fpoe":1.21,"tgt":30.0,"tshare":0.1665,"ayshare":0.1814,"wopr":0.3767,"adot":10.9333,"rec":20.0,"catch":0.6667,"recyds":233.0,"yac":3.35,"racr":0.7104,"epa_t":0.4283,"rectd":3.0,"own":null,"sc":1},{"n":"Wan'Dale Robinson","gsis":"00-0038117","team":"TEN","g":6,"snap":0.665,"fpg":9.4833,"xfpg":8.656,"fpoe":0.8273,"tgt":37.0,"tshare":0.214,"ayshare":0.1754,"wopr":0.4439,"adot":5.8649,"rec":25.0,"catch":0.6757,"recyds":198.0,"yac":3.8,"racr":0.9124,"epa_t":0.0726,"rectd":2.0,"own":"Andy","sc":1},{"n":"Keon Coleman","gsis":"00-0039901","team":"BUF","g":6,"snap":0.675,"fpg":10.8833,"xfpg":8.3612,"fpoe":2.5222,"tgt":24.0,"tshare":0.1452,"ayshare":0.2561,"wopr":0.3971,"adot":14.2917,"rec":19.0,"catch":0.7917,"recyds":283.0,"yac":2.8947,"racr":0.8251,"epa_t":0.9993,"rectd":3.0,"own":null,"sc":1},{"n":"Courtland Sutton","gsis":"00-0034348","team":"DEN","g":6,"snap":0.7783,"fpg":5.2167,"xfpg":8.3547,"fpoe":-3.138,"tgt":28.0,"tshare":0.1614,"ayshare":0.3505,"wopr":0.4874,"adot":10.9286,"rec":13.0,"catch":0.4643,"recyds":123.0,"yac":2.5385,"racr":0.402,"epa_t":-0.3447,"rectd":1.0,"own":"Mark","sc":1},{"n":"Tre Harris","gsis":"00-0040727","team":"LAC","g":5,"snap":0.706,"fpg":7.5,"xfpg":8.0766,"fpoe":-0.5766,"tgt":25.0,"tshare":0.1803,"ayshare":0.2393,"wopr":0.4379,"adot":11.4,"rec":15.0,"catch":0.6,"recyds":225.0,"yac":5.4,"racr":0.7895,"epa_t":0.2147,"rectd":0.0,"own":null,"sc":1},{"n":"Ted Hurst III","gsis":"00-0041048","team":"TB","g":5,"snap":0.6,"fpg":6.76,"xfpg":8.0688,"fpoe":-1.3088,"tgt":22.0,"tshare":0.1341,"ayshare":0.2574,"wopr":0.3814,"adot":16.1364,"rec":11.0,"catch":0.5,"recyds":168.0,"yac":2.5455,"racr":0.4732,"epa_t":0.1274,"rectd":1.0,"own":null,"sc":1},{"n":"Romeo Doubs","gsis":"00-0037816","team":"NE","g":6,"snap":0.5767,"fpg":9.6833,"xfpg":8.0023,"fpoe":1.681,"tgt":24.0,"tshare":0.1334,"ayshare":0.2571,"wopr":0.3802,"adot":17.625,"rec":14.0,"catch":0.5833,"recyds":261.0,"yac":2.7143,"racr":0.617,"epa_t":0.5211,"rectd":3.0,"own":"Richard","sc":1},{"n":"John Metchie III","gsis":"00-0037614","team":"CAR","g":3,"snap":0.345,"fpg":7.0,"xfpg":7.9843,"fpoe":-0.9843,"tgt":13.0,"tshare":0.0832,"ayshare":0.0716,"wopr":0.175,"adot":8.3846,"rec":7.0,"catch":0.5385,"recyds":80.0,"yac":4.2857,"racr":0.7339,"epa_t":0.5627,"rectd":1.0,"own":null,"sc":1},{"n":"Roman Wilson","gsis":"00-0039739","team":"PIT","g":5,"snap":0.474,"fpg":8.96,"xfpg":7.9298,"fpoe":1.0302,"tgt":25.0,"tshare":0.141,"ayshare":0.2077,"wopr":0.3569,"adot":15.24,"rec":14.0,"catch":0.56,"recyds":188.0,"yac":6.0,"racr":0.4934,"epa_t":0.2539,"rectd":2.0,"own":null,"sc":1},{"n":"Tyquan Thornton","gsis":"00-0038104","team":"KC","g":4,"snap":0.59,"fpg":11.225,"xfpg":7.9155,"fpoe":3.3095,"tgt":15.0,"tshare":0.1291,"ayshare":0.2843,"wopr":0.3926,"adot":18.7333,"rec":11.0,"catch":0.7333,"recyds":219.0,"yac":4.3636,"racr":0.7794,"epa_t":1.2691,"rectd":2.0,"own":null,"sc":0},{"n":"Rashid Shaheed","gsis":"00-0037545","team":"SEA","g":6,"snap":0.5333,"fpg":6.6833,"xfpg":7.9102,"fpoe":-1.2268,"tgt":27.0,"tshare":0.1491,"ayshare":0.2361,"wopr":0.3889,"adot":12.4815,"rec":14.0,"catch":0.5185,"recyds":162.0,"yac":4.8571,"racr":0.4807,"epa_t":-0.2672,"rectd":0.0,"own":"Mark","sc":0},{"n":"Caleb Douglas","gsis":"00-0041523","team":"MIA","g":2,"snap":0.885,"fpg":9.15,"xfpg":7.7575,"fpoe":1.3925,"tgt":10.0,"tshare":0.1948,"ayshare":0.2073,"wopr":0.4373,"adot":11.4,"rec":7.0,"catch":0.7,"recyds":113.0,"yac":5.8571,"racr":0.9912,"epa_t":0.3515,"rectd":0.0,"own":null,"sc":0},{"n":"Kalif Raymond","gsis":"00-0032464","team":"CHI","g":6,"snap":0.605,"fpg":9.3667,"xfpg":7.7402,"fpoe":1.6265,"tgt":29.0,"tshare":0.1573,"ayshare":0.1064,"wopr":0.3105,"adot":6.0,"rec":26.0,"catch":0.8966,"recyds":244.0,"yac":4.8077,"racr":1.4023,"epa_t":0.584,"rectd":1.0,"own":null,"sc":0},{"n":"Jared Wayne","gsis":"00-0038728","team":"HOU","g":3,"snap":0.408,"fpg":3.5,"xfpg":7.6333,"fpoe":-4.1333,"tgt":12.0,"tshare":0.0818,"ayshare":0.1155,"wopr":0.2035,"adot":15.4167,"rec":4.0,"catch":0.3333,"recyds":65.0,"yac":4.25,"racr":0.3514,"epa_t":-0.3009,"rectd":0.0,"own":null,"sc":0},{"n":"Darius Cooper","gsis":"00-0040024","team":"PHI","g":4,"snap":0.5033,"fpg":11.475,"xfpg":7.6242,"fpoe":3.8507,"tgt":15.0,"tshare":0.0825,"ayshare":0.1238,"wopr":0.2104,"adot":12.2667,"rec":8.0,"catch":0.5333,"recyds":139.0,"yac":7.875,"racr":0.7554,"epa_t":0.5499,"rectd":4.0,"own":null,"sc":0},{"n":"Isaac TeSlaa","gsis":"00-0040669","team":"DET","g":5,"snap":0.624,"fpg":5.54,"xfpg":7.5736,"fpoe":-2.0336,"tgt":19.0,"tshare":0.096,"ayshare":0.1401,"wopr":0.242,"adot":12.7895,"rec":9.0,"catch":0.4737,"recyds":187.0,"yac":6.1111,"racr":0.7695,"epa_t":0.3168,"rectd":0.0,"own":null,"sc":0},{"n":"Malachi Fields","gsis":"00-0041042","team":"NYG","g":6,"snap":0.7567,"fpg":5.75,"xfpg":7.2578,"fpoe":-1.5078,"tgt":25.0,"tshare":0.1248,"ayshare":0.1817,"wopr":0.3144,"adot":13.56,"rec":12.0,"catch":0.48,"recyds":165.0,"yac":4.9167,"racr":0.4867,"epa_t":-0.1353,"rectd":1.0,"own":null,"sc":0},{"n":"Jahan Dotson","gsis":"00-0037741","team":"ATL","g":6,"snap":0.6967,"fpg":7.7667,"xfpg":7.256,"fpoe":0.5107,"tgt":22.0,"tshare":0.1394,"ayshare":0.3869,"wopr":0.4799,"adot":16.6364,"rec":11.0,"catch":0.5,"recyds":236.0,"yac":4.0,"racr":0.6448,"epa_t":-0.1709,"rectd":2.0,"own":null,"sc":0},{"n":"Brycen Tremayne","gsis":"00-0038840","team":"CAR","g":2,"snap":0.48,"fpg":8.75,"xfpg":7.247,"fpoe":1.503,"tgt":9.0,"tshare":0.044,"ayshare":0.0704,"wopr":0.1152,"adot":16.1111,"rec":6.0,"catch":0.6667,"recyds":115.0,"yac":3.6667,"racr":0.7931,"epa_t":0.7436,"rectd":0.0,"own":null,"sc":0},{"n":"Quentin Johnston","gsis":"00-0038544","team":"LAC","g":5,"snap":0.806,"fpg":4.96,"xfpg":7.2302,"fpoe":-2.2702,"tgt":22.0,"tshare":0.1488,"ayshare":0.2524,"wopr":0.3999,"adot":13.9545,"rec":8.0,"catch":0.3636,"recyds":165.0,"yac":5.625,"racr":0.5375,"epa_t":0.2112,"rectd":0.0,"own":null,"sc":0},{"n":"Ja'Kobi Lane","gsis":"00-0040870","team":"BAL","g":2,"snap":0.47,"fpg":5.05,"xfpg":7.2245,"fpoe":-2.1745,"tgt":8.0,"tshare":0.1431,"ayshare":0.1583,"wopr":0.3255,"adot":10.75,"rec":5.0,"catch":0.625,"recyds":51.0,"yac":2.2,"racr":0.593,"epa_t":0.2142,"rectd":0.0,"own":null,"sc":0},{"n":"Chris Godwin Jr.","gsis":"00-0033921","team":"TB","g":6,"snap":0.8383,"fpg":7.7333,"xfpg":7.1873,"fpoe":0.546,"tgt":29.0,"tshare":0.1563,"ayshare":0.0875,"wopr":0.2957,"adot":4.3793,"rec":23.0,"catch":0.7931,"recyds":216.0,"yac":6.4348,"racr":1.7008,"epa_t":0.233,"rectd":0.0,"own":null,"sc":0},{"n":"Jalen Brooks","gsis":"00-0038640","team":"ARI","g":3,"snap":0.2083,"fpg":2.8667,"xfpg":7.1013,"fpoe":-4.2347,"tgt":11.0,"tshare":0.0521,"ayshare":0.0867,"wopr":0.1388,"adot":13.4545,"rec":4.0,"catch":0.3636,"recyds":46.0,"yac":1.5,"racr":0.3108,"epa_t":-0.173,"rectd":0.0,"own":null,"sc":0},{"n":"Antonio Williams","gsis":"00-0041040","team":"WAS","g":5,"snap":0.528,"fpg":7.3,"xfpg":7.0959,"fpoe":0.2041,"tgt":22.0,"tshare":0.1424,"ayshare":0.1514,"wopr":0.3196,"adot":10.8636,"rec":15.0,"catch":0.6818,"recyds":155.0,"yac":2.3333,"racr":0.6485,"epa_t":0.2277,"rectd":1.0,"own":null,"sc":0},{"n":"Kevin Coleman Jr.","gsis":"00-0041529","team":"MIA","g":4,"snap":0.504,"fpg":3.65,"xfpg":7.0777,"fpoe":-3.4278,"tgt":17.0,"tshare":0.1732,"ayshare":0.2108,"wopr":0.4074,"adot":13.8824,"rec":5.0,"catch":0.2941,"recyds":36.0,"yac":1.4,"racr":0.1525,"epa_t":-0.7302,"rectd":1.0,"own":null,"sc":0},{"n":"Ladd McConkey","gsis":"00-0039915","team":"LAC","g":5,"snap":0.458,"fpg":7.8,"xfpg":6.9834,"fpoe":0.8166,"tgt":18.0,"tshare":0.1237,"ayshare":0.177,"wopr":0.3095,"adot":13.2222,"rec":13.0,"catch":0.7222,"recyds":200.0,"yac":2.3077,"racr":0.8403,"epa_t":0.66,"rectd":1.0,"own":"John","sc":0},{"n":"Laquon Treadwell","gsis":"00-0032951","team":"IND","g":6,"snap":0.7433,"fpg":5.1333,"xfpg":6.9428,"fpoe":-1.8095,"tgt":24.0,"tshare":0.1146,"ayshare":0.1961,"wopr":0.3092,"adot":13.2083,"rec":13.0,"catch":0.5417,"recyds":178.0,"yac":4.1538,"racr":0.5615,"epa_t":-0.0703,"rectd":0.0,"own":null,"sc":0},{"n":"Rashod Bateman","gsis":"00-0036550","team":"BAL","g":6,"snap":0.6933,"fpg":7.55,"xfpg":6.6967,"fpoe":0.8533,"tgt":22.0,"tshare":0.1328,"ayshare":0.2011,"wopr":0.3399,"adot":12.4091,"rec":16.0,"catch":0.7273,"recyds":233.0,"yac":3.25,"racr":0.8535,"epa_t":0.6929,"rectd":1.0,"own":null,"sc":0},{"n":"Alec Pierce","gsis":"00-0037664","team":"IND","g":2,"snap":0.425,"fpg":6.1,"xfpg":6.6395,"fpoe":-0.5395,"tgt":7.0,"tshare":0.1201,"ayshare":0.2871,"wopr":0.3811,"adot":16.1429,"rec":5.0,"catch":0.7143,"recyds":72.0,"yac":2.0,"racr":0.6372,"epa_t":0.3665,"rectd":0.0,"own":"Jeffrey","sc":0},{"n":"Jaylin Noel","gsis":"00-0040138","team":"HOU","g":6,"snap":0.4533,"fpg":10.8333,"xfpg":6.5893,"fpoe":4.244,"tgt":21.0,"tshare":0.1043,"ayshare":0.117,"wopr":0.2384,"adot":11.0476,"rec":17.0,"catch":0.8095,"recyds":334.0,"yac":6.4706,"racr":1.4397,"epa_t":0.956,"rectd":2.0,"own":null,"sc":0},{"n":"Makai Lemon","gsis":"00-0040867","team":"PHI","g":6,"snap":0.7217,"fpg":5.0333,"xfpg":6.5205,"fpoe":-1.4872,"tgt":28.0,"tshare":0.1561,"ayshare":0.1097,"wopr":0.311,"adot":5.1786,"rec":18.0,"catch":0.6429,"recyds":127.0,"yac":2.7222,"racr":0.8759,"epa_t":-0.1529,"rectd":0.0,"own":"Conor","sc":0},{"n":"Cooper Kupp","gsis":"00-0033908","team":"SEA","g":6,"snap":0.685,"fpg":6.65,"xfpg":6.3523,"fpoe":0.2977,"tgt":25.0,"tshare":0.1236,"ayshare":0.1526,"wopr":0.2922,"adot":8.6,"rec":16.0,"catch":0.64,"recyds":179.0,"yac":3.3125,"racr":0.8326,"epa_t":0.2681,"rectd":1.0,"own":null,"sc":0},{"n":"Omar Cooper Jr.","gsis":"00-0041511","team":"NYJ","g":2,"snap":0.445,"fpg":13.15,"xfpg":6.3435,"fpoe":6.8065,"tgt":8.0,"tshare":0.1424,"ayshare":0.1892,"wopr":0.3461,"adot":11.625,"rec":7.0,"catch":0.875,"recyds":133.0,"yac":6.8571,"racr":1.4301,"epa_t":1.1898,"rectd":1.0,"own":null,"sc":0},{"n":"Jayden Reed","gsis":"00-0039146","team":"GB","g":2,"snap":0.3,"fpg":3.2,"xfpg":6.3245,"fpoe":-3.1245,"tgt":8.0,"tshare":0.1047,"ayshare":0.0417,"wopr":0.1863,"adot":5.625,"rec":4.0,"catch":0.5,"recyds":24.0,"yac":3.0,"racr":0.5333,"epa_t":-0.1629,"rectd":0.0,"own":null,"sc":0},{"n":"Marvin Harrison Jr.","gsis":"00-0039849","team":"HOU","g":5,"snap":0.628,"fpg":5.18,"xfpg":6.3004,"fpoe":-1.1204,"tgt":17.0,"tshare":0.0918,"ayshare":0.1833,"wopr":0.266,"adot":14.7647,"rec":8.0,"catch":0.4706,"recyds":119.0,"yac":1.0,"racr":0.4741,"epa_t":0.1555,"rectd":1.0,"own":"Gabriel","sc":0},{"n":"Kayshon Boutte","gsis":"00-0038608","team":"HOU","g":6,"snap":0.5817,"fpg":5.15,"xfpg":6.2522,"fpoe":-1.1022,"tgt":21.0,"tshare":0.1055,"ayshare":0.1251,"wopr":0.2459,"adot":11.9048,"rec":14.0,"catch":0.6667,"recyds":169.0,"yac":1.2857,"racr":0.676,"epa_t":0.3649,"rectd":0.0,"own":null,"sc":0},{"n":"Jalen Nailor","gsis":"00-0037291","team":"LV","g":4,"snap":0.528,"fpg":3.025,"xfpg":6.099,"fpoe":-3.074,"tgt":15.0,"tshare":0.1196,"ayshare":0.1727,"wopr":0.3003,"adot":12.5333,"rec":6.0,"catch":0.4,"recyds":61.0,"yac":2.3333,"racr":0.3245,"epa_t":-0.1014,"rectd":0.0,"own":null,"sc":0},{"n":"Michael Pittman","gsis":"00-0036252","team":"PIT","g":3,"snap":0.7767,"fpg":5.3,"xfpg":6.0217,"fpoe":-0.7217,"tgt":12.0,"tshare":0.115,"ayshare":0.0924,"wopr":0.2371,"adot":9.4167,"rec":7.0,"catch":0.5833,"recyds":89.0,"yac":5.2857,"racr":0.7876,"epa_t":0.1985,"rectd":0.0,"own":null,"sc":0},{"n":"Brian Thomas Jr.","gsis":"00-0039893","team":"JAX","g":6,"snap":0.4333,"fpg":4.25,"xfpg":5.9407,"fpoe":-1.6907,"tgt":19.0,"tshare":0.1134,"ayshare":0.1384,"wopr":0.267,"adot":11.5263,"rec":9.0,"catch":0.4737,"recyds":105.0,"yac":0.7778,"racr":0.4795,"epa_t":0.0922,"rectd":1.0,"own":"Andy","sc":0},{"n":"Josh Cameron","gsis":"00-0041100","team":"JAX","g":4,"snap":0.3417,"fpg":7.925,"xfpg":5.746,"fpoe":2.179,"tgt":12.0,"tshare":0.069,"ayshare":0.0479,"wopr":0.1371,"adot":4.9167,"rec":8.0,"catch":0.6667,"recyds":117.0,"yac":8.875,"racr":1.9831,"epa_t":0.7131,"rectd":2.0,"own":null,"sc":0},{"n":"Josh Palmer","gsis":"00-0036988","team":"BUF","g":4,"snap":0.37,"fpg":6.925,"xfpg":5.708,"fpoe":1.217,"tgt":11.0,"tshare":0.0946,"ayshare":0.2361,"wopr":0.3073,"adot":23.4545,"rec":4.0,"catch":0.3636,"recyds":117.0,"yac":4.25,"racr":0.4535,"epa_t":0.5019,"rectd":2.0,"own":null,"sc":0},{"n":"Bryce Lance","gsis":"00-0041067","team":"NO","g":6,"snap":0.6617,"fpg":3.2667,"xfpg":5.6238,"fpoe":-2.3572,"tgt":20.0,"tshare":0.0913,"ayshare":0.1407,"wopr":0.2354,"adot":13.25,"rec":7.0,"catch":0.35,"recyds":66.0,"yac":1.5714,"racr":0.2491,"epa_t":-0.7094,"rectd":1.0,"own":null,"sc":0},{"n":"Treylon Burks","gsis":"00-0037742","team":"WAS","g":4,"snap":0.495,"fpg":6.4,"xfpg":5.6033,"fpoe":0.7968,"tgt":11.0,"tshare":0.0992,"ayshare":0.1778,"wopr":0.2733,"adot":19.5455,"rec":5.0,"catch":0.4545,"recyds":86.0,"yac":3.8,"racr":0.4,"epa_t":0.1936,"rectd":2.0,"own":null,"sc":0},{"n":"Efton Chism III","gsis":"00-0040563","team":"NE","g":5,"snap":0.452,"fpg":5.128,"xfpg":5.6025,"fpoe":-0.4745,"tgt":14.0,"tshare":0.0905,"ayshare":0.0696,"wopr":0.1844,"adot":8.3571,"rec":9.0,"catch":0.6429,"recyds":98.0,"yac":1.3333,"racr":0.8376,"epa_t":0.1562,"rectd":1.0,"own":null,"sc":0},{"n":"Tory Horton","gsis":"00-0040648","team":"SEA","g":3,"snap":0.266,"fpg":5.9,"xfpg":5.4547,"fpoe":0.4453,"tgt":9.0,"tshare":0.0751,"ayshare":0.0811,"wopr":0.1694,"adot":8.4444,"rec":5.0,"catch":0.5556,"recyds":67.0,"yac":2.6,"racr":0.8816,"epa_t":0.2512,"rectd":1.0,"own":null,"sc":0},{"n":"Jerry Jeudy","gsis":"00-0036407","team":"CLE","g":5,"snap":0.59,"fpg":5.4,"xfpg":5.419,"fpoe":-0.019,"tgt":19.0,"tshare":0.137,"ayshare":0.1655,"wopr":0.3213,"adot":9.9474,"rec":12.0,"catch":0.6316,"recyds":150.0,"yac":3.25,"racr":0.7937,"epa_t":-0.0224,"rectd":0.0,"own":null,"sc":0},{"n":"Dohnte Meyers","gsis":"00-0040785","team":"CIN","g":5,"snap":0.416,"fpg":5.62,"xfpg":5.3924,"fpoe":0.2276,"tgt":18.0,"tshare":0.0862,"ayshare":0.0482,"wopr":0.1631,"adot":5.1667,"rec":13.0,"catch":0.7222,"recyds":141.0,"yac":5.5385,"racr":1.5161,"epa_t":0.1764,"rectd":0.0,"own":null,"sc":0},{"n":"Dyami Brown","gsis":"00-0036626","team":"WAS","g":5,"snap":0.462,"fpg":2.96,"xfpg":5.3723,"fpoe":-2.4123,"tgt":15.0,"tshare":0.0954,"ayshare":0.1646,"wopr":0.2583,"adot":17.8,"rec":8.0,"catch":0.5333,"recyds":88.0,"yac":1.5,"racr":0.3296,"epa_t":-0.2676,"rectd":0.0,"own":null,"sc":0},{"n":"Darnell Mooney","gsis":"00-0036309","team":"NYG","g":6,"snap":0.5483,"fpg":3.6333,"xfpg":5.334,"fpoe":-1.7007,"tgt":19.0,"tshare":0.0926,"ayshare":0.1325,"wopr":0.2317,"adot":13.5263,"rec":8.0,"catch":0.4211,"recyds":109.0,"yac":4.25,"racr":0.4241,"epa_t":0.035,"rectd":0.0,"own":null,"sc":0},{"n":"Cody White","gsis":"00-0035891","team":"LV","g":6,"snap":null,"fpg":6.3,"xfpg":5.3235,"fpoe":0.9765,"tgt":16.0,"tshare":0.0749,"ayshare":0.0907,"wopr":0.1758,"adot":10.0625,"rec":7.0,"catch":0.4375,"recyds":108.0,"yac":2.1429,"racr":0.6708,"epa_t":0.5805,"rectd":3.0,"own":null,"sc":0},{"n":"Konata Mumpfield","gsis":"00-0040590","team":"LA","g":5,"snap":0.415,"fpg":5.34,"xfpg":5.2994,"fpoe":0.0406,"tgt":17.0,"tshare":0.0841,"ayshare":0.1045,"wopr":0.1993,"adot":13.6471,"rec":8.0,"catch":0.4706,"recyds":127.0,"yac":5.125,"racr":0.5474,"epa_t":-0.0375,"rectd":1.0,"own":null,"sc":0},{"n":"Chris Bell","gsis":"00-0041525","team":"MIA","g":5,"snap":0.634,"fpg":3.36,"xfpg":5.1996,"fpoe":-1.8396,"tgt":15.0,"tshare":0.1142,"ayshare":0.223,"wopr":0.3274,"adot":19.5333,"rec":5.0,"catch":0.3333,"recyds":92.0,"yac":7.4,"racr":0.314,"epa_t":-0.0873,"rectd":0.0,"own":null,"sc":0},{"n":"Pat Bryant","gsis":"00-0040134","team":"DEN","g":4,"snap":0.5775,"fpg":7.975,"xfpg":5.1215,"fpoe":2.8535,"tgt":12.0,"tshare":0.1,"ayshare":0.1397,"wopr":0.2479,"adot":6.6667,"rec":9.0,"catch":0.75,"recyds":133.0,"yac":6.5556,"racr":1.6625,"epa_t":1.0289,"rectd":1.0,"own":null,"sc":0},{"n":"Elic Ayomanor","gsis":"00-0040170","team":"TEN","g":6,"snap":0.6,"fpg":4.3833,"xfpg":4.7863,"fpoe":-0.403,"tgt":14.0,"tshare":0.0922,"ayshare":0.1344,"wopr":0.2323,"adot":11.0714,"rec":7.0,"catch":0.5,"recyds":133.0,"yac":7.0,"racr":0.8581,"epa_t":0.0674,"rectd":1.0,"own":null,"sc":0},{"n":"Marvin Mims Jr.","gsis":"00-0038976","team":"DEN","g":3,"snap":0.2275,"fpg":2.7333,"xfpg":4.6967,"fpoe":-1.9633,"tgt":9.0,"tshare":0.0841,"ayshare":0.1331,"wopr":0.2194,"adot":5.6667,"rec":5.0,"catch":0.5556,"recyds":29.0,"yac":7.8,"racr":0.5686,"epa_t":-0.1411,"rectd":0.0,"own":null,"sc":0},{"n":"Skyy Moore","gsis":"00-0038090","team":"GB","g":5,"snap":0.3,"fpg":2.1,"xfpg":4.606,"fpoe":-2.506,"tgt":14.0,"tshare":0.0729,"ayshare":0.0502,"wopr":0.1445,"adot":5.0714,"rec":7.0,"catch":0.5,"recyds":35.0,"yac":4.5714,"racr":0.493,"epa_t":-0.2907,"rectd":0.0,"own":null,"sc":0},{"n":"Jalen Royals","gsis":"00-0040646","team":"KC","g":4,"snap":0.342,"fpg":3.775,"xfpg":4.5675,"fpoe":-0.7925,"tgt":9.0,"tshare":0.0604,"ayshare":0.054,"wopr":0.1284,"adot":5.3333,"rec":5.0,"catch":0.5556,"recyds":41.0,"yac":5.6,"racr":0.8542,"epa_t":-0.0281,"rectd":1.0,"own":null,"sc":0},{"n":"Isaiah Bond","gsis":"00-0040782","team":"CLE","g":3,"snap":0.2083,"fpg":4.5333,"xfpg":4.315,"fpoe":0.2183,"tgt":9.0,"tshare":0.0941,"ayshare":0.1493,"wopr":0.2457,"adot":13.3333,"rec":5.0,"catch":0.5556,"recyds":86.0,"yac":3.8,"racr":0.7167,"epa_t":0.3928,"rectd":0.0,"own":null,"sc":0},{"n":"Kyle Williams","gsis":"00-0040131","team":"NE","g":5,"snap":0.2833,"fpg":5.34,"xfpg":4.2732,"fpoe":1.0668,"tgt":11.0,"tshare":0.0635,"ayshare":0.1009,"wopr":0.1659,"adot":16.7273,"rec":6.0,"catch":0.5455,"recyds":147.0,"yac":4.6667,"racr":0.7989,"epa_t":0.275,"rectd":1.0,"own":null,"sc":0},{"n":"Tez Johnson","gsis":"00-0040237","team":"TB","g":6,"snap":0.34,"fpg":3.6833,"xfpg":4.189,"fpoe":-0.5057,"tgt":13.0,"tshare":0.0676,"ayshare":0.1676,"wopr":0.2187,"adot":20.3077,"rec":7.0,"catch":0.5385,"recyds":145.0,"yac":7.0,"racr":0.5492,"epa_t":0.2987,"rectd":0.0,"own":null,"sc":0},{"n":"Isaiah Williams","gsis":"00-0039451","team":"NYJ","g":6,"snap":0.6683,"fpg":5.7,"xfpg":3.9803,"fpoe":1.7197,"tgt":14.0,"tshare":0.0891,"ayshare":0.1502,"wopr":0.2388,"adot":9.0714,"rec":11.0,"catch":0.7857,"recyds":151.0,"yac":6.0909,"racr":1.189,"epa_t":0.5167,"rectd":1.0,"own":null,"sc":0},{"n":"Travis Hunter","gsis":"00-0040718","team":"JAX","g":3,"snap":0.0767,"fpg":6.6333,"xfpg":3.7047,"fpoe":2.9287,"tgt":6.0,"tshare":0.0286,"ayshare":0.0112,"wopr":0.0507,"adot":4.0,"rec":6.0,"catch":1.0,"recyds":76.0,"yac":8.6667,"racr":3.1667,"epa_t":1.3536,"rectd":1.0,"own":"Andy","sc":0},{"n":"Devontez Walker","gsis":"00-0039792","team":"BAL","g":5,"snap":0.498,"fpg":3.5,"xfpg":3.362,"fpoe":0.138,"tgt":9.0,"tshare":0.0634,"ayshare":0.1817,"wopr":0.2223,"adot":23.5556,"rec":4.0,"catch":0.4444,"recyds":75.0,"yac":2.0,"racr":0.3538,"epa_t":0.5662,"rectd":1.0,"own":null,"sc":0},{"n":"Malik Benson","gsis":"00-0040894","team":"LV","g":4,"snap":0.1267,"fpg":0.6,"xfpg":3.3513,"fpoe":-2.7513,"tgt":8.0,"tshare":0.0413,"ayshare":0.0822,"wopr":0.1195,"adot":15.375,"rec":2.0,"catch":0.25,"recyds":12.0,"yac":3.5,"racr":0.0976,"epa_t":-0.8246,"rectd":0.0,"own":null,"sc":0},{"n":"Olamide Zaccheaus","gsis":"00-0035208","team":"ATL","g":5,"snap":0.3867,"fpg":1.14,"xfpg":3.2146,"fpoe":-2.0746,"tgt":11.0,"tshare":0.0679,"ayshare":0.0446,"wopr":0.1331,"adot":5.3636,"rec":4.0,"catch":0.3636,"recyds":17.0,"yac":2.5,"racr":0.2881,"epa_t":-0.8452,"rectd":0.0,"own":null,"sc":0},{"n":"Calvin Ridley","gsis":"00-0034837","team":"TEN","g":5,"snap":0.5383,"fpg":2.62,"xfpg":3.0506,"fpoe":-0.4306,"tgt":10.0,"tshare":0.0789,"ayshare":0.0901,"wopr":0.1814,"adot":8.7,"rec":5.0,"catch":0.5,"recyds":81.0,"yac":6.8,"racr":0.931,"epa_t":0.1102,"rectd":0.0,"own":null,"sc":0},{"n":"Zachariah Branch","gsis":"00-0041044","team":"ATL","g":5,"snap":0.2417,"fpg":3.3,"xfpg":2.9806,"fpoe":0.3194,"tgt":10.0,"tshare":0.0618,"ayshare":0.0108,"wopr":0.1003,"adot":1.1,"rec":9.0,"catch":0.9,"recyds":55.0,"yac":6.7778,"racr":5.0,"epa_t":-0.0383,"rectd":0.0,"own":null,"sc":0},{"n":"Bo Melton","gsis":"00-0037091","team":"GB","g":5,"snap":0.25,"fpg":1.4,"xfpg":2.5806,"fpoe":-1.1806,"tgt":8.0,"tshare":0.0402,"ayshare":0.0484,"wopr":0.0942,"adot":10.625,"rec":4.0,"catch":0.5,"recyds":30.0,"yac":2.5,"racr":0.3529,"epa_t":-0.4016,"rectd":0.0,"own":null,"sc":0},{"n":"Jalen McMillan","gsis":"00-0039855","team":"TB","g":1,"snap":0.07,"fpg":0.0,"xfpg":1.522,"fpoe":-1.522,"tgt":1.0,"tshare":0.0286,"ayshare":0.0381,"wopr":0.0695,"adot":15.0,"rec":0.0,"catch":0.0,"recyds":0.0,"yac":null,"racr":0.0,"epa_t":-1.635,"rectd":0.0,"own":"Andy","sc":0}]}</script>
+<script>
+const D = JSON.parse(document.getElementById('payload').textContent);
+const M = D.meta, POS = M.pos;
+const $ = s => document.querySelector(s);
+const el = (t,c,x)=>{const n=document.createElement(t);if(c)n.className=c;
+  if(x!==undefined&&x!==null)n.textContent=x;return n};
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const NAME = {QB:'Quarterbacks',RB:'Running backs',WR:'Receivers',TE:'Tight ends'};
+document.title = NAME[POS] + ' \u00b7 ' + M.season;
+
+(function(){
+  const root=document.documentElement;
+  const btns=[...document.querySelectorAll('.theme button')];
+  function apply(t,store){
+    if(t==='dark') root.setAttribute('data-theme','dark');
+    else root.removeAttribute('data-theme');
+    btns.forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.t===t)));
+    if(store){ try{ localStorage.setItem('ffl-theme',t); }catch(e){} }
+    if(window.redraw) window.redraw();
+  }
+  let cur='light';
+  try{ if(localStorage.getItem('ffl-theme')==='dark') cur='dark'; }catch(e){}
+  apply(cur,false);
+  btns.forEach(b=>b.addEventListener('click',()=>apply(b.dataset.t,true)));
+})();
+
+$('#brand').append(document.createTextNode(NAME[POS]+' '));
+$('#brand').append(el('span',null,String(M.season)));
+$('#backS').href=M.seasonPage; $('#backR').href=M.recordBook;
+const pills=$('#pills');
+[['Analysis',M.analysisPage]].concat(['QB','RB','WR','TE'].map(p=>[p,M.pages[p]])).forEach(([l,h])=>{
+  const a=el('a',null,l);a.href=h;if(l===POS)a.setAttribute('aria-current','page');pills.append(a)});
+$('#state').textContent='NFL weeks '+M.nflWeeks[0]+'\u2013'+M.nflWeeks[1]+' \u00b7 fantasy rosters as of league week '+M.rosterWeek+
+  ' \u00b7 points scored with this league\u2019s rules (full PPR) \u00b7 '+M.gate+'.';
+
+const fOwn=$('#fOwn');
+fOwn.innerHTML='<option value="">All players</option><option value="*">Rostered</option><option value="-">Free agents</option>'+
+  M.managers.map(m=>'<option>'+m+'</option>').join('');
+try{const s=localStorage.getItem('ffl-own');if(s!==null&&[...fOwn.options].some(o=>o.value===s))fOwn.value=s;}catch(e){}
+const fQ=$('#fQ');
+
+const fmt=(v,f)=>{if(v===null||v===undefined)return '\u2013';
+  if(f==='i')return Math.round(v).toLocaleString();
+  if(f==='1')return v.toFixed(1); if(f==='2')return v.toFixed(2);
+  if(f==='pct')return (v*100).toFixed(f==='pct'?0:1)+'%';
+  if(f==='pm1')return (v>0?'+':v<0?'\u2212':'')+Math.abs(v).toFixed(1);
+  return v};
+const own=fOwn.value, match=r=>{const o=fOwn.value,q=fQ.value.trim().toLowerCase();
+  if(o==='*'&&!r.own)return false; if(o==='-'&&r.own)return false;
+  if(o&&o!=='*'&&o!=='-'&&r.own!==o)return false;
+  if(q&&!r.n.toLowerCase().includes(q))return false; return true};
+const isMine=r=>{const o=fOwn.value;return o&&o!=='*'&&o!=='-'?r.own===o:o==='-'?!r.own:o==='*'?!!r.own:false};
+
+/* ---------------- scatter: opportunity vs finishing ---------------- */
+const SC=D.players.filter(r=>r.sc);
+const sc=el('div','card'),shd=el('div','hd');
+shd.append(el('h2',null,'Opportunity vs. finishing'));
+shd.append(el('span','chip','top '+SC.length+' by xFP/G'));
+shd.append(el('div','sub','Right = more valuable volume (expected fantasy points per game). Up = scoring above what that volume usually produces, down = below. Gaps from expectation tend to shrink, so the far right is the steadiest place to be.'));
+const sbd=el('div','bd flush'),swrap=el('div');swrap.style.position='relative';
+const tip=el('div','ps-tip');swrap.append(tip);
+const svgN=document.createElementNS('http://www.w3.org/2000/svg','svg');svgN.setAttribute('class','ps-svg');
+svgN.setAttribute('role','img');svgN.setAttribute('aria-label',NAME[POS]+': expected fantasy points per game versus points above expectation');
+swrap.append(svgN);sbd.append(swrap);
+const sft=el('div','ft');
+sft.innerHTML='<b>How to read it</b> xFP/G comes from the ffopportunity model: each target, carry and pass is valued by what plays like it (down, distance, field position, air yards) are worth on average, then scored with league rules. Logos are each player\u2019s current NFL team.';
+sc.append(shd,sbd,sft);$('#scatter').append(sc);
+
+function drawScatter(){
+  const phone=matchMedia('(max-width:640px)').matches;
+  const W=phone?380:940,H=phone?440:540,m={t:16,r:16,b:44,l:phone?38:48},fs=phone?10.5:12,LG=phone?17:24;
+  svgN.setAttribute('viewBox','0 0 '+W+' '+H);
+  const svg=d3.select(svgN);svg.selectAll('*').remove();
+  const x=d3.scaleLinear(d3.extent(SC,d=>d.xfpg),[m.l+LG/2,W-m.r-LG/2]).nice();
+  const yr=d3.max(SC,d=>Math.abs(d.fpoe))*1.08;
+  const y=d3.scaleLinear([-yr,yr],[H-m.b,m.t]).nice();
+  svg.append('rect').attr('x',m.l).attr('y',m.t).attr('width',W-m.l-m.r).attr('height',y(0)-m.t).attr('style','fill:color-mix(in srgb,var(--rowan) 6%,transparent)');
+  svg.append('rect').attr('x',m.l).attr('y',y(0)).attr('width',W-m.l-m.r).attr('height',H-m.b-y(0)).attr('style','fill:color-mix(in srgb,var(--glacial) 6%,transparent)');
+  const xt=x.ticks(phone?5:8);
+  xt.forEach(t=>{svg.append('line').attr('x1',x(t)).attr('x2',x(t)).attr('y1',m.t).attr('y2',H-m.b).attr('style','stroke:var(--line)');});
+  for(let i=0;i<xt.length-1;i++)for(let k=1;k<5;k++){const hx=x(xt[i]+(xt[i+1]-xt[i])*k/5);
+    [[m.t,m.t+6],[H-m.b-6,H-m.b]].forEach(([a,b])=>svg.append('line').attr('x1',hx).attr('x2',hx).attr('y1',a).attr('y2',b).attr('style','stroke:var(--line)'));}
+  y.ticks(6).forEach(t=>{svg.append('line').attr('x1',m.l).attr('x2',W-m.r).attr('y1',y(t)).attr('y2',y(t)).attr('style','stroke:var(--grid)')
+    .attr('stroke-width',t===0?0:1);
+    svg.append('text').attr('x',m.l-6).attr('y',y(t)+4).attr('text-anchor','end').attr('font-size',fs).attr('style','fill:var(--muted)').text((t>0?'+':t<0?'\u2212':'')+Math.abs(t));});
+  xt.forEach(t=>svg.append('text').attr('x',x(t)).attr('y',H-m.b+16).attr('text-anchor','middle').attr('font-size',fs).attr('style','fill:var(--muted)').text(t));
+  svg.append('line').attr('x1',m.l).attr('x2',W-m.r).attr('y1',y(0)).attr('y2',y(0)).attr('style','stroke:var(--fissure);stroke-opacity:.55');
+  svg.append('text').attr('x',W-m.r-6).attr('y',m.t+16).attr('text-anchor','end').attr('font-size',fs).attr('style','fill:var(--muted)').text('scoring above the volume');
+  svg.append('text').attr('x',W-m.r-6).attr('y',H-m.b-10).attr('text-anchor','end').attr('font-size',fs).attr('style','fill:var(--muted)').text('scoring below the volume');
+  svg.append('text').attr('x',(m.l+W-m.r)/2).attr('y',H-8).attr('text-anchor','middle').attr('font-size',fs+1).attr('style','fill:var(--muted)').text('Expected fantasy points per game (xFP/G) \u2192');
+  svg.append('text').attr('transform','translate(12,'+((m.t+H-m.b)/2)+') rotate(-90)').attr('text-anchor','middle').attr('font-size',fs+1).attr('style','fill:var(--muted)').text('Points vs. expected, per game');
+  const any=fOwn.value!==''||fQ.value.trim()!=='';
+  const on=r=>!any||match(r);
+  const pts=[...SC].sort((a,b)=>on(a)-on(b));
+  const g=svg.append('g');
+  g.selectAll('circle').data(pts.filter(r=>any&&on(r)&&isMine(r))).join('circle').attr('cx',d=>x(d.xfpg)).attr('cy',d=>y(d.fpoe)).attr('r',LG/2+3)
+    .attr('style','fill:none;stroke:var(--birch);stroke-width:2.5');
+  g.selectAll('image').data(pts).join('image').attr('href',d=>'logos/nfl/'+d.team+'.png')
+    .attr('x',d=>x(d.xfpg)-LG/2).attr('y',d=>y(d.fpoe)-LG/2).attr('width',LG).attr('height',LG)
+    .attr('opacity',d=>on(d)?1:.16)
+    .on('mousemove',(e,d)=>{const b=swrap.getBoundingClientRect();tip.style.opacity=1;
+      tip.innerHTML='<b>'+d.n+'</b> \u00b7 '+d.team+(d.own?' \u00b7 '+d.own:' \u00b7 free agent')+'<br>xFP/G '+d.xfpg.toFixed(1)+' \u00b7 FP/G '+d.fpg.toFixed(1)+
+        '<br>'+(d.fpoe>=0?'+':'\u2212')+Math.abs(d.fpoe).toFixed(1)+' per game vs. expected \u00b7 '+d.g+' G';
+      let L=e.clientX-b.left+14;if(L>b.width-230)L-=250;tip.style.left=L+'px';tip.style.top=(e.clientY-b.top-14)+'px'})
+    .on('mouseleave',()=>tip.style.opacity=0);
+  const placed=[],out=[],cw=fs*.53;
+  const order=[...SC].filter(on).sort((a,b)=>(isMine(b)-isMine(a))||b.xfpg-a.xfpg);
+  for(const d of order){const cx=x(d.xfpg),cy=y(d.fpoe),nm=d.n.split(' ').filter(w=>!/^(Jr\.?|Sr\.?|II|III|IV|V)$/.test(w)).slice(-1)[0],w=nm.length*cw+2,h=fs+1,rr=LG/2+2;
+    for(const [lx,ly,a] of [[cx+rr,cy+4,'start'],[cx-rr,cy+4,'end'],[cx,cy-rr-2,'middle'],[cx,cy+rr+fs,'middle']]){
+      const x0=a==='start'?lx:a==='end'?lx-w:lx-w/2,bx=[x0,ly-h+2,x0+w,ly+2];
+      if(bx[0]<m.l||bx[2]>W-m.r||bx[1]<m.t||bx[3]>H-m.b)continue;
+      if(placed.some(p=>!(bx[2]<p[0]||bx[0]>p[2]||bx[3]<p[1]||bx[1]>p[3])))continue;
+      if(SC.some(o=>o!==d&&Math.abs(x(o.xfpg)-Math.max(bx[0],Math.min(x(o.xfpg),bx[2])))<LG/2&&Math.abs(y(o.fpoe)-Math.max(bx[1],Math.min(y(o.fpoe),bx[3])))<LG/2))continue;
+      placed.push(bx);out.push({d,lx,ly,a,nm});break}}
+  svg.append('g').selectAll('text').data(out).join('text').attr('x',o=>o.lx).attr('y',o=>o.ly).attr('text-anchor',o=>o.a)
+    .attr('font-size',fs).attr('style',o=>'fill:var(--text);font-weight:'+(isMine(o.d)?700:400)).text(o=>o.nm);
+}
+
+/* ---------------- table ---------------- */
+const tc=el('div','card'),thd=el('div','hd');
+thd.append(el('h2',null,NAME[POS]+' leaderboard'));
+thd.append(el('span','chip','click a column to sort'));
+const tw=el('div','ps-tw'),tbl=el('table','ps-t');tw.append(tbl);
+const tbd=el('div','bd flush');tbd.append(tw);
+const tft=el('div','ft');
+tft.innerHTML='<b>Sources</b> nflverse-data stats_player_week, snap_counts and players (nflfastR parse of NFL GSIS); ffverse ffopportunity ep_weekly (expected points). Fantasy points re-scored with league rules and checked against ESPN: 96\u201397% of rostered player-weeks match to the decimal. Hover a column for its definition. Built '+M.generated+'.';
+tc.append(thd,tbd,tft);$('#table').append(tc);
+const COLS=[{k:'n',l:'Player',f:'s',d:'Player, NFL team, and the league manager who rosters him'}].concat(D.cols);
+let sortK='xfpg',sortD=-1;
+function drawTable(){
+  const rows=D.players.filter(match).sort((a,b)=>{const A=a[sortK],B=b[sortK];
+    if(sortK==='n')return sortD*(A<B?-1:A>B?1:0);
+    return sortD*((A===null||A===undefined?-1e9:A)-(B===null||B===undefined?-1e9:B))});
+  $('#count').textContent=rows.length+' of '+D.players.length+' '+NAME[POS].toLowerCase();
+  const th='<thead><tr>'+COLS.map(c=>'<th title="'+c.d.replace(/"/g,'&quot;')+'"'+(c.k===sortK?' data-on':'')+' data-k="'+c.k+'">'+c.l+(c.k===sortK?(sortD<0?' \u25be':' \u25b4'):'')+'</th>').join('')+'</tr></thead>';
+  const body=rows.map(r=>'<tr'+(isMine(r)&&fOwn.value&&fOwn.value!=='*'&&fOwn.value!=='-'?' class="mine"':'')+'>'+COLS.map(c=>{
+    if(c.k==='n')return '<td>'+r.n+'<span class="tm">'+r.team+'</span>'+(r.own?'<span class="own">'+r.own+'</span>':'')+'</td>';
+    const v=r[c.k];let st='',cls='';
+    if(c.k==='fpoe'&&v!==null){const a=Math.min(Math.abs(v)/6,1)*30;st=' style="background:color-mix(in srgb,var('+(v>0?'--rowan':'--glacial')+') '+a.toFixed(0)+'%,transparent)"';}
+    if(c.k==='xfpg'||c.k==='fpg')cls=' class="k"';
+    return '<td'+cls+st+'>'+fmt(v,c.f)+'</td>'}).join('')+'</tr>').join('');
+  tbl.innerHTML=th+'<tbody>'+body+'</tbody>';
+  tbl.querySelectorAll('th').forEach(h=>h.addEventListener('click',()=>{const k=h.dataset.k;
+    if(k===sortK)sortD=-sortD;else{sortK=k;sortD=k==='n'?1:-1}drawTable()}));
+}
+window.redraw=()=>{drawScatter();drawTable()};
+fOwn.addEventListener('change',()=>{try{localStorage.setItem('ffl-own',fOwn.value)}catch(e){}window.redraw()});
+fQ.addEventListener('input',window.redraw);
+matchMedia('(max-width:640px)').addEventListener('change',drawScatter);
+window.redraw();
+</script>

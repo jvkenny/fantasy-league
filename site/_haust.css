@@ -1,0 +1,34 @@
+/* Haust skin (John's Iceland palette, ~/dev/.agents/skills/iceland-palette)
+   for the analysis + position stat pages. Overrides the site tokens only under
+   [data-skin=haust], so the record book and season tracker are untouched.
+   Football read: an overcast late-season ground (mist/frost; basalt at night),
+   accents spent only on data - rowan = above expectation and the hero accent,
+   glacial = below, birch = "this manager's players". 80/20: the grounds stay
+   quiet. Text accent is a darkened rowan (#9A4A18, 5.9:1 on frost) because
+   true rowan is 3.9:1 on mist; marks keep true rowan. */
+:root[data-skin=haust]{
+  --ground:#E8EDF2;--surface:#F6F8FA;--raised:#DCE3EA;--line:#C9D2DB;
+  --text:#1F1D18;--muted:#6B6156;--accent:#9A4A18;--accentbg:#F3E3D6;
+  --win:#2F6B73;--loss:#B95A1F;--grid:#DCE2E8;
+  --rowan:#B95A1F;--glacial:#2F6B73;--birch:#CC9C2E;--birchbg:#F6EDD3;
+  --bruar:#4DA3AC;--fissure:#1F1D18;--turf:#E3E9EE}
+:root[data-skin=haust][data-theme=dark]{
+  --ground:#16191C;--surface:#1F2429;--raised:#272D34;--line:#343C44;
+  --text:#E8EDF2;--muted:#9AA5B1;--accent:#E09A5F;--accentbg:#33261D;
+  --win:#5BB4BD;--loss:#C96A2E;--grid:#2A3138;
+  --rowan:#C96A2E;--glacial:#5BB4BD;--birch:#D6A836;--birchbg:#3A3220;
+  --bruar:#5BB4BD;--fissure:#E8EDF2;--turf:#1B2024}
+[data-skin=haust] body{background:var(--ground)}
+/* position pills: a down-and-distance bar */
+.pills{margin:2px 0 10px;display:flex;gap:0;border:1px solid var(--line);width:max-content;max-width:100%;overflow-x:auto}
+.pills a{font:700 15px/1 'Barlow Condensed',sans-serif;letter-spacing:.08em;text-transform:uppercase;
+  padding:8px 14px;color:var(--muted);text-decoration:none;border-right:1px solid var(--line)}
+.pills a:last-child{border-right:0}
+.pills a[aria-current]{background:var(--fissure);color:var(--ground)}
+.pills a:hover{color:var(--accent)}
+.num{font-family:'Barlow Condensed',sans-serif;font-variant-numeric:tabular-nums}
+.own{display:inline-block;font:600 11px/1.5 'Source Sans 3',sans-serif;padding:0 6px;border:1px solid var(--line);
+  color:var(--muted);margin-left:6px;white-space:nowrap}
+tr.mine td{background:var(--birchbg)}
+tr.mine td:first-child{box-shadow:inset 3px 0 0 var(--birch)}
+tr.mine .own{border-color:var(--birch);color:var(--text)}
