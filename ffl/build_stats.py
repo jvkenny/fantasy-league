@@ -103,8 +103,10 @@ def aggregate(season: int, reg_weeks: int, ids: dict) -> dict:
     for r in ep:
         p = P.setdefault(r["gsis"], {"gsis": r["gsis"], "name": r["name"], "pos": r["pos"],
                                      "fp": 0.0, "xfp": 0.0, "weeks": set(), "team": r["team"],
-                                     "lastwk": 0, "s": {}, "snaps": []})
+                                     "lastwk": 0, "s": {}, "snaps": [], "wkly": {}})
         p["fp"] += r["fp"]; p["xfp"] += r["xfp"]; p["weeks"].add(r["week"])
+        w = p["wkly"].setdefault(r["week"], [0.0, 0.0])
+        w[0] += r["fp"]; w[1] += r["xfp"]
         if r["week"] >= p["lastwk"]:
             p["lastwk"], p["team"] = r["week"], r["team"]
     for r in sw:
@@ -138,6 +140,8 @@ def row(p: dict) -> dict:
     out = {"n": p["name"], "gsis": p["gsis"], "team": p["team"], "g": g,
            "snap": mean(p["snaps"]),
            "fpg": p["fp"] / g, "xfpg": p["xfp"] / g, "fpoe": (p["fp"] - p["xfp"]) / g}
+    # per-week [week, FP, xFP] for the week-by-week panels
+    wk = [[w, round(v[0], 1), round(v[1], 1)] for w, v in sorted(p["wkly"].items())]
     pos = p["pos"]
     if pos == "QB":
         db = s.get("attempts", 0) + s.get("sacks_suffered", 0)
@@ -167,7 +171,9 @@ def row(p: dict) -> dict:
                    racr=div(s.get("receiving_yards", 0), s.get("receiving_air_yards", 0)),
                    epa_t=div(s.get("receiving_epa", 0), s.get("targets", 0)),
                    rectd=s.get("receiving_tds", 0))
-    return {k: (round(v, 4) if isinstance(v, float) else v) for k, v in out.items()}
+    out = {k: (round(v, 4) if isinstance(v, float) else v) for k, v in out.items()}
+    out["wk"] = wk
+    return out
 
 
 def gate_value(p: dict) -> float:

@@ -22,6 +22,14 @@ __HAUST__
 .ps-t td.k{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700}
 .ps-t tr:hover td{background:var(--raised)}
 .ps-meta{font-size:13px;color:var(--muted);padding:10px 20px}
+.wk-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(260px,100%),1fr));gap:0;border-top:1px solid var(--line)}
+.wk-p{padding:12px 14px 8px;border-right:1px solid var(--grid);border-bottom:1px solid var(--grid);position:relative}
+.wk-h{display:flex;align-items:center;gap:7px;font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden}
+.wk-h img{width:20px;height:20px}.wk-h .tm{font-weight:400;color:var(--muted);font-size:12px}
+.wk-s{font-size:12px;color:var(--muted);margin:2px 0 4px}
+.wk-p svg{display:block;width:100%;height:auto}
+.wk-leg{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--muted);padding:12px 20px}
+.wk-leg i{display:inline-block;vertical-align:middle;margin-right:6px}
 @media (max-width:640px){.ps-meta{padding:10px 14px}.ps-t{font-size:13px}.ps-t td:first-child{min-width:120px}}
 </style>
 <script>
@@ -55,6 +63,8 @@ try{if(localStorage.getItem('ffl-theme')==='dark')
     <span id="count"></span>
   </div>
   <div id="scatter"></div>
+  <div class="yard"><i>50</i></div>
+  <div id="weekly"></div>
   <div class="yard"><i>50</i></div>
   <div id="table"></div>
 </main>
@@ -179,6 +189,50 @@ function drawScatter(){
     .attr('font-size',fs).attr('style',o=>'fill:var(--text);font-weight:'+(isMine(o.d)?700:400)).text(o=>o.nm);
 }
 
+/* ---------------- week by week ---------------- */
+const WMAX=Math.max(...D.players.flatMap(r=>r.wk.map(w=>w[0])));
+const wc=el('div','card'),whd=el('div','hd');
+whd.append(el('h2',null,'Week by week'));
+const wchip=el('span','chip','');whd.append(wchip);
+whd.append(el('div','sub','Each week’s fantasy points against what that week’s opportunities were worth. Same scale in every panel.'));
+const wbd=el('div','bd flush'),wleg=el('div','wk-leg');
+wleg.innerHTML='<span><i style="width:18px;height:2px;background:var(--fissure)"></i>actual points</span>'+
+  '<span><i style="width:18px;border-top:2px dashed var(--muted)"></i>expected points (xFP)</span>'+
+  '<span><i style="width:7px;height:12px;background:color-mix(in srgb,var(--glacial) 55%,transparent)"></i>above expected</span>'+
+  '<span><i style="width:7px;height:12px;background:color-mix(in srgb,var(--rowan) 55%,transparent)"></i>below expected</span>';
+const wgrid=el('div','wk-grid');wbd.append(wleg,wgrid);wc.append(whd,wbd);$('#weekly').append(wc);
+const WN=12;
+function drawWeekly(){
+  const rows=D.players.filter(match).sort((a,b)=>b.xfpg-a.xfpg);
+  const show=rows.slice(0,WN);
+  wchip.textContent=show.length<rows.length?('top '+show.length+' of '+rows.length+' by xFP/G · filter or search to change'):(show.length+' players');
+  const ymax=Math.max(10,...show.flatMap(r=>r.wk.flatMap(w=>[w[1],w[2]])));
+  const W=260,H=120,m={t:8,r:6,b:18,l:24};
+  const x=w=>m.l+(w-1)/(Math.max(WMAX,2)-1)*(W-m.l-m.r), y=v=>H-m.b-Math.max(0,v)/ymax*(H-m.t-m.b);
+  const yt=[0,Math.round(ymax/2/5)*5||5,Math.floor(ymax/5)*5].filter((v,i,a)=>a.indexOf(v)===i&&v<=ymax);
+  wgrid.innerHTML='';
+  show.forEach(r=>{
+    const p=el('div','wk-p'),h=el('div','wk-h');
+    const im=document.createElement('img');im.src='logos/nfl/'+r.team+'.png';im.alt='';h.append(im,document.createTextNode(r.n));
+    const tm=el('span','tm',r.team+(r.own?' · '+r.own:''));h.append(tm);
+    const sm=el('div','wk-s',r.fpg.toFixed(1)+' FP/G · '+r.xfpg.toFixed(1)+' xFP/G · '+r.g+' G');
+    const byw=Object.fromEntries(r.wk.map(w=>[w[0],w]));
+    let g='';
+    yt.forEach(t=>{g+='<line x1="'+m.l+'" x2="'+(W-m.r)+'" y1="'+y(t)+'" y2="'+y(t)+'" style="stroke:var(--grid)"/><text x="'+(m.l-4)+'" y="'+(y(t)+3.5)+'" text-anchor="end" font-size="9.5" style="fill:var(--muted)">'+t+'</text>'});
+    for(let w=1;w<=WMAX;w++){g+='<text x="'+x(w)+'" y="'+(H-4)+'" text-anchor="middle" font-size="9.5" style="fill:var(--muted)">'+w+'</text>';
+      const d=byw[w];if(!d)continue;const up=d[1]>=d[2];
+      g+='<line x1="'+x(w)+'" x2="'+x(w)+'" y1="'+y(d[1])+'" y2="'+y(d[2])+'" stroke-width="7" style="stroke:color-mix(in srgb,var('+(up?'--glacial':'--rowan')+') 55%,transparent)"><title>Week '+w+': '+d[1].toFixed(1)+' FP vs '+d[2].toFixed(1)+' xFP</title></line>';}
+    const seg=(k,st)=>{let path='',prev=null;for(let w=1;w<=WMAX;w++){const d=byw[w];if(!d){prev=null;continue}
+      path+=(prev===w-1?'L':'M')+x(w).toFixed(1)+','+y(d[k]).toFixed(1);prev=w}return '<path d="'+path+'" fill="none" style="'+st+'" stroke-linejoin="round" stroke-linecap="round"/>'};
+    g+=seg(2,'stroke:var(--muted);stroke-width:1.6;stroke-dasharray:4 3');
+    g+=seg(1,'stroke:var(--fissure);stroke-width:2');
+    r.wk.forEach(d=>{g+='<circle cx="'+x(d[0])+'" cy="'+y(d[1])+'" r="2.6" style="fill:var(--fissure)"/>'});
+    const sv=document.createElementNS('http://www.w3.org/2000/svg','svg');sv.setAttribute('viewBox','0 0 '+W+' '+H);
+    sv.setAttribute('role','img');sv.setAttribute('aria-label',r.n+' weekly fantasy points versus expected');sv.innerHTML=g;
+    if(isMine(r)&&fOwn.value&&fOwn.value!=='*'&&fOwn.value!=='-')p.style.boxShadow='inset 3px 0 0 var(--birch)';
+    p.append(h,sm,sv);wgrid.append(p)});
+}
+
 /* ---------------- table ---------------- */
 const tc=el('div','card'),thd=el('div','hd');
 thd.append(el('h2',null,NAME[POS]+' leaderboard'));
@@ -206,7 +260,7 @@ function drawTable(){
   tbl.querySelectorAll('th').forEach(h=>h.addEventListener('click',()=>{const k=h.dataset.k;
     if(k===sortK)sortD=-sortD;else{sortK=k;sortD=k==='n'?1:-1}drawTable()}));
 }
-window.redraw=()=>{drawScatter();drawTable()};
+window.redraw=()=>{drawScatter();drawWeekly();drawTable()};
 fOwn.addEventListener('change',()=>{try{localStorage.setItem('ffl-own',fOwn.value)}catch(e){}window.redraw()});
 fQ.addEventListener('input',window.redraw);
 matchMedia('(max-width:640px)').addEventListener('change',drawScatter);
