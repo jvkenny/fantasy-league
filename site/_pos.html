@@ -173,7 +173,7 @@ function drawScatter(){
       const x0=a==='start'?lx:a==='end'?lx-w:lx-w/2,bx=[x0,ly-h+2,x0+w,ly+2];
       if(bx[0]<m.l||bx[2]>W-m.r||bx[1]<m.t||bx[3]>H-m.b)continue;
       if(placed.some(p=>!(bx[2]<p[0]||bx[0]>p[2]||bx[3]<p[1]||bx[1]>p[3])))continue;
-      if(SC.some(o=>o!==d&&Math.abs(x(o.xfpg)-Math.max(bx[0],Math.min(x(o.xfpg),bx[2])))<LG/2&&Math.abs(y(o.fpoe)-Math.max(bx[1],Math.min(y(o.fpoe),bx[3])))<LG/2))continue;
+      if(SC.some(o=>o!==d&&on(o)&&Math.abs(x(o.xfpg)-Math.max(bx[0],Math.min(x(o.xfpg),bx[2])))<LG/2&&Math.abs(y(o.fpoe)-Math.max(bx[1],Math.min(y(o.fpoe),bx[3])))<LG/2))continue;
       placed.push(bx);out.push({d,lx,ly,a,nm});break}}
   svg.append('g').selectAll('text').data(out).join('text').attr('x',o=>o.lx).attr('y',o=>o.ly).attr('text-anchor',o=>o.a)
     .attr('font-size',fs).attr('style',o=>'fill:var(--text);font-weight:'+(isMine(o.d)?700:400)).text(o=>o.nm);
