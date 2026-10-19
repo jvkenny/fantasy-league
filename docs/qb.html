@@ -380,7 +380,7 @@ const sgn=(v,d)=>(v>0?'+':v<0?'\u2212':'')+Math.abs(v).toFixed(d);
 function plate(F,idx){
   const L=F.league,[w0,w1]=F.weeks;
   const c=el('div','card'),hd=el('div','hd');
-  hd.append(el('h2',null,'Plate '+ROMAN[idx]+' \u00b7 '+F.title));
+  hd.append(el('h2',null,F.title));
   hd.append(el('span','chip',F.season+' \u00b7 weeks '+w0+'\u2013'+w1));
   hd.append(el('div','sub',F.scope+' \u00b7 min '+F.min+' '+F.unit+' \u00b7 '+L.qbs_qualified+' QBs \u00b7 '+L.plays.toLocaleString()+' plays'));
   const bd=el('div','bd flush');
