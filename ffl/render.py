@@ -76,6 +76,13 @@ def main() -> int:
     if stpl.exists() and sdat.exists():
         rc |= build(stpl, sdat, REPO / "site" / "season.html",
                     REPO / "docs" / "season.html")
+    # QB plates: league-wide NFL charts; payload written by
+    # ~/dev/data/analyses/nfl-qb-scatter/publish.py
+    qtpl = REPO / "site" / "_qb.html"
+    qdat = REPO / "site" / "qb.json"
+    if qtpl.exists() and qdat.exists():
+        rc |= build(qtpl, qdat, REPO / "site" / "qb.html",
+                    REPO / "docs" / "qb.html")
     return rc
 
 

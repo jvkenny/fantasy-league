@@ -7,7 +7,9 @@ refresh; this file is what you need to change the code safely.
 
 - **What:** a full historical export of one private ESPN fantasy football league (2018–present)
   and a two-page static site built from it: the all-time record book (`/`) and the current
-  season tracker (`/season.html`).
+  season tracker (`/season.html`), plus `/qb.html` — league-wide NFL QB scatter
+  plates whose payload `site/qb.json` is written by `~/dev/data/analyses/nfl-qb-scatter/publish.py`
+  (nflverse data, not ESPN; render-only here).
 - **Repository:** `github.com/jvkenny/fantasy-league` (public). Default branch `main`.
   The maintainer's local checkout directory is named `fantasy-football`; that name is also the
   secret-store item name, so do not rename it.
@@ -24,8 +26,8 @@ ffl.normalize  data/raw -> data/derived/*.json             (gitignored; carries 
 ffl.build_site      data/derived -> site/data.json         (all-time payload, committed)
 ffl.build_season    data/derived -> site/season.json       (current-season payload, committed)
 ffl.render     site/_template.html + _season.html + _theme.css + _charts.js + payloads
-               -> site/index.html, site/season.html        (fragments for an artifact host)
-               -> docs/index.html, docs/season.html        (standalone pages for GitHub Pages)
+               -> site/index.html, site/season.html, site/qb.html   (fragments for an artifact host)
+               -> docs/index.html, docs/season.html, docs/qb.html   (standalone pages for GitHub Pages)
 ffl.seed_week0 week-0 power ranking from the draft (regenerable; never hand-place outlook files)
 ```
 
