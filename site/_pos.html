@@ -119,7 +119,7 @@ const SC=D.players.filter(r=>r.sc);
 const sc=el('div','card'),shd=el('div','hd');
 shd.append(el('h2',null,'Opportunity vs. finishing'));
 shd.append(el('span','chip','top '+SC.length+' by xFP/G'));
-shd.append(el('div','sub','Right = more valuable volume (expected fantasy points per game). Up = scoring above what that volume usually produces, down = below. Gaps from expectation tend to shrink, so the far right is the steadiest place to be.'));
+shd.append(el('div','sub','Right = more valuable volume (expected fantasy points per game). Up = scoring above what that volume usually produces, down = below.'));
 const sbd=el('div','bd flush'),swrap=el('div');swrap.style.position='relative';
 const tip=el('div','ps-tip');swrap.append(tip);
 const svgN=document.createElementNS('http://www.w3.org/2000/svg','svg');svgN.setAttribute('class','ps-svg');

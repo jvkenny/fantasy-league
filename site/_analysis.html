@@ -83,7 +83,7 @@ const el = (t,c,x)=>{const n=document.createElement(t);if(c)n.className=c;
 $('#brand').append(document.createTextNode('League '));
 $('#brand').append(el('span',null,'Analysis'));
 $('#backS').href=D.meta.seasonPage; $('#backR').href=D.meta.recordBook;
-$('#state').textContent='Charts and analysis for the league, sourced and reproducible. Newest first. Position pages: QB, RB, WR, TE above.';
+$('#state').textContent='Charts and analysis for the league.';
 
 const sgn=(v,d)=>(v>0?'+':v<0?'−':'')+Math.abs(v).toFixed(d);
 
@@ -95,15 +95,10 @@ function teamGrade(F){
   const c=el('div','card'),hd=el('div','hd');
   hd.append(el('h2',null,F.title));
   hd.append(el('span','chip',F.season+' \u00b7 rosters wk '+F.rosterWeek+' \u00b7 NFL wks '+F.nflWeeks[0]+'\u2013'+F.nflWeeks[1]));
-  const B=F.backtest;
   let sub='Each roster\u2019s best legal lineup (QB, 2 RB, 2 WR, TE, FLEX), every player valued at his expected fantasy points per game: what his targets, carries and throws are usually worth, whether or not they have paid off yet. Kickers and defenses are left out.';
   hd.append(el('div','sub',sub));
   const bd=el('div','bd flush');
-  if(B){const s=B.summary,p=B.paired.fp,v=el('div','qb-verdict');
-    v.textContent='Is it any good? Tested on '+B.seasons.length+' past seasons of this league, from week 4 on: it ordered teams\u2019 rest-of-season scoring with a rank correlation of '+
-      s.xfp.mean_rho.toFixed(2)+', against '+s.fp.mean_rho.toFixed(2)+' valuing the same players by actual points and '+s.espn.mean_rho.toFixed(2)+
-      ' using ESPN\u2019s weekly projection. Ahead in '+p.seasons_xfp_wins+' of '+B.seasons.length+' seasons, but by less than the season-to-season noise. A second opinion beside the power rankings, not a replacement.';
-    bd.append(v);}
+
   const leg=el('div','gr-leg');
   leg.innerHTML='<span><i style="width:14px;height:10px;background:var(--bruar)"></i>lineup xFP per week</span><span><i style="width:3px;height:14px;background:var(--rowan)"></i>same roster valued by actual points</span><span>click a team for its lineup</span>';
   bd.append(leg);
@@ -126,7 +121,7 @@ function teamGrade(F){
     r.addEventListener('click',()=>{lu.hidden=!lu.hidden});
     bd.append(r,lu)});
   const ft=el('div','ft');
-  ft.innerHTML='<b>Method</b> Grade letters are standard deviations from the league average lineup: A \u2265 +1, B \u2265 +\u2153, C within \u2153, D \u2265 \u22121, F below. \u201cvs exp\u201d is the same roster valued by actual points minus by expected: positive means its players have scored above their volume, which tends not to last. Player rates are per game played, shrunk 2 games toward the position median. Expected points: ffverse ffopportunity; scoring: league rules. Power = this week\u2019s power ranking (week '+F.powerWeek+'). Backtest: ffl/backtest_grade.py.';
+  ft.innerHTML='<b>Method</b> Grade letters are standard deviations from the league average lineup: A \u2265 +1, B \u2265 +\u2153, C within \u2153, D \u2265 \u22121, F below. \u201cvs exp\u201d is the same roster valued by actual points minus by expected: positive means its players have scored above what their volume usually produces. Player rates are per game played, shrunk 2 games toward the position median. Expected points: ffverse ffopportunity; scoring: league rules. Power = this week\u2019s power ranking (week '+F.powerWeek+').';
   c.append(hd,bd,ft);return c;
 }
 function qbScatter(F){
@@ -136,10 +131,7 @@ function qbScatter(F){
   hd.append(el('span','chip',F.season+' · weeks '+w0+'–'+w1));
   hd.append(el('div','sub',F.scope+' · min '+F.min+' '+F.unit+' · '+L.qbs_qualified+' QBs · '+L.plays.toLocaleString()+' plays'));
   const bd=el('div','bd flush');
-  const verdict=el('div','qb-verdict');
-  verdict.textContent='Only '+L.qbs_x_distinguishable+' of '+L.qbs_qualified+' QBs sit clearly off league average on '+F.x_label+
-    ' (±1.96 SE). The typical QB’s '+F.x_label+' carries ±'+L.median_x_se.toFixed(2)+
-    ' of noise — turn on the error bars before reading too much into a quadrant.';
+
   const ctl=el('div','qb-ctl');
   const seL=el('label'),se=el('input');se.type='checkbox';seL.append(se,document.createTextNode(' ±1 SE on '+F.x_label));
   const hlL=el('label',null,'Highlight '),sel=el('select');
@@ -157,7 +149,7 @@ function qbScatter(F){
   ft.innerHTML='<b>Source</b> nflverse-data play_by_play_'+F.season+'.parquet (nflfastR parse of NFL GSIS), retrieved '+F.retrieved+
     '. Regular season, weeks '+w0+'–'+w1+'. '+F.x_label+' and nflfastR '+F.y_label+' averaged per passer; dashed lines = league average over all '+
     L.plays.toLocaleString()+' qualifying plays ('+F.x_label+' '+L.x.toFixed(3)+', '+F.y_label+' '+sgn(L.y,2)+'). Error bars = ±1 standard error of mean '+F.x_label+'.';
-  bd.append(verdict,ctl,wrap);c.append(hd,bd,ft);
+  bd.append(ctl,wrap);c.append(hd,bd,ft);
 
   const R=F.qbs.map(q=>({name:q.name,team:q.team,n:q.n,x:q.x,y:q.y,se:q.x_se}));
   const svg=d3.select(svgN);

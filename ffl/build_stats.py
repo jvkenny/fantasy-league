@@ -13,8 +13,8 @@ each player valued at expected fantasy points per game (xFP: what his
 opportunities are usually worth, from ffopportunity). It is published NEXT TO
 the power rankings, not inside them: backtest_grade found it modestly better
 than valuing players by actual points (5 of 6 seasons) but not by a margin
-that clears its own noise. reports/grade_backtest.json carries the numbers and
-the page quotes them.
+that clears its own noise. reports/grade_backtest.json carries the numbers;
+the page itself states only what the grade is (method talk stays off the site).
 
     python3 -m ffl.nfl 2026 && python3 -m ffl.build_stats && python3 -m ffl.render
 """
@@ -45,7 +45,7 @@ COMMON_HEAD = [
 COMMON_TAIL = [
     {"k": "fpg", "l": "FP/G", "f": "1", "d": "Fantasy points per game, league scoring"},
     {"k": "xfpg", "l": "xFP/G", "f": "1", "d": "Expected fantasy points per game: what this player's opportunities are usually worth (ffopportunity model)"},
-    {"k": "fpoe", "l": "+/- exp", "f": "pm1", "d": "FP/G minus xFP/G. Positive = scoring above what the opportunities predict; large values tend to shrink"},
+    {"k": "fpoe", "l": "+/- exp", "f": "pm1", "d": "FP/G minus xFP/G. Positive = scoring above what the opportunities usually produce"},
 ]
 COLS = {
     "QB": [
@@ -272,15 +272,10 @@ def main() -> int:
     latest = max(r["week"] for r in pr)
     prank = {r["tid"]: r["rank"] for r in pr if r["week"] == latest}
     rows, rwk2, _ = team_grade(season, reg, ep, ids, owners, slots, prank)
-    bt_path = REPO / "reports" / "grade_backtest.json"
-    bt = json.loads(bt_path.read_text()) if bt_path.exists() else None
     chart = {"key": f"team_grade_{season}", "kind": "team_grade", "season": season,
              "title": "Roster grade: opportunity, not results",
              "nflWeeks": [1, nflwk], "rosterWeek": rwk2, "powerWeek": latest,
-             "teams": rows, "retrieved": stamp,
-             "backtest": None if not bt else {
-                 "seasons": bt["seasons"], "summary": bt["summary"],
-                 "paired": bt["paired_vs_xfp"]}}
+             "teams": rows, "retrieved": stamp}
     ap = SITE / "analysis.json"
     d = json.loads(ap.read_text())
     i = next((i for i, c in enumerate(d["charts"]) if c.get("key") == chart["key"]), None)
