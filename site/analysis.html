@@ -310,8 +310,8 @@ img.crest{object-fit:contain;border-radius:3px;background:#FBFAF7;padding:1px;
    for the analysis + position stat pages. Overrides the site tokens only under
    [data-skin=haust], so the record book and season tracker are untouched.
    Football read: an overcast late-season ground (mist/frost; basalt at night),
-   accents spent only on data - rowan = above expectation and the hero accent,
-   glacial = below, birch = "this manager's players". 80/20: the grounds stay
+   accents spent only on data - glacial = above expectation (good), rowan =
+   below (bad), birch = "this manager's players". Red-ish never means good. 80/20: the grounds stay
    quiet. Text accent is a darkened rowan (#9A4A18, 5.9:1 on frost) because
    true rowan is 3.9:1 on mist; marks keep true rowan. */
 :root[data-skin=haust]{
@@ -350,7 +350,7 @@ tr.mine .own{border-color:var(--birch);color:var(--text)}
 .gr-who b{display:block;font-weight:700}.gr-who span{font-size:12.5px;color:var(--muted)}
 .gr-trk{position:relative;height:16px;background:var(--turf)}
 .gr-bar{position:absolute;left:0;top:0;bottom:0;background:var(--bruar)}
-.gr-tick{position:absolute;top:-4px;bottom:-4px;width:3px;margin-left:-1.5px;background:var(--rowan)}
+.gr-tick{position:absolute;top:-4px;bottom:-4px;width:3px;margin-left:-1.5px;background:var(--fissure)}
 .gr-n{font:700 18px/1 'Barlow Condensed',sans-serif;text-align:right;font-variant-numeric:tabular-nums}
 .gr-l{font-size:13px;text-align:right;padding:3px 4px;font-variant-numeric:tabular-nums}
 .gr-pr{font-size:12.5px;color:var(--muted);text-align:right}
@@ -436,7 +436,7 @@ function teamGrade(F){
   const bd=el('div','bd flush');
 
   const leg=el('div','gr-leg');
-  leg.innerHTML='<span><i style="width:14px;height:10px;background:var(--bruar)"></i>lineup xFP per week</span><span><i style="width:3px;height:14px;background:var(--rowan)"></i>same roster valued by actual points</span><span>click a team for its lineup</span>';
+  leg.innerHTML='<span><i style="width:14px;height:10px;background:var(--bruar)"></i>lineup xFP per week</span><span><i style="width:3px;height:14px;background:var(--fissure)"></i>same roster valued by actual points</span><span>click a team for its lineup</span>';
   bd.append(leg);
   const T=F.teams,lo=Math.min(...T.map(t=>Math.min(t.xfp,t.fp)))-8,hi=Math.max(...T.map(t=>Math.max(t.xfp,t.fp)))+2;
   const pc=v=>((v-lo)/(hi-lo)*100).toFixed(1)+'%';
@@ -448,7 +448,7 @@ function teamGrade(F){
     r.innerHTML='<span class="gr-g">'+t.grade+'</span><span class="gr-who"><b>'+t.p+'</b><span>'+t.tm+'</span></span>'+
       '<span class="gr-trk"><span class="gr-bar" style="width:'+pc(t.xfp)+'"></span><span class="gr-tick" style="left:'+pc(t.fp)+'"></span></span>'+
       '<span class="gr-n">'+t.xfp.toFixed(1)+'</span>'+
-      '<span class="gr-l" style="background:color-mix(in srgb,var('+(t.luck>0?'--rowan':'--glacial')+') '+a.toFixed(0)+'%,transparent)">'+(t.luck>0?'+':t.luck<0?'\u2212':'')+Math.abs(t.luck).toFixed(1)+'</span>'+
+      '<span class="gr-l" style="background:color-mix(in srgb,var('+(t.luck>0?'--glacial':'--rowan')+') '+a.toFixed(0)+'%,transparent)">'+(t.luck>0?'+':t.luck<0?'\u2212':'')+Math.abs(t.luck).toFixed(1)+'</span>'+
       '<span class="gr-pr">#'+(t.power??'\u2013')+'</span>';
     r.title=t.p+': graded #'+t.rank+', power ranking #'+t.power;
     const lu=el('div','gr-lu');lu.hidden=true;

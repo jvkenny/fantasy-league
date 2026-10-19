@@ -2,8 +2,8 @@
    for the analysis + position stat pages. Overrides the site tokens only under
    [data-skin=haust], so the record book and season tracker are untouched.
    Football read: an overcast late-season ground (mist/frost; basalt at night),
-   accents spent only on data - rowan = above expectation and the hero accent,
-   glacial = below, birch = "this manager's players". 80/20: the grounds stay
+   accents spent only on data - glacial = above expectation (good), rowan =
+   below (bad), birch = "this manager's players". Red-ish never means good. 80/20: the grounds stay
    quiet. Text accent is a darkened rowan (#9A4A18, 5.9:1 on frost) because
    true rowan is 3.9:1 on mist; marks keep true rowan. */
 :root[data-skin=haust]{

@@ -310,8 +310,8 @@ img.crest{object-fit:contain;border-radius:3px;background:#FBFAF7;padding:1px;
    for the analysis + position stat pages. Overrides the site tokens only under
    [data-skin=haust], so the record book and season tracker are untouched.
    Football read: an overcast late-season ground (mist/frost; basalt at night),
-   accents spent only on data - rowan = above expectation and the hero accent,
-   glacial = below, birch = "this manager's players". 80/20: the grounds stay
+   accents spent only on data - glacial = above expectation (good), rowan =
+   below (bad), birch = "this manager's players". Red-ish never means good. 80/20: the grounds stay
    quiet. Text accent is a darkened rowan (#9A4A18, 5.9:1 on frost) because
    true rowan is 3.9:1 on mist; marks keep true rowan. */
 :root[data-skin=haust]{
@@ -473,8 +473,8 @@ function drawScatter(){
   const x=d3.scaleLinear(d3.extent(SC,d=>d.xfpg),[m.l+LG/2,W-m.r-LG/2]).nice();
   const yr=d3.max(SC,d=>Math.abs(d.fpoe))*1.08;
   const y=d3.scaleLinear([-yr,yr],[H-m.b,m.t]).nice();
-  svg.append('rect').attr('x',m.l).attr('y',m.t).attr('width',W-m.l-m.r).attr('height',y(0)-m.t).attr('style','fill:color-mix(in srgb,var(--rowan) 6%,transparent)');
-  svg.append('rect').attr('x',m.l).attr('y',y(0)).attr('width',W-m.l-m.r).attr('height',H-m.b-y(0)).attr('style','fill:color-mix(in srgb,var(--glacial) 6%,transparent)');
+  svg.append('rect').attr('x',m.l).attr('y',m.t).attr('width',W-m.l-m.r).attr('height',y(0)-m.t).attr('style','fill:color-mix(in srgb,var(--glacial) 6%,transparent)');
+  svg.append('rect').attr('x',m.l).attr('y',y(0)).attr('width',W-m.l-m.r).attr('height',H-m.b-y(0)).attr('style','fill:color-mix(in srgb,var(--rowan) 6%,transparent)');
   const xt=x.ticks(phone?5:8);
   xt.forEach(t=>{svg.append('line').attr('x1',x(t)).attr('x2',x(t)).attr('y1',m.t).attr('y2',H-m.b).attr('style','stroke:var(--line)');});
   for(let i=0;i<xt.length-1;i++)for(let k=1;k<5;k++){const hx=x(xt[i]+(xt[i+1]-xt[i])*k/5);
@@ -535,7 +535,7 @@ function drawTable(){
   const body=rows.map(r=>'<tr'+(isMine(r)&&fOwn.value&&fOwn.value!=='*'&&fOwn.value!=='-'?' class="mine"':'')+'>'+COLS.map(c=>{
     if(c.k==='n')return '<td>'+r.n+'<span class="tm">'+r.team+'</span>'+(r.own?'<span class="own">'+r.own+'</span>':'')+'</td>';
     const v=r[c.k];let st='',cls='';
-    if(c.k==='fpoe'&&v!==null){const a=Math.min(Math.abs(v)/6,1)*30;st=' style="background:color-mix(in srgb,var('+(v>0?'--rowan':'--glacial')+') '+a.toFixed(0)+'%,transparent)"';}
+    if(c.k==='fpoe'&&v!==null){const a=Math.min(Math.abs(v)/6,1)*30;st=' style="background:color-mix(in srgb,var('+(v>0?'--glacial':'--rowan')+') '+a.toFixed(0)+'%,transparent)"';}
     if(c.k==='xfpg'||c.k==='fpg')cls=' class="k"';
     return '<td'+cls+st+'>'+fmt(v,c.f)+'</td>'}).join('')+'</tr>').join('');
   tbl.innerHTML=th+'<tbody>'+body+'</tbody>';
