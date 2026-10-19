@@ -1,4 +1,11 @@
-<title>QB Charts</title>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<meta name="color-scheme" content="light dark">
+<title>Analysis</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&family=Barlow+Condensed:wght@600;700&display=swap">
@@ -310,10 +317,11 @@ img.crest{object-fit:contain;border-radius:3px;background:#FBFAF7;padding:1px;
 .qb-svg text{font-family:'Source Sans 3',sans-serif}
 .qb-ctl{display:flex;gap:16px;flex-wrap:wrap;align-items:center;font-size:13px;color:var(--muted);padding:12px 20px 0}
 .qb-tip{position:absolute;pointer-events:none;background:var(--surface);border:1px solid var(--line);padding:6px 10px;font-size:12.5px;opacity:0;white-space:nowrap;color:var(--text)}
-.qb-sw{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:-1px}
 .qb-verdict{padding:14px 20px 0;font-size:14px;max-width:760px}
 @media (max-width:640px){.qb-ctl,.qb-verdict{padding-left:14px;padding-right:14px}}
 </style>
+</head>
+<body>
 <script>
 document.documentElement.setAttribute('data-page','season');
 try{if(localStorage.getItem('ffl-theme')==='dark')
@@ -336,10 +344,10 @@ try{if(localStorage.getItem('ffl-theme')==='dark')
   <div style="height:10px"></div>
 </div></header>
 
-<main class="wrap"><div id="plates"></div></main>
+<main class="wrap"><div id="charts"></div></main>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
-<script id="payload" type="application/json">{"meta":{"recordBook":"https://jvkenny.github.io/fantasy-league/","seasonPage":"https://jvkenny.github.io/fantasy-league/season.html"},"plates":[{"preset":"deep_ball","title":"QB deep ball performance","scope":"Pass attempts of 15+ air yards","season":2026,"weeks":[1,6],"min":10,"unit":"att","x_label":"EPA / play","y_label":"CPOE","league":{"x":0.421,"y":0.07,"plays":1241,"qbs_qualified":36,"qbs_x_distinguishable":2,"median_x_se":0.343},"retrieved":"2026-10-19T22:22Z","qbs":[{"id":"00-0036442","name":"J.Burrow","team":"CIN","n":32,"x":1.261,"y":18.56,"x_se":0.352},{"id":"00-0039917","name":"M.Penix","team":"ATL","n":28,"x":0.963,"y":4.2,"x_se":0.334},{"id":"00-0030565","name":"G.Smith","team":"NYJ","n":32,"x":0.908,"y":8.46,"x_se":0.363},{"id":"00-0036971","name":"T.Lawrence","team":"JAX","n":35,"x":0.884,"y":11.8,"x_se":0.335},{"id":"00-0034796","name":"L.Jackson","team":"BAL","n":22,"x":0.839,"y":7.01,"x_se":0.458},{"id":"00-0036389","name":"J.Hurts","team":"PHI","n":29,"x":0.809,"y":10.1,"x_se":0.429},{"id":"00-0032950","name":"C.Wentz","team":"MIN","n":10,"x":0.781,"y":1.33,"x_se":0.68},{"id":"00-0039918","name":"C.Williams","team":"CHI","n":17,"x":0.779,"y":18.18,"x_se":0.416},{"id":"00-0033106","name":"J.Goff","team":"DET","n":40,"x":0.761,"y":-2.39,"x_se":0.274},{"id":"00-0034857","name":"J.Allen","team":"BUF","n":38,"x":0.76,"y":5.0,"x_se":0.339},{"id":"00-0036264","name":"J.Love","team":"GB","n":51,"x":0.746,"y":4.05,"x_se":0.31},{"id":"00-0037834","name":"B.Purdy","team":"SF","n":34,"x":0.691,"y":3.37,"x_se":0.348},{"id":"00-0039150","name":"B.Young","team":"CAR","n":43,"x":0.664,"y":14.7,"x_se":0.287},{"id":"00-0033873","name":"P.Mahomes","team":"KC","n":25,"x":0.576,"y":5.45,"x_se":0.543},{"id":"00-0033077","name":"D.Prescott","team":"DAL","n":43,"x":0.562,"y":2.85,"x_se":0.251},{"id":"00-0039851","name":"D.Maye","team":"NE","n":44,"x":0.561,"y":12.63,"x_se":0.326},{"id":"00-0040743","name":"T.Shough","team":"NO","n":43,"x":0.44,"y":2.07,"x_se":0.298},{"id":"00-0035228","name":"K.Murray","team":"MIN","n":24,"x":0.394,"y":4.3,"x_se":0.392},{"id":"00-0039163","name":"C.Stroud","team":"HOU","n":49,"x":0.392,"y":-2.98,"x_se":0.202},{"id":"00-0029604","name":"K.Cousins","team":"LV","n":43,"x":0.389,"y":-3.06,"x_se":0.33},{"id":"00-0033537","name":"D.Watson","team":"CLE","n":32,"x":0.38,"y":-1.91,"x_se":0.306},{"id":"00-0034869","name":"S.Darnold","team":"SEA","n":27,"x":0.356,"y":6.81,"x_se":0.377},{"id":"00-0041251","name":"J.Daniels","team":"TB","n":15,"x":0.262,"y":-9.72,"x_se":0.593},{"id":"00-0039732","name":"B.Nix","team":"DEN","n":22,"x":0.174,"y":0.05,"x_se":0.432},{"id":"00-0026498","name":"M.Stafford","team":"LA","n":62,"x":0.149,"y":-6.97,"x_se":0.237},{"id":"00-0038128","name":"M.Willis","team":"MIA","n":38,"x":0.141,"y":-12.81,"x_se":0.293},{"id":"00-0039910","name":"J.Daniels","team":"WAS","n":16,"x":0.048,"y":-17.67,"x_se":0.409},{"id":"00-0031503","name":"J.Winston","team":"NYG","n":39,"x":0.039,"y":-6.54,"x_se":0.362},{"id":"00-0023459","name":"A.Rodgers","team":"PIT","n":46,"x":0.036,"y":-9.3,"x_se":0.262},{"id":"00-0036355","name":"J.Herbert","team":"LAC","n":35,"x":0.023,"y":-4.06,"x_se":0.406},{"id":"00-0035710","name":"D.Jones","team":"IND","n":46,"x":-0.005,"y":-10.13,"x_se":0.239},{"id":"00-0032268","name":"M.Mariota","team":"WAS","n":13,"x":-0.051,"y":-8.87,"x_se":0.45},{"id":"00-0033119","name":"J.Brissett","team":"ARI","n":39,"x":-0.066,"y":-11.18,"x_se":0.228},{"id":"00-0040676","name":"C.Ward","team":"TEN","n":30,"x":-0.069,"y":-7.33,"x_se":0.308},{"id":"00-0038416","name":"T.Bagent","team":"CHI","n":12,"x":-0.329,"y":-2.98,"x_se":0.698},{"id":"00-0034855","name":"B.Mayfield","team":"TB","n":21,"x":-0.354,"y":-17.43,"x_se":0.452}],"key":"deep_ball_2026"}]}</script>
+<script id="payload" type="application/json">{"meta":{"recordBook":"https://jvkenny.github.io/fantasy-league/","seasonPage":"https://jvkenny.github.io/fantasy-league/season.html"},"charts":[{"preset":"deep_ball","title":"QB deep ball performance","scope":"Pass attempts of 15+ air yards","season":2026,"weeks":[1,6],"min":10,"unit":"att","x_label":"EPA / play","y_label":"CPOE","league":{"x":0.421,"y":0.07,"plays":1241,"qbs_qualified":36,"qbs_x_distinguishable":2,"median_x_se":0.343},"retrieved":"2026-10-19T22:22Z","qbs":[{"id":"00-0036442","name":"J.Burrow","team":"CIN","n":32,"x":1.261,"y":18.56,"x_se":0.352},{"id":"00-0039917","name":"M.Penix","team":"ATL","n":28,"x":0.963,"y":4.2,"x_se":0.334},{"id":"00-0030565","name":"G.Smith","team":"NYJ","n":32,"x":0.908,"y":8.46,"x_se":0.363},{"id":"00-0036971","name":"T.Lawrence","team":"JAX","n":35,"x":0.884,"y":11.8,"x_se":0.335},{"id":"00-0034796","name":"L.Jackson","team":"BAL","n":22,"x":0.839,"y":7.01,"x_se":0.458},{"id":"00-0036389","name":"J.Hurts","team":"PHI","n":29,"x":0.809,"y":10.1,"x_se":0.429},{"id":"00-0032950","name":"C.Wentz","team":"MIN","n":10,"x":0.781,"y":1.33,"x_se":0.68},{"id":"00-0039918","name":"C.Williams","team":"CHI","n":17,"x":0.779,"y":18.18,"x_se":0.416},{"id":"00-0033106","name":"J.Goff","team":"DET","n":40,"x":0.761,"y":-2.39,"x_se":0.274},{"id":"00-0034857","name":"J.Allen","team":"BUF","n":38,"x":0.76,"y":5.0,"x_se":0.339},{"id":"00-0036264","name":"J.Love","team":"GB","n":51,"x":0.746,"y":4.05,"x_se":0.31},{"id":"00-0037834","name":"B.Purdy","team":"SF","n":34,"x":0.691,"y":3.37,"x_se":0.348},{"id":"00-0039150","name":"B.Young","team":"CAR","n":43,"x":0.664,"y":14.7,"x_se":0.287},{"id":"00-0033873","name":"P.Mahomes","team":"KC","n":25,"x":0.576,"y":5.45,"x_se":0.543},{"id":"00-0033077","name":"D.Prescott","team":"DAL","n":43,"x":0.562,"y":2.85,"x_se":0.251},{"id":"00-0039851","name":"D.Maye","team":"NE","n":44,"x":0.561,"y":12.63,"x_se":0.326},{"id":"00-0040743","name":"T.Shough","team":"NO","n":43,"x":0.44,"y":2.07,"x_se":0.298},{"id":"00-0035228","name":"K.Murray","team":"MIN","n":24,"x":0.394,"y":4.3,"x_se":0.392},{"id":"00-0039163","name":"C.Stroud","team":"HOU","n":49,"x":0.392,"y":-2.98,"x_se":0.202},{"id":"00-0029604","name":"K.Cousins","team":"LV","n":43,"x":0.389,"y":-3.06,"x_se":0.33},{"id":"00-0033537","name":"D.Watson","team":"CLE","n":32,"x":0.38,"y":-1.91,"x_se":0.306},{"id":"00-0034869","name":"S.Darnold","team":"SEA","n":27,"x":0.356,"y":6.81,"x_se":0.377},{"id":"00-0041251","name":"J.Daniels","team":"TB","n":15,"x":0.262,"y":-9.72,"x_se":0.593},{"id":"00-0039732","name":"B.Nix","team":"DEN","n":22,"x":0.174,"y":0.05,"x_se":0.432},{"id":"00-0026498","name":"M.Stafford","team":"LA","n":62,"x":0.149,"y":-6.97,"x_se":0.237},{"id":"00-0038128","name":"M.Willis","team":"MIA","n":38,"x":0.141,"y":-12.81,"x_se":0.293},{"id":"00-0039910","name":"J.Daniels","team":"WAS","n":16,"x":0.048,"y":-17.67,"x_se":0.409},{"id":"00-0031503","name":"J.Winston","team":"NYG","n":39,"x":0.039,"y":-6.54,"x_se":0.362},{"id":"00-0023459","name":"A.Rodgers","team":"PIT","n":46,"x":0.036,"y":-9.3,"x_se":0.262},{"id":"00-0036355","name":"J.Herbert","team":"LAC","n":35,"x":0.023,"y":-4.06,"x_se":0.406},{"id":"00-0035710","name":"D.Jones","team":"IND","n":46,"x":-0.005,"y":-10.13,"x_se":0.239},{"id":"00-0032268","name":"M.Mariota","team":"WAS","n":13,"x":-0.051,"y":-8.87,"x_se":0.45},{"id":"00-0033119","name":"J.Brissett","team":"ARI","n":39,"x":-0.066,"y":-11.18,"x_se":0.228},{"id":"00-0040676","name":"C.Ward","team":"TEN","n":30,"x":-0.069,"y":-7.33,"x_se":0.308},{"id":"00-0038416","name":"T.Bagent","team":"CHI","n":12,"x":-0.329,"y":-2.98,"x_se":0.698},{"id":"00-0034855","name":"B.Mayfield","team":"TB","n":21,"x":-0.354,"y":-17.43,"x_se":0.452}],"key":"deep_ball_2026","kind":"qb_scatter"}]}</script>
 <script>
 const D = JSON.parse(document.getElementById('payload').textContent);
 const $ = s => document.querySelector(s);
@@ -361,14 +369,15 @@ const el = (t,c,x)=>{const n=document.createElement(t);if(c)n.className=c;
   btns.forEach(b=>b.addEventListener('click',()=>apply(b.dataset.t,true)));
 })();
 
-$('#brand').append(document.createTextNode('QB '));
-$('#brand').append(el('span',null,'Charts'));
+$('#brand').append(document.createTextNode('League '));
+$('#brand').append(el('span',null,'Analysis'));
 $('#backS').href=D.meta.seasonPage; $('#backR').href=D.meta.recordBook;
-$('#state').textContent='League-wide NFL quarterback charts from nflverse play-by-play. Newest first.';
+$('#state').textContent='Charts and analysis for the league, sourced and reproducible. Newest first.';
 
 const sgn=(v,d)=>(v>0?'+':v<0?'\u2212':'')+Math.abs(v).toFixed(d);
 
-function plate(F,idx){
+const RENDER={qb_scatter:qbScatter};
+function qbScatter(F){
   const L=F.league,[w0,w1]=F.weeks;
   const c=el('div','card'),hd=el('div','hd');
   hd.append(el('h2',null,F.title));
@@ -385,9 +394,8 @@ function plate(F,idx){
   const teams=[...new Set(F.qbs.map(q=>q.team))].sort();
   sel.innerHTML='<option value="">none</option>'+teams.map(t=>'<option>'+t+'</option>').join('');
   hlL.append(sel);
-  const k1=el('span');k1.innerHTML='<span class="qb-sw" style="background:var(--accent)"></span>highlighted team';
-  const k2=el('span');k2.innerHTML='<span class="qb-sw" style="background:var(--muted);opacity:.55"></span>others \u00b7 dot size = '+F.unit;
-  ctl.append(seL,hlL,k1,k2);
+  const k2=el('span',null,'Hover a logo for '+F.unit+' and exact values');
+  ctl.append(seL,hlL,k2);
   const wrap=el('div');wrap.style.position='relative';
   const tip=el('div','qb-tip');wrap.append(tip);
   const svgN=document.createElementNS('http://www.w3.org/2000/svg','svg');svgN.setAttribute('class','qb-svg');
@@ -409,7 +417,7 @@ function plate(F,idx){
     const px=(d3.max(xs)-d3.min(xs))*.03,py=(d3.max(ys)-d3.min(ys))*.08;
     const x=d3.scaleLinear([d3.min(xs)-px,d3.max(xs)+px],[m.l,W-m.r]).nice();
     const y=d3.scaleLinear([d3.min(ys)-py,d3.max(ys)+py],[H-m.b,m.t]).nice();
-    const r=d3.scaleSqrt(d3.extent(R,d=>d.n),phone?[3,6.5]:[4,9]);
+    const LG=phone?18:28,r=()=>LG/2;
     const hl=sel.value,isH=d=>d.team===hl;
     svg.append('rect').attr('x',x(L.x)).attr('y',m.t).attr('width',W-m.r-x(L.x)).attr('height',y(L.y)-m.t).attr('style','fill:color-mix(in srgb,var(--win) 7%,transparent)');
     svg.append('rect').attr('x',m.l).attr('y',y(L.y)).attr('width',x(L.x)-m.l).attr('height',H-m.b-y(L.y)).attr('style','fill:color-mix(in srgb,var(--loss) 7%,transparent)');
@@ -426,8 +434,9 @@ function plate(F,idx){
     const D2=[...R].sort((a,b)=>isH(a)-isH(b));
     if(se.checked) svg.append('g').selectAll('line').data(D2).join('line').attr('x1',d=>x(d.x-d.se)).attr('x2',d=>x(d.x+d.se)).attr('y1',d=>y(d.y)).attr('y2',d=>y(d.y))
       .attr('style',d=>'stroke:var('+(isH(d)?'--accent':'--muted')+');stroke-opacity:'+(isH(d)?.85:.35)).attr('stroke-width',2).attr('stroke-linecap','round');
-    svg.append('g').selectAll('circle').data(D2).join('circle').attr('cx',d=>x(d.x)).attr('cy',d=>y(d.y)).attr('r',d=>r(d.n))
-      .attr('style',d=>'fill:var('+(isH(d)?'--accent':'--muted')+');fill-opacity:'+(isH(d)?1:.55)+';stroke:var(--surface);stroke-width:1.5')
+    svg.append('g').selectAll('image').data(D2).join('image').attr('href',d=>'logos/nfl/'+d.team+'.png')
+      .attr('x',d=>x(d.x)-LG/2).attr('y',d=>y(d.y)-LG/2).attr('width',LG).attr('height',LG)
+      .attr('opacity',d=>!hl||isH(d)?1:.22)
       .on('mousemove',(e,d)=>{const b=wrap.getBoundingClientRect();tip.style.opacity=1;
         tip.innerHTML='<b>'+d.name+'</b> \u00b7 '+d.team+'<br>'+F.x_label+' '+d.x.toFixed(2)+' \u00b1 '+d.se.toFixed(2)+'<br>'+F.y_label+' '+sgn(d.y,1)+' pp \u00b7 '+d.n+' '+F.unit;
         let Lf=e.clientX-b.left+14;if(Lf>b.width-200)Lf-=220;tip.style.left=Lf+'px';tip.style.top=(e.clientY-b.top-12)+'px'})
@@ -442,10 +451,13 @@ function plate(F,idx){
         if(R.some(o=>o!==d&&Math.hypot(x(o.x)-Math.max(bx[0],Math.min(x(o.x),bx[2])),y(o.y)-Math.max(bx[1],Math.min(y(o.y),bx[3])))<r(o.n)))continue;
         placed.push(bx);out.push({d,lx,ly,a});break}}
     svg.append('g').selectAll('text').data(out).join('text').attr('x',o=>o.lx).attr('y',o=>o.ly).attr('text-anchor',o=>o.a).attr('font-size',fs)
-      .attr('style',o=>'fill:var('+(isH(o.d)?'--text':'--muted')+');font-weight:'+(isH(o.d)?700:400)).text(o=>o.d.name);
+      .attr('style',o=>'fill:var('+(isH(o.d)||!hl?'--text':'--muted')+');font-weight:'+(isH(o.d)?700:400)+';opacity:'+(!hl||isH(o.d)?1:.45)).text(o=>o.d.name);
   }
   sel.onchange=draw;se.onchange=draw;matchMedia('(max-width:640px)').addEventListener('change',draw);draw();
   return c;
 }
-[...D.plates].map((F,i)=>[F,i]).reverse().forEach(([F,i])=>{$('#plates').append(plate(F,i));$('#plates').append(el('div','yard'))});
+[...D.charts].reverse().forEach(F=>{const f=RENDER[F.kind];if(!f)return;$('#charts').append(f(F));$('#charts').append(el('div','yard'))});
 </script>
+
+</body>
+</html>
