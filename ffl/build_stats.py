@@ -2,7 +2,8 @@
 """NFL position stat pages + the analytics roster grade.
 
   site/stats_{qb,rb,wr,te}.json   one payload per position page
-  site/analysis.json              upserts the `team_grade` chart
+  site/analysis.json              upserts the `team_grade` chart and the three
+                                  QB air-yards charts (ffl.qb_charts)
 
 Every player's fantasy points are scored with THIS league's rules (ffl.nfl.W),
 so FP/G here matches ESPN's actuals for 96-97% of player-weeks; the rest are
@@ -27,7 +28,7 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-from ffl import nfl
+from ffl import nfl, qb_charts
 
 REPO = Path(__file__).resolve().parent.parent
 SITE = REPO / "site"
@@ -289,6 +290,8 @@ def main() -> int:
         d["charts"].append(chart)
     else:
         d["charts"][i] = chart
+    # QB air-yards charts (same page) rebuild from play-by-play every run
+    qb_charts.upsert(d, qb_charts.build(season))
     d["meta"]["pages"] = common_meta["pages"]
     ap.write_text(json.dumps(d, ensure_ascii=True, separators=(",", ":")))
     print(f"  analysis.json  team_grade: rosters wk{rwk2}, NFL wks 1-{nflwk}")

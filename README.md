@@ -97,10 +97,16 @@ The cost: browser-pulled weeks are no longer verbatim raw captures, only the
 fields `normalize` reads. A field not extracted is gone for that week rather than
 re-derivable from disk.
 
-Then, as normal:
+The in-page reducer is `ffl/pull_week.js` (set `W` to the completed week). Save
+the `get_page_text` output as `data/raw/<yr>/_pull_wkNN.json`, then ONE command
+rebuilds every page - record book, season tracker, Analysis (roster grade + QB
+air-yards charts) and the QB/RB/WR/TE stat pages:
 
-    python3 -m ffl.normalize && python3 -m ffl.build_site && \
-      python3 -m ffl.build_season && python3 -m ffl.render
+    python3 -m ffl.refresh --pull data/raw/2026/_pull_wkNN.json
+
+It refuses a week ESPN has not finalized and checks every team's starters sum to
+ESPN's total before writing anything. Without `--pull` it rebuilds from disk.
+Then commit `site/` and `docs/` and push.
 
 ## Season tracker (`site/_season.html`)
 

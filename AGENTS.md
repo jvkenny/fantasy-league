@@ -34,6 +34,8 @@ ffl.seed_week0 week-0 power ranking from the draft (regenerable; never hand-plac
 ffl.nfl        nflverse + ffverse public data -> data/nfl/<year>/ (gitignored; no auth)
 ffl.build_stats   data/nfl + data/derived -> site/stats_{qb,rb,wr,te}.json + team_grade in
                site/analysis.json (position pages + analytics roster grade, league scoring)
+ffl.qb_charts  QB air-yards charts (stdlib port of the pandas research script, verified exact)
+ffl.refresh    the weekly entry point: ingest browser pull -> every build step -> render
 ffl.backtest_grade  tests the grade on 2019, 2021-2025 -> reports/grade_backtest.json
 ```
 
@@ -80,13 +82,14 @@ python3 -m http.server 8000           # then open http://localhost:8000/docs/
 No test suite. Verify by rendering, checking `git diff` touches only what you meant, and
 viewing both pages at desktop and ~375px width.
 
-Full weekly refresh (maintainer only, needs ESPN access):
+Full weekly refresh (maintainer only, needs the browser pull - README "Weekly refresh via the browser"):
 
 ```bash
-python3 -m ffl.normalize && python3 -m ffl.build_site && \
-  python3 -m ffl.build_season && python3 -m ffl.nfl 2026 && python3 -m ffl.build_stats && \
-  python3 -m ffl.render
+python3 -m ffl.refresh --pull data/raw/2026/_pull_wkNN.json   # every page, Analysis included
 ```
+
+Never refresh pages piecemeal: `ffl.refresh` is the one path, so the Analysis page (roster grade
+and the QB air-yards charts from `ffl/qb_charts.py`) can't fall behind the rest of the site.
 
 ## Deployment
 

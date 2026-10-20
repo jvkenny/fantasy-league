@@ -11,6 +11,7 @@ Sources (all public, no auth):
   nflverse-data          stats_player_week_<yr>.csv.gz   usage / efficiency
   nflverse-data          snap_counts_<yr>.csv.gz         offensive snap share
   nflverse-data          players.csv.gz                  gsis <-> espn <-> pfr ids
+  nflverse-data          play_by_play_<yr>.csv.gz        per-play EPA/CPOE (ffl.qb_charts)
 
 Raw files land in data/nfl/ (gitignored; re-fetchable).
 
@@ -77,6 +78,7 @@ def fetch(season: int, force: bool = False) -> None:
         f"ep_weekly_{season}.csv": f"{FF}/ep_weekly_{season}.csv",
         f"stats_player_week_{season}.csv.gz": f"{NV}/stats_player/stats_player_week_{season}.csv.gz",
         f"snap_counts_{season}.csv.gz": f"{NV}/snap_counts/snap_counts_{season}.csv.gz",
+        f"play_by_play_{season}.csv.gz": f"{NV}/pbp/play_by_play_{season}.csv.gz",
     }
     for name, url in files.items():
         if force or not (d / name).exists():
