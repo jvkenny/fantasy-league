@@ -151,7 +151,7 @@ function cardPad(host,o){ const b=card(host,o); b.classList.remove('flush'); ret
 
 /* ---------- charts ---------- */
 function scatter(host, pts, {xl,yl,note}={}){
-  const W=560,H=380,M={t:14,r:16,b:38,l:44};
+  const W=fitW(host),H=Math.round(Math.max(300,Math.min(400,W*.78))),M={t:14,r:16,b:38,l:44};
   const xs=pts.map(p=>p.x), ys=pts.map(p=>p.y);
   const lo=Math.min(...xs,...ys)-.03, hi=Math.max(...xs,...ys)+.03;
   const sx=v=>M.l+(v-lo)/(hi-lo)*(W-M.l-M.r), sy=v=>H-M.b-(v-lo)/(hi-lo)*(H-M.t-M.b);
@@ -601,4 +601,10 @@ const R={managers:renderManagers,seasons:renderSeasons,h2h:renderH2H,
          findings:renderFindings};
 function render(){ PLATE=0; R[tab](); }
 syncTabs(); render();
+// charts are drawn to the width they land in - redraw when that width changes,
+// not on the height-only resizes a phone fires while its toolbar slides
+(function(){let lw=window.innerWidth,t=0;
+  window.addEventListener('resize',()=>{clearTimeout(t);t=setTimeout(()=>{
+    if(Math.abs(window.innerWidth-lw)<24) return; lw=window.innerWidth; render();},150);});
+})();
 </script>

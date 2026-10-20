@@ -4,6 +4,15 @@
    CSS custom properties so both themes work without redraw. */
 const NS_='http://www.w3.org/2000/svg';
 function mkS(n,a){const e=document.createElementNS(NS_,n);for(const k in a)e.setAttribute(k,a[k]);return e}
+/* Draw at the width the chart will actually occupy. A fixed 560 viewBox scaled
+   into a ~320px card shrank every label to ~5px; measured, the type lands 1:1.
+   Before layout (or detached) clientWidth is 0, so fall back to the old 560. */
+function fitW(host,fb){
+  if(!host||!host.clientWidth) return fb||560;
+  const cs=getComputedStyle(host);  // clientWidth includes padding; the svg does not
+  const w=host.clientWidth-parseFloat(cs.paddingLeft)-parseFloat(cs.paddingRight);
+  return w>0?Math.max(280,Math.min(760,Math.round(w))):(fb||560);
+}
 function svgBox(host,w,h){const s=mkS('svg',{viewBox:`0 0 ${w} ${h}`});host.append(s);return s}
 function axisLabel(svg,x,y,txt,anchor,rot){
   const t=mkS('text',{x,y,class:'axl','text-anchor':anchor||'middle'});
@@ -19,7 +28,7 @@ function quantile(sorted,q){
 /* Histogram with optional vertical reference marks. */
 function histogram(host,values,o){
   o=o||{}; if(!values.length){host.append(el('div','empty','No data yet.'));return}
-  const W=o.w||560,H=o.h||280,M={t:12,r:14,b:38,l:44};
+  const W=o.w||fitW(host),H=o.h||280,M={t:12,r:14,b:38,l:44};
   const sorted=[...values].sort((a,b)=>a-b);
   const lo=o.min!==undefined?o.min:Math.floor(sorted[0]/10)*10;
   const hi=o.max!==undefined?o.max:Math.ceil(sorted[sorted.length-1]/10)*10;
@@ -68,7 +77,7 @@ function histogram(host,values,o){
 /* A continuous function plotted over a domain, with optional guide points. */
 function curve(host,fn,o){
   o=o||{};
-  const W=o.w||560,H=o.h||280,M={t:14,r:16,b:38,l:46};
+  const W=o.w||fitW(host),H=o.h||280,M={t:14,r:16,b:38,l:46};
   const [x0,x1]=o.domain,[y0,y1]=o.range||[0,1];
   const sx=v=>M.l+((v-x0)/(x1-x0))*(W-M.l-M.r);
   const sy=v=>H-M.b-((v-y0)/(y1-y0))*(H-M.t-M.b);
@@ -112,7 +121,7 @@ function curve(host,fn,o){
 /* Reliability diagram: predicted probability vs observed rate, dot area ~ n. */
 function reliability(host,bins,o){
   o=o||{};
-  const W=o.w||560,H=o.h||300,M={t:14,r:16,b:38,l:46};
+  const W=o.w||fitW(host),H=o.h||300,M={t:14,r:16,b:38,l:46};
   const sx=v=>M.l+v*(W-M.l-M.r), sy=v=>H-M.b-v*(H-M.t-M.b);
   const svg=svgBox(host,W,H);
   for(let i=0;i<=4;i++){const v=i/4;
@@ -147,7 +156,7 @@ function reliability(host,bins,o){
 /* Scatter with an optional binned trend line through it. */
 function scatterTrend(host,pts,o){
   o=o||{}; if(!pts.length){host.append(el('div','empty','No data yet.'));return}
-  const W=o.w||560,H=o.h||300,M={t:14,r:16,b:38,l:48};
+  const W=o.w||fitW(host),H=o.h||300,M={t:14,r:16,b:38,l:48};
   const xs=pts.map(p=>p.x), ys=pts.map(p=>p.y);
   const x0=o.x0!==undefined?o.x0:Math.min(...xs), x1=o.x1!==undefined?o.x1:Math.max(...xs);
   const y0=o.y0!==undefined?o.y0:0, y1=o.y1!==undefined?o.y1:Math.max(...ys)*1.05;
@@ -248,7 +257,7 @@ function scatterTrend(host,pts,o){
 function barsH(host,rows,o){
   o=o||{}; if(!rows.length){host.append(el('div','empty','No data yet.'));return}
   const gut=o.gutter||96, rh=o.rowH||26, pad=o.valPad||46;
-  const W=o.w||560, H=rows.length*rh+40;
+  const W=o.w||fitW(host), H=rows.length*rh+40;
   const vals=rows.map(r=>r.value);
   const x1=o.max!==undefined?o.max:Math.max(...vals,0)*1.02||1;
   const x0=Math.min(0,...vals);

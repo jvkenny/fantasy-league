@@ -205,6 +205,13 @@ st.append(el('span','pill',`${M.teams} teams`));
 st.append(el('span','pill',`${M.playoffTeams} make the playoffs`));
 st.append(el('span','pill',`Data pulled ${M.generated}`));
 try{window.matchMedia('(max-width:640px)').addEventListener('change',()=>render());}catch(e){}
+// Charts are drawn to the width they land in, so redraw when that width changes
+// (window resize, rotation) - but not on the height-only resizes a phone fires
+// as its toolbar slides while scrolling.
+(function(){let lw=window.innerWidth,t=0;
+  window.addEventListener('resize',()=>{clearTimeout(t);t=setTimeout(()=>{
+    if(Math.abs(window.innerWidth-lw)<24) return; lw=window.innerWidth; render();},150);});
+})();
 
 const wkOK = w => F.week==='all' || +w===+F.week;
 const perOK = p => F.person==='all' || p===F.person;
@@ -671,12 +678,12 @@ function renderPower(){
 const NARROW=()=>window.matchMedia('(max-width:640px)').matches;
 function renderCharts(){
   const host=$('#charts'); host.textContent='';
-  const cols=el('div','cols'); host.append(cols);
-  // A 560-wide viewBox scaled into a ~317px phone column shrinks every label to
-  // about 6px. Draw a narrower box on small screens so the type lands near 1:1.
+  const cols=el('div','cols two'); host.append(cols);
+  // Charts draw at their card's measured width (fitW in _charts.js), so the
+  // type lands 1:1 at any size; phones only get a tighter name gutter.
   const nar=NARROW();
-  const BAR=nar?{w:360,gutter:74,rowH:28,valPad:50}:{};
-  const SCT=nar?{w:360,h:300}:{};
+  const BAR=nar?{gutter:74,rowH:28,valPad:50}:{};
+  const SCT={h:nar?300:320};
   const wk = F.week==='all' ? null : +F.week;
   const wkLabel = wk===null ? 'the season so far' : ('week '+wk);
 

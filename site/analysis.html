@@ -74,7 +74,11 @@ main{padding:28px 0 80px}
   color:var(--text);margin-right:8px}
 .chip{font-family:"IBM Plex Mono",monospace;font-size:10.5px;color:var(--muted);
   border:1px solid var(--line);border-radius:2px;padding:2px 8px;white-space:nowrap}
-.cols{display:grid;gap:24px;grid-template-columns:repeat(auto-fit,minmax(min(360px,100%),1fr))}
+/* auto-fill, not auto-fit: charts measure their card as they are drawn, and under
+   auto-fit the first card in a row is briefly the full width */
+.cols{display:grid;gap:24px;grid-template-columns:repeat(auto-fill,minmax(min(360px,100%),1fr))}
+/* four charts read as a 2x2, not three across and one orphaned underneath */
+.cols.two{grid-template-columns:repeat(auto-fill,minmax(min(460px,100%),1fr))}
 /* tables */
 .tw{overflow-x:auto;max-height:620px}
 table{border-collapse:collapse;width:100%;font-size:14px}
